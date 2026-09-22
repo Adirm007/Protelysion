@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.21.0-20260922",
+  "revision": "protelysion-0.22.0-20260922",
   "scope": {
     "themes": 48,
     "species": 432,
@@ -14,8 +14,8 @@
     ]
   },
   "pck": {
-    "bytes": 106283964,
-    "sha256": "a65c4a7bddc2e9ff213a7dbefd350fc054ce993598da272a456ab1f9bcdfa83d"
+    "bytes": 106271868,
+    "sha256": "b596ddc87ada1333f9e15a1ac432f36f42f91bdbf6b3bf1e493debaf946052ae"
   },
   "pckParts": [
     "game.pck.gz.001",
@@ -52,7 +52,7 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "3212825b787914928872f9f9caa50f52aa03748ac4c3d95863d1488d2ca900bf"
+      "sha256": "934ab989a3a5af5a97e881ac1b35711c7179bf4b3114536620b792c673d572c8"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
@@ -75,8 +75,8 @@
       "sha256": "0ab04ae360e5e0e0aa3298d2aa8671211ef852d0355482846c0d216110e1db02"
     },
     "game.pck.gz.007": {
-      "bytes": 3673815,
-      "sha256": "a4c62257bfe562d68dac1562ebbef8f3f843f94245433990c48354d956f0d1a7"
+      "bytes": 3662014,
+      "sha256": "141efa39771fb4055b496d4cc40e4e4ab279d501f62f7ceb5635c07930159807"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
@@ -91,8 +91,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 824628,
-      "sha256": "bd349bc31d5f9df4139ddfed0a7e095c93c939f7ff15f87c39116827f2ed3faf"
+      "bytes": 864300,
+      "sha256": "05b99f7a005ee19064767a67b239e5892c74b516d3e278d9812ac7241ef04ae8"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
