@@ -8,7 +8,7 @@ function makeExternalHtml(base,css='',mode='host'){
  const base=${mode==='standalone'?"new URL('./',location.href).href":JSON.stringify(url.href).replace(/</g,'\\u003c')},mode=${JSON.stringify(mode)};
  const status=document.getElementById('loader-status'),retry=document.getElementById('loader-retry'),root=document.getElementById('booksea-game');let busy=false;
  const sha=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),v=>v.toString(16).padStart(2,'0')).join('');
- async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='正在检查普罗泰利西翁发布版本…';
+ async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='书页正在展开……';
  try{
   if(!window.isSecureContext||!window.caches||!window.crypto?.subtle)throw Error('请通过HTTPS或本机localhost访问酒馆，并允许浏览器缓存');
   const cache=await caches.open('protelysion-bootstrap-v1'),manifestUrl=new URL('release-manifest.json',base).href;let response;
@@ -26,10 +26,10 @@ function makeExternalHtml(base,css='',mode='host'){
   }
   if(typeof window.BookseaDistribution?.boot!=='function')throw Error('外链不是有效书海运行包');
   await window.BookseaDistribution.boot(root,{base,manifest,mode});status.textContent='';
- }catch(e){status.textContent='普罗泰利西翁加载失败：'+e.message;retry.hidden=false;}finally{busy=false;}}
+ }catch(e){status.textContent='书页暂时没能展开，请重试。';retry.hidden=false;}finally{busy=false;}}
  retry.onclick=start;start();
 })();`;
- return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 书海迷宫</title><style>'+css+'a{color:#d8c294}progress{accent-color:#d6bf8e}button{touch-action:manipulation}</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>重试加载</button><div id="booksea-game"></div><footer style="padding:12px;font:12px system-ui;color:#aaa">普罗泰利西翁 · 原作 Adirm007 · CC BY-NC 4.0（原创部分）<br>第三方素材保留原许可 · <a target="_blank" rel="noopener" href="'+url.href+'credits.html">许可与署名</a></footer></main><script>'+boot.replace(/<\/script/gi,'<\\/script')+'<\/script></html>';
+ return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 书海迷宫</title><style>'+css+'a{color:#d8c294}progress{accent-color:#d6bf8e}button{touch-action:manipulation}</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>再试一次</button><div id="booksea-game"></div></main><script>'+boot.replace(/<\/script/gi,'<\\/script')+'<\/script></html>';
 }
 function makeExternalRegex(base,template,css=''){
  return {...template,scriptName:'普罗泰利西翁-书海迷宫-外链加载',disabled:false,replaceString:'```html\n'+makeExternalHtml(base,css,'host')+'\n```'};

@@ -8,6 +8,11 @@ https://creativecommons.org/licenses/by-nc/4.0/
 
 重要排除：此授权仅覆盖权利由本项目作者持有的原创部分。第三方音乐、少女素材、音效、字体、引擎、库及宿主来源内容分别受其原许可约束，不因本项目许可变为CC BY-NC，也不授予本项目未拥有的权利。本游戏是非商业可修改项目，不声称属于OSI意义的开源软件。
 
+界面夜梦立绘、头像和咖啡馆背景：来自Adirm007提供的读者正则。作者于2026-09-22明确授权任意取用；本项目压缩为WebP并随程序内嵌。图源：
+https://img.baibai.cv/f/yeV2Fj/22-54-15-3016377526.png
+https://img.baibai.cv/f/WrevH4/%E9%BB%98%E8%AE%A4.png
+https://img.baibai.cv/f/56AzHz/cafe_bg.png
+
 Pipoya：PIPOYA FREE RPG Character Sprites 32x32 / Female 13-1；允许游戏商业/个人使用与编辑，禁止独立素材再分发或销售；仅随编译游戏包使用。
 Napi / M-ART：https://mart.kitunebi.com/；允许作为游戏素材使用，不放弃著作权，禁止独立原声/音乐素材库再分发。本仓库是可运行的完整游戏，不是音乐素材库。
 Kenney：音效与短jingle，CC0 1.0。

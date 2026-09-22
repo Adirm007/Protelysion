@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.20.3-20260922",
+  "revision": "protelysion-0.21.0-20260922",
   "scope": {
     "themes": 48,
     "species": 432,
@@ -91,8 +91,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 570796,
-      "sha256": "892714876ff27ed9f08d0a6b035cd5234e28c32bdd9fdc7cce67e5dce9f8e093"
+      "bytes": 824628,
+      "sha256": "bd349bc31d5f9df4139ddfed0a7e095c93c939f7ff15f87c39116827f2ed3faf"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
@@ -1571,24 +1571,24 @@
       "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
     },
     "NOTICE.txt": {
-      "bytes": 1577,
-      "sha256": "8e9de16cb6433f33dcd1482391004ab53779fcfc3172b0d6c68e2e8b2c0fdf54"
+      "bytes": 1915,
+      "sha256": "12ce5f424f007e4aa7da72b38c34fd79341f146eec2eef8bfd3372eb88f82cef"
     },
     "M-ART-terms.txt": {
       "bytes": 4523,
       "sha256": "bf290387b6c8dfb02f4ac2106966d4f56f36f38d190fe3aa8ad8d76aad8bb167"
     },
     "credits.html": {
-      "bytes": 3344,
-      "sha256": "2264ba08adf1035acf886308104a71b75b9e6b147a5fe0cdff7b8eb1cffc4176"
+      "bytes": 3682,
+      "sha256": "a89f316dc75219df8942fc0e2f93326e152ed765a4bbd063851b8af5936f4bfd"
     },
     "loader.html": {
-      "bytes": 8265,
-      "sha256": "9b81b6eb8d54af79008f9da834605964287b1f0f8416aa455f880de88b41ef33"
+      "bytes": 7977,
+      "sha256": "0ecd79a944ce8fac796aee44fbd691f3133486d1997a29f51df9cda81211a114"
     },
     "index.html": {
-      "bytes": 4795,
-      "sha256": "4b7bfb7f79ae77e8696d719502f1a89c4ad2823e12d4e420b569819b937d7ac3"
+      "bytes": 4480,
+      "sha256": "d9a3e5d6d8acf1877b22d53b0c0ea2a67315c1a35b86b5bfa3d4b9292fa0b90a"
     },
     ".nojekyll": {
       "bytes": 0,
