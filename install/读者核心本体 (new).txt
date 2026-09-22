@@ -1663,12 +1663,12 @@ _%>
 <%_ } _%>
 <%_ } _%>
 
-<%_ /* BOOKSEA_READER_HANDOFF_BEGIN: read-only, exact-message gated */ _%>
+<%_ /* BOOKSEA_READER_HANDOFF_BEGIN */ _%>
 <%_ {
 let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
 let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
 let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
-if (bsLatest?.role === 'user' && bsText === '进入普罗泰利西翁') {
+if (bsLatest?.role === 'user' && bsText.includes('进入普罗泰利西翁')) {
 _%>
 [普罗泰利西翁入口]
 这是用户主动发起的入口请求。承接当前剧情，沿用读者当前的人格与呈现方式，描写抵达普罗泰利西翁（Protelysion，《书海》迷宫）入口的场景。
