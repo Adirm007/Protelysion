@@ -1664,21 +1664,16 @@ _%>
 <%_ } _%>
 
 <%_ /* BOOKSEA_READER_HANDOFF_BEGIN */ _%>
-<%_ {
-let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
-let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
-if (bsLatest?.role === 'user' && bsText.includes('进入普罗泰利西翁')) {
-_%>
+<%_ if (matchChatMessages(/进入普罗泰利西翁/, { start: -1, role: 'user' })) { _%>
 [普罗泰利西翁入口]
 这是用户主动发起的入口请求。承接当前剧情，沿用读者当前的人格与呈现方式，描写抵达普罗泰利西翁（Protelysion，《书海》迷宫）入口的场景。
 场景描写结束后，在正文末尾另起一行，原样呈现以下入口标签：
 <booksea-game>进入</booksea-game>
-<%_ } } _%>
+<%_ } _%>
 <%_ {
 let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-let bsVars = typeof getVariables === 'function' ? getVariables({ type: 'chat' }) : (bsApi?.getVariables?.({ type: 'chat' }) || {});
-let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
+let bsVars = bsApi?.getVariables?.({ type: 'chat' }) || {};
+let bsLatest = bsApi?.getChatMessages?.(-1)?.[0];
 let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
 let bsInfo = bsLatest?.extra?.bookseaHandoff;
 let bsState = bsVars.booksea?.lastExpedition;
@@ -1704,8 +1699,8 @@ _%>
 <%_ } } } _%>
 <%_ {
 let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-let bsVars = typeof getVariables === 'function' ? getVariables({ type: 'chat' }) : (bsApi?.getVariables?.({ type: 'chat' }) || {});
-let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
+let bsVars = bsApi?.getVariables?.({ type: 'chat' }) || {};
+let bsLatest = bsApi?.getChatMessages?.(-1)?.[0];
 let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
 let bsInfo = bsLatest?.extra?.bookseaHandoff;
 let bsState = bsVars.booksea?.lastExpedition;
