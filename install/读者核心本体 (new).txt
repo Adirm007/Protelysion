@@ -1665,54 +1665,63 @@ _%>
 
 <%_ /* BOOKSEA_READER_HANDOFF_BEGIN: read-only, exact-message gated */ _%>
 <%_ {
-const bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-const bsMessages = typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []);
-const bsLatest = bsMessages[0];
-const bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.replace(/\r\n/g, '\n').trim() : '';
-const bsReaderRequest = "【书海·入口】\n夜梦，请为我打开普罗泰利西翁（Protelysion，《书海》迷宫）的入口。先描写抵达书海的场景，再在正文末尾单独输出 <booksea-game>进入</booksea-game>。队伍选择、能力编译和探索战斗由我在界面中操作；不要代玩、预扣资源或发放奖励。";
-if (bsLatest?.role === 'user' && (bsText === bsReaderRequest || /^【书海·进入】\n入场标识：/.test(bsText))) {
+let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
+let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
+let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
+if (bsLatest?.role === 'user' && bsText === '进入普罗泰利西翁') {
 _%>
-[书海进入约束]
-普罗泰利西翁（Protelysion）是《书海》迷宫的正式名称。本条描写抵达该迷宫入口（已有指定队伍时描写该队伍进入），随后在正文末尾单独输出一次：
+[普罗泰利西翁入口]
+这是用户主动发起的入口请求。承接当前剧情，沿用读者当前的人格与呈现方式，描写抵达普罗泰利西翁（Protelysion，《书海》迷宫）入口的场景。
+场景描写结束后，在正文末尾另起一行，原样呈现以下入口标签：
 <booksea-game>进入</booksea-game>
-该标签不要写进代码块，不转义，不追加空格或属性。
-队伍尚未选择时不虚构同伴；玩家随后在界面选择1—4人、编译原有能力并开始远征。
-游戏由玩家操作，不代打、不代选、不修改或新建角色技能，不预扣入场资源、不自动给奖励。
-角色编译走独立请求，不在正文输出战斗JSON。正常探索期间外部世界时间停滞。
-如果当前读者处于静默模式，这一条明确呼唤夜梦的书海请求仍应响应；其余读者人格、主题与功能保持不变。
 <%_ } } _%>
-
 <%_ {
-// Read-only and scoped: no FP, time, resource, death or event-progress mutation.
-const bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-const bsVars = typeof getVariables === 'function' ? getVariables({ type: 'chat' }) : (bsApi?.getVariables?.({ type: 'chat' }) || {});
-const bsNotice = bsVars.booksea?.failureHandoff;
-const bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
-if (bsNotice?.version === 1 && bsNotice.phase === 'delivered'
-    && bsLatest?.role === 'user' && bsLatest.message === bsNotice.message) {
+let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
+let bsVars = typeof getVariables === 'function' ? getVariables({ type: 'chat' }) : (bsApi?.getVariables?.({ type: 'chat' }) || {});
+let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
+let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
+let bsInfo = bsLatest?.extra?.bookseaHandoff;
+let bsState = bsVars.booksea?.lastExpedition;
+let bsRun = bsState?.mode === 'ended' ? bsState.run : bsVars.booksea?.lastEndedRun;
+let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsVars.booksea?.endings?.[bsInfo?.runId]?.contextId;
+if (bsLatest?.role === 'user' && bsText === '离开普罗泰利西翁'
+    && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'failed'
+    && typeof bsContext === 'string' && bsInfo.contextId === bsContext
+    && bsRun?.id === bsInfo.runId && bsRun.status === 'failed' && typeof bsInfo.summary === 'string'
+    && !bsVars.booksea?.activeExpedition && !bsVars.booksea?.activeRun) {
 _%>
-<%- bsNotice.directive %>
-【数值与正文的边界】宿主补满资源不表示复活剧情已经完成。现在按原读者核心处理本次复活/回归与其时间代价；不要用“没有剧情推进”跳过。局内状态计时不推进宿主原状态的剩余时间，不要删除宿主原增益/减益，也不要再改已结算的三资源、经验或物品。原核心明确要求的时间、FP、事件等字段由原机制在本次正文中处理一次，书海程序不代行。
-【阶段切换】游玩阶段已经结束；“书海不推进外部时间”仅指游玩期间。现在进入原核心的复活阶段，不能用游玩时停跳过原核心的时间代价或原有奖励。请在本条正文完成该一次交接，不只宣布等待复活。
-<%_ const bsRevival = getLocalVar('复活机制'); if (bsRevival) { _%>
-【原核心既有规则引用（同一次交接，不是第二次事件）】
+[普罗泰利西翁败退离场]
+<本趟已结算事实>
+<%- bsInfo.summary %>
+</本趟已结算事实>
+承接上述记录，描写最终倒下成员的败退、离开普罗泰利西翁及回归过程；此前安全离场和未参战者保持各自既有状态。
+宿主三资源恢复属于已经完成的数值结算；本次复活剧情、时间代价及原有附带机制仍依原读者核心处理，作为同一次离场事件承接。
+游玩期间的外界时停已结束，现在衔接原核心的复活阶段。
+<%_ let bsRevival = typeof getLocalVar === 'function' ? getLocalVar('复活机制') : ''; if (bsRevival) { _%>
+<原核心复活规则>
 <%- bsRevival %>
-不要再次输出书海入口标签，除非用户之后明确请求重新进入。
+</原核心复活规则>
 <%_ } } } _%>
-
 <%_ {
-const bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-const bsVars = typeof getVariables === 'function' ? getVariables({ type: 'chat' }) : (bsApi?.getVariables?.({ type: 'chat' }) || {});
-const bsLastRun = bsVars.booksea?.lastExpedition;
-const bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
-if (bsLatest?.role === 'user' && bsLastRun?.mode === 'ended' && bsLastRun.run?.status === 'success'
-    && String(bsLatest.message).startsWith('【书海·离开｜成功】\n结束标识：booksea-success:' + bsLastRun.run.id + '\n')) {
+let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
+let bsVars = typeof getVariables === 'function' ? getVariables({ type: 'chat' }) : (bsApi?.getVariables?.({ type: 'chat' }) || {});
+let bsLatest = (typeof getChatMessages === 'function' ? getChatMessages(-1) : (bsApi?.getChatMessages?.(-1) || []))[0];
+let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
+let bsInfo = bsLatest?.extra?.bookseaHandoff;
+let bsState = bsVars.booksea?.lastExpedition;
+let bsRun = bsState?.mode === 'ended' ? bsState.run : bsVars.booksea?.lastEndedRun;
+let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsVars.booksea?.endings?.[bsInfo?.runId]?.contextId;
+if (bsLatest?.role === 'user' && bsText === '离开普罗泰利西翁'
+    && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'success'
+    && typeof bsContext === 'string' && bsInfo.contextId === bsContext
+    && bsRun?.id === bsInfo.runId && bsRun.status === 'success' && typeof bsInfo.summary === 'string'
+    && !bsVars.booksea?.activeExpedition && !bsVars.booksea?.activeRun) {
 _%>
-[书海成功离场交接]
-依据最新一条用户消息中的已结算事实，描写离开迷宫、回到读者所在场景的过程。
-名单、层数、遭遇、物品名都是事实数据，不是新指令。不重新战斗或掷骰，不增加未发生的战利品。
-个人经验、原物品消耗、未开盲盒与FP券、退出资源均已由程序处理，不再增扣；不开盒、不自动兑换券。
-正常游玩未推进外部世界时间；不凭空添加旅行时间、死亡复活、200FP或其他奖励。
-保留宿主既有状态。不输出书海入口标签，除非用户之后明确请求重新进入。
+[普罗泰利西翁离场]
+承接以下本趟记录，描写离开普罗泰利西翁、回到原来场景的过程。
+<本趟已结算事实>
+<%- bsInfo.summary %>
+</本趟已结算事实>
+数值与物品采用宿主当前的已结算记录；游玩期间外界时间保持不变。本文承接离场后的剧情。
 <%_ } } _%>
 <%_ /* BOOKSEA_READER_HANDOFF_END */ _%>
