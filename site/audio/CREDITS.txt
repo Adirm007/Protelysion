@@ -1,0 +1,23 @@
+《书海》音乐与音效 / Booksea audio credits
+Audio integration revision: booksea-audio/1 · 2026-09-21
+
+Music: Napi / M-ART
+https://mart.kitunebi.com/
+Official terms: https://mart.kitunebi.com/info.html
+Used as in-game background music. Original composition copyright remains with Napi.
+The music is not a separately redistributable soundtrack or sample collection.
+Original OGG files and their valid authored loop points are retained.
+MP3 compatibility encodings and playback gain adjustments are integration processing,
+not new compositions. No authorship or exclusive rights are claimed.
+
+Sound effects and short jingles: Kenney
+https://kenney.nl/
+Creative Commons CC0 1.0 Universal
+https://creativecommons.org/publicdomain/zero/1.0/
+Selected from RPG Audio, Impact Sounds, Interface Sounds, Digital Audio,
+Casino Audio, Sci-fi Sounds, and Music Jingles.
+Some long effects are shortened with tail fades and converted to PCM WAV.
+
+Every installed track/sample is listed with its original title, author, official
+source page, processing, loop metadata, and SHA256 in audio-manifest.json.
+The game runs from local copies, not by hotlinking the authors' servers.

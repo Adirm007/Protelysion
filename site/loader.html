@@ -1,0 +1,45 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 安装</title><style>body{max-width:820px;margin:40px auto;padding:20px;font:17px/1.8 system-ui;background:#191c2b;color:#eee}button,input{font:inherit;padding:12px;max-width:100%}input{width:95%}a{color:#dbc494}</style><h1>普罗泰利西翁 · 单正则安装</h1><p>先更新两个带new的读者文件；保留现有酒馆助手、MVU与EJS扩展。迷宫本体只需下面这一条书海正则，不需要另装游戏脚本。</p><label>外链目录 <input id="base"></label><p><button id="download">下载《书海》外链加载正则</button></p><p id="status" role="status"></p><p><a href="./">独立试玩（不读写宿主）</a> · <a href="credits.html">许可与署名</a> · <a href="https://github.com/Adirm007/Protelysion/tree/main/install">更新后的读者文件</a></p><script>// The one regex stays inside the existing Helper iframe, preserving host API access.
+function makeExternalHtml(base,css='',mode='host'){
+ const url=new URL(base),local=['localhost','127.0.0.1','[::1]'].includes(url.hostname);
+ if((url.protocol!=='https:'&&!(local&&url.protocol==='http:'))||url.username||url.password||url.search||url.hash)throw Error('请填写HTTPS游戏目录（不是GitHub仓库或raw链接）');
+ if(['github.com','raw.githubusercontent.com'].includes(url.hostname))throw Error('请使用GitHub Pages发布地址，不是仓库源码地址');
+ if(!url.pathname.endsWith('/'))url.pathname+='/';
+ const boot=`(()=>{
+ const base=${mode==='standalone'?"new URL('./',location.href).href":JSON.stringify(url.href).replace(/</g,'\\u003c')},mode=${JSON.stringify(mode)};
+ const status=document.getElementById('loader-status'),retry=document.getElementById('loader-retry'),root=document.getElementById('booksea-game');let busy=false;
+ const sha=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),v=>v.toString(16).padStart(2,'0')).join('');
+ async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='正在检查普罗泰利西翁发布版本…';
+ try{
+  if(!window.isSecureContext||!window.caches||!window.crypto?.subtle)throw Error('请通过HTTPS或本机localhost访问酒馆，并允许浏览器缓存');
+  const cache=await caches.open('protelysion-bootstrap-v1'),manifestUrl=new URL('release-manifest.json',base).href;let response;
+  try{response=await fetch(manifestUrl,{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(12000)});if(!response.ok)throw Error('HTTP '+response.status);}
+  catch(error){response=await cache.match(manifestUrl);if(!response)throw Error('发布清单加载失败，请确认GitHub Pages已部署；'+error.message);}
+  const text=await response.text();if(text.length>2000000)throw Error('发布清单过大');const manifest=JSON.parse(text),info=manifest.files?.['distribution.js'];
+  if(!info||!Number.isSafeInteger(info.bytes)||info.bytes<=0||info.bytes>20000000||!/^[a-f0-9]{64}$/.test(info.sha256))throw Error('发布清单缺少有效启动器');
+  await cache.put(manifestUrl,new Response(text,{headers:{'Content-Type':'application/json'}}));
+  if(!window.BookseaDistribution){
+   const sourceCache=await caches.open('protelysion-resources-v1'),key='https://protelysion-cache.invalid/sha256/'+info.sha256;let saved=await sourceCache.match(key),bytes=saved?await saved.arrayBuffer():null;
+   if(!bytes||bytes.byteLength!==info.bytes||await sha(bytes)!==info.sha256){const r=await fetch(new URL('distribution.js',base),{credentials:'omit',signal:AbortSignal.timeout(60000)});if(!r.ok)throw Error('启动器下载失败 HTTP '+r.status);bytes=await r.arrayBuffer();if(bytes.byteLength!==info.bytes||await sha(bytes)!==info.sha256)throw Error('启动器校验失败，拒绝执行');await sourceCache.put(key,new Response(bytes,{headers:{'Content-Type':'application/javascript','Content-Length':String(info.bytes),'X-Protelysion-SHA256':info.sha256}}));}
+   await new Promise((resolve,reject)=>{const script=document.createElement('script'),u=URL.createObjectURL(new Blob([bytes],{type:'application/javascript'}));script.src=u;let done=false;
+    const finish=error=>{if(done)return;done=true;clearTimeout(timer);script.onload=null;script.onerror=null;URL.revokeObjectURL(u);if(error){script.remove();reject(error);}else resolve();};
+    const timer=setTimeout(()=>finish(Error('启动器执行超时')),30000);script.onload=()=>finish();script.onerror=()=>finish(Error('启动器执行失败'));document.head.append(script);});
+  }
+  if(typeof window.BookseaDistribution?.boot!=='function')throw Error('外链不是有效书海运行包');
+  await window.BookseaDistribution.boot(root,{base,manifest,mode});status.textContent='';
+ }catch(e){status.textContent='普罗泰利西翁加载失败：'+e.message;retry.hidden=false;}finally{busy=false;}}
+ retry.onclick=start;start();
+})();`;
+ return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 书海迷宫</title><style>'+css+'a{color:#d8c294}progress{accent-color:#d6bf8e}button{touch-action:manipulation}</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>重试加载</button><div id="booksea-game"></div><footer style="padding:12px;font:12px system-ui;color:#aaa">普罗泰利西翁 · 原作 Adirm007 · CC BY-NC 4.0（原创部分）<br>第三方素材保留原许可 · <a target="_blank" rel="noopener" href="'+url.href+'credits.html">许可与署名</a></footer></main><script>'+boot.replace(/<\/script/gi,'<\\/script')+'<\/script></html>';
+}
+function makeExternalRegex(base,template,css=''){
+ return {...template,scriptName:'普罗泰利西翁-书海迷宫-外链加载',disabled:false,replaceString:'```html\n'+makeExternalHtml(base,css,'host')+'\n```'};
+}
+/** Local lab uses its own origin, including Helper srcdoc frames with an inherited base URI. */
+function makeLocalRegex(template,css=''){
+ const item=makeExternalRegex('http://localhost/booksea-release/',template,css);
+ item.scriptName='普罗泰利西翁-书海迷宫-本机缓存加载';
+ item.replaceString=item.replaceString.replace('"http://localhost/booksea-release/"',"new URL('/booksea-release/',document.baseURI).href").replaceAll('href="http://localhost/booksea-release/','href="/booksea-release/');
+ return item;
+}
+
+const template={"id":"e2df58c6-b45b-42af-a2fc-43bf2ab64736","scriptName":"书海-随机地图肉鸽入口-0.19.0","disabled":false,"runOnEdit":true,"findRegex":"/<booksea-game>进入<\\/booksea-game>/g","trimStrings":[],"placement":[2],"substituteRegex":0,"minDepth":null,"maxDepth":null,"markdownOnly":true,"promptOnly":false},css="*{box-sizing:border-box}body{margin:0;background:#191c2b;color:#e9e2d2;font:16px/1.65 system-ui,sans-serif}main{max-width:1280px;margin:auto;padding:18px}header{letter-spacing:3px;color:#d6bf8e;font-weight:700}small{font-size:13px;color:#aba7bd}h1{font-size:30px}.actions{display:flex;gap:10px;flex-wrap:wrap}button{min-height:44px;background:#3e4660;color:#f0e7d5;border:1px solid #8e8396;border-radius:5px;padding:10px 18px;font:inherit;cursor:pointer}button:disabled{opacity:.5}.actor{display:flex;gap:14px;background:#272e42;border:1px solid #555269;border-radius:6px;padding:14px;margin:10px 0;white-space:pre-line}.actor input{width:24px;height:24px}.note{color:#ada8bc;font-size:13px}#status{color:#e2c692}canvas{display:block;width:100%;aspect-ratio:16/9;outline:0;touch-action:none}";document.getElementById("base").value=new URL("./",location.href).href;document.getElementById("download").onclick=()=>{try{const item=makeExternalRegex(document.getElementById("base").value,template,css),blob=new Blob([JSON.stringify(item,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="普罗泰利西翁-书海外链加载正则.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);document.getElementById("status").textContent="已生成，请在酒馆导入。匹配书海标签的游戏正则只启用一份。";}catch(e){document.getElementById("status").textContent=e.message;}};</script></html>

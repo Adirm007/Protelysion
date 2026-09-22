@@ -1,0 +1,1598 @@
+{
+  "revision": "protelysion-0.20.0-20260922",
+  "scope": {
+    "themes": 48,
+    "species": 432,
+    "tierTemplates": 3024
+  },
+  "player": {
+    "author": "Pipoya",
+    "asset": "Female 13-1",
+    "cell": [
+      32,
+      40
+    ]
+  },
+  "pck": {
+    "bytes": 106283964,
+    "sha256": "a65c4a7bddc2e9ff213a7dbefd350fc054ce993598da272a456ab1f9bcdfa83d"
+  },
+  "pckParts": [
+    "game.pck.gz.001",
+    "game.pck.gz.002",
+    "game.pck.gz.003",
+    "game.pck.gz.004",
+    "game.pck.gz.005",
+    "game.pck.gz.006",
+    "game.pck.gz.007"
+  ],
+  "wasm": {
+    "bytes": 39514754,
+    "sha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0"
+  },
+  "wasmParts": [
+    "game.wasm.gz.001"
+  ],
+  "files": {
+    "game.js": {
+      "bytes": 279815,
+      "sha256": "33c94cb3175f3333b82e2a3be5e8e86f77986f0aa2042b1631f6367a4e5bb6ba"
+    },
+    "game.wasm.gz.001": {
+      "bytes": 10153810,
+      "sha256": "9ed85643181ce4cb0434d8f69c1691df1c8f206852578a94d360d01078d97031"
+    },
+    "game.audio.worklet.js": {
+      "bytes": 7298,
+      "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
+    },
+    "game.audio.position.worklet.js": {
+      "bytes": 2973,
+      "sha256": "be33985bc7160d6bf9646f259cd86b259cd67b02ccb297ee5c44f8ac84327bc8"
+    },
+    "game.pck.gz.001": {
+      "bytes": 16777216,
+      "sha256": "3212825b787914928872f9f9caa50f52aa03748ac4c3d95863d1488d2ca900bf"
+    },
+    "game.pck.gz.002": {
+      "bytes": 16777216,
+      "sha256": "a996c72f34c59e45c2d480625a1af5979d30b67bfdbac1a8ecf268909e39ff9a"
+    },
+    "game.pck.gz.003": {
+      "bytes": 16777216,
+      "sha256": "4e92e54c486dd73798653211bff3336006d52b8e6f4e9d0951d0c6d1b28c4038"
+    },
+    "game.pck.gz.004": {
+      "bytes": 16777216,
+      "sha256": "919f9a9149644b3b749ec4478b1d54786275540806f3f91abf13b1cccf5fc632"
+    },
+    "game.pck.gz.005": {
+      "bytes": 16777216,
+      "sha256": "0b7c2d92c9fccb509dd5e715005f22d3bdf0bf952abd8c1dd98e31774a07c340"
+    },
+    "game.pck.gz.006": {
+      "bytes": 16777216,
+      "sha256": "0ab04ae360e5e0e0aa3298d2aa8671211ef852d0355482846c0d216110e1db02"
+    },
+    "game.pck.gz.007": {
+      "bytes": 3673815,
+      "sha256": "a4c62257bfe562d68dac1562ebbef8f3f843f94245433990c48354d956f0d1a7"
+    },
+    "NotoSansSC-OFL.txt": {
+      "bytes": 4388,
+      "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
+    },
+    "Player-CREDITS.txt": {
+      "bytes": 971,
+      "sha256": "d36a2c5fe2386d768e44a9b9397eb695a5a9bd50008ed50649ed84b01bcacee4"
+    },
+    "Godot-LICENSES.txt": {
+      "bytes": 112917,
+      "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
+    },
+    "distribution.js": {
+      "bytes": 571781,
+      "sha256": "580c801702a0458ecbc3c71a0fb248a4e9a30b5ba95586023211ae570115ef3b"
+    },
+    "audio/music/Abyss.ogg": {
+      "bytes": 574764,
+      "sha256": "dc4bb7871bca58ccda03abcd079af912343669ec350f94d149328814841a8b6b"
+    },
+    "audio/music/Abyss.mp3": {
+      "bytes": 498553,
+      "sha256": "6acd133d401b63cf9f4857cc72afc7057a3a7fd58e3c0fce0b326c80b4f2549b"
+    },
+    "audio/music/AgentOfJudgement.ogg": {
+      "bytes": 1517278,
+      "sha256": "dd55960838b95b2a4724637a21e92bdca21aa8541a81c9825a2c203594fa6a92"
+    },
+    "audio/music/AgentOfJudgement.mp3": {
+      "bytes": 1254369,
+      "sha256": "6a85d47c4d46fc190049d121de58dec61f4945ec2173fb8f38cd900719521d98"
+    },
+    "audio/music/AlShams.ogg": {
+      "bytes": 876872,
+      "sha256": "c600142d86648d625e17979b66f409e3ac380028faade36a704ea3ada924205d"
+    },
+    "audio/music/AlShams.mp3": {
+      "bytes": 739403,
+      "sha256": "cbcb31415c5eb261f6203016d5529420c0d930dc9e4dd2dc017744d1620443d0"
+    },
+    "audio/music/AinSophAur.ogg": {
+      "bytes": 1833093,
+      "sha256": "32661021e163908e6ee14e4c5ead1426392c5b5c4c920fbf92f3ed8d8de4c22a"
+    },
+    "audio/music/AinSophAur.mp3": {
+      "bytes": 1842876,
+      "sha256": "70dd7441eccb585b8761264a2549980129b8b6ac0648bb5990f746ad039e0b7d"
+    },
+    "audio/music/AbominableDevotion.ogg": {
+      "bytes": 2562795,
+      "sha256": "737e09bbf55a30402e550b5b0976395e1ef5758db8bc9ab236dcf526226cb412"
+    },
+    "audio/music/AbominableDevotion.mp3": {
+      "bytes": 2159455,
+      "sha256": "e43c1c7c183ae14aef4e6c4cc0edf7fadff890f8b1b757fca601507ba5906f77"
+    },
+    "audio/music/BalanceOfRa.ogg": {
+      "bytes": 1393458,
+      "sha256": "a28bfd444d8a8d590ce19095eab668a7978711516ffd1640c8fe82efdece5432"
+    },
+    "audio/music/BalanceOfRa.mp3": {
+      "bytes": 1151092,
+      "sha256": "c9eed0fbfbc19985510aff7e5d2c732922d09ef8498ebabe4bbfa888e0f96608"
+    },
+    "audio/music/BattleOpera.ogg": {
+      "bytes": 1776235,
+      "sha256": "1a99081c07fbe0b696d6b56e3961ab97434aef68e5cb4c61bc0e4dfa12304574"
+    },
+    "audio/music/BattleOpera.mp3": {
+      "bytes": 1485285,
+      "sha256": "28854ac024a562682b2911489550f0880d64e3371fcfd7d224f55539a1e213f2"
+    },
+    "audio/music/Alraune.ogg": {
+      "bytes": 4024974,
+      "sha256": "4eac5994f49be58c3f10e6f0e6a85f67c2208a19b84a4a2f179e416172bb8db9"
+    },
+    "audio/music/Alraune.mp3": {
+      "bytes": 1315071,
+      "sha256": "bbb95292071a5581e179ce5a60852fd8bf06489221fc510630607274c11a51a3"
+    },
+    "audio/music/Arcana.ogg": {
+      "bytes": 2284606,
+      "sha256": "b4b75db40e6793b1ee1843cc146ed21eb897bdee63a4727de5afdcdd373a7998"
+    },
+    "audio/music/Arcana.mp3": {
+      "bytes": 1791892,
+      "sha256": "19419e01689b1b2273430f8145852c0abf598865386c357e90366a9660d70e1b"
+    },
+    "audio/music/BygoneDays.ogg": {
+      "bytes": 1343568,
+      "sha256": "7dfda6dd55465977b378e13ff245d709a6fd94b3bb3fcb34e2225d83a7733f79"
+    },
+    "audio/music/BygoneDays.mp3": {
+      "bytes": 1128613,
+      "sha256": "21215bdf2fc2854947d89fb8f7f540602c8372837d114225ee5e413091bd48f0"
+    },
+    "audio/music/BrilliantCristea.ogg": {
+      "bytes": 2291858,
+      "sha256": "0a24a5d2dbb9a5cc4d65e3da97f3b4e9109964fff6aff7122ccd69b77de82256"
+    },
+    "audio/music/BrilliantCristea.mp3": {
+      "bytes": 1785902,
+      "sha256": "cfa8a1df1245217c1a9253faa666888e9abc498d41d8246395db8d0e208a1646"
+    },
+    "audio/music/Butterfly.ogg": {
+      "bytes": 1917840,
+      "sha256": "35de7a93711225deb6154da21f37366ab6fabfc4aef211b2e7974ee8e76f5729"
+    },
+    "audio/music/Butterfly.mp3": {
+      "bytes": 1627802,
+      "sha256": "5dcca3bb88cc8d3e91e09b071238a56b23d3f2939c1db2134684c3f940ed165b"
+    },
+    "audio/music/Cathedral.ogg": {
+      "bytes": 1100271,
+      "sha256": "b3004098c8f20c704c549494b68f0ceb2b62427b790c4290eac728858beb38de"
+    },
+    "audio/music/Cathedral.mp3": {
+      "bytes": 942417,
+      "sha256": "d0722d212d23b24fba25864b31f623cba645500578a40b7bc0d03f307fc5cf8b"
+    },
+    "audio/music/Changed.ogg": {
+      "bytes": 758650,
+      "sha256": "da787f2ba14650a63ce4b542d7c26537dc6673ab03c5f2994578e710a4637ea5"
+    },
+    "audio/music/Changed.mp3": {
+      "bytes": 715326,
+      "sha256": "4ec2a318722a15f6f6768a670ff74491a387ea80db097e02e0bcdb8dcf534cd1"
+    },
+    "audio/music/ClownRidicule.ogg": {
+      "bytes": 1385082,
+      "sha256": "c4a12b2ef963bf92c62ff1d1835e4da33aab3141713012ebb014aec39f921bb0"
+    },
+    "audio/music/ClownRidicule.mp3": {
+      "bytes": 1184138,
+      "sha256": "b83ab941898ec543cd29ac0cde82aad9a0fd20798b12ab403fffbc83526ef9e7"
+    },
+    "audio/music/ConspiracyCourt.ogg": {
+      "bytes": 1132708,
+      "sha256": "b1aa91ef4c75c8884c820aee73105f95df3dbba473227733b830f7658af604f1"
+    },
+    "audio/music/ConspiracyCourt.mp3": {
+      "bytes": 974130,
+      "sha256": "fb993e565e2937d25118ff827e711c122b7bd74cf1f67217e2006352d7fc5794"
+    },
+    "audio/music/CrestOfTheRoyalFamily.ogg": {
+      "bytes": 1672051,
+      "sha256": "154f8cf8db54a68d261551150298e9e661d664bca933856236dc9b5fe48ffe6a"
+    },
+    "audio/music/CrestOfTheRoyalFamily.mp3": {
+      "bytes": 1584719,
+      "sha256": "b370faa08274203ab9b44b0166e3ad3b0d9c5a3e171551e6e432e9620dc0479e"
+    },
+    "audio/music/CrystalWhisper.ogg": {
+      "bytes": 1021852,
+      "sha256": "520e3c90edaf08fb73fe77335b56a3be86db5bc7b520c8438050c81c2948c888"
+    },
+    "audio/music/CrystalWhisper.mp3": {
+      "bytes": 945469,
+      "sha256": "6a4f21c6bdde7f86c38ae0962dc55a08f3f810d90a6f5b951659d81eb23289ef"
+    },
+    "audio/music/DancingOnAir.ogg": {
+      "bytes": 1306693,
+      "sha256": "17a917d621d9cc6a90c8ab78345d473a4038a85fdc6bdfc8d96c304a6b5e7c63"
+    },
+    "audio/music/DancingOnAir.mp3": {
+      "bytes": 1139897,
+      "sha256": "2e8d90b8e7ac5127802cc93b4f192842229396356572f199a8da82ed2fac112e"
+    },
+    "audio/music/Desert.ogg": {
+      "bytes": 904206,
+      "sha256": "f7bf934cfc4cd8b97b57b1e2f47262f33ecfc2216e1ad5e9123996fa3327b91c"
+    },
+    "audio/music/Desert.mp3": {
+      "bytes": 700030,
+      "sha256": "810dc198c091d8530fd55b8110ec8ebcba4e5964fdc65438d06ffbdf4cc0bb90"
+    },
+    "audio/music/Discomfort.ogg": {
+      "bytes": 815277,
+      "sha256": "7e31ee12c9e6580e97c84aad9a6aed293212918a7017253e783f72527bfee56a"
+    },
+    "audio/music/Discomfort.mp3": {
+      "bytes": 655245,
+      "sha256": "3bc55440be402e0adc18f727ec4d945356673e67246adb435972da97191dbea6"
+    },
+    "audio/music/DollMaster.ogg": {
+      "bytes": 1548624,
+      "sha256": "9dc18c85636a19fe741f030322a2adacaa6c928ef543d3ae117764aaa38c9b5c"
+    },
+    "audio/music/DollMaster.mp3": {
+      "bytes": 1227907,
+      "sha256": "b383e6a239c40c0cc154c61c9483ef04c3e7c189dbff55b5aaf60c7490576725"
+    },
+    "audio/music/DollAtelier.ogg": {
+      "bytes": 2136513,
+      "sha256": "6a206dda4bd8ff2d3d34707f41f876acae8d514a0a8ef7ca5274a1fa2c0b69fc"
+    },
+    "audio/music/DollAtelier.mp3": {
+      "bytes": 1618686,
+      "sha256": "f7664fe0c6d605b50aaec34ef1cb80972a16d61c1b9186a4c5618d7aa6115e5c"
+    },
+    "audio/music/DoYouHear.ogg": {
+      "bytes": 3034418,
+      "sha256": "6ab49bec17dab1cd16843a149472af9501135f4c25b3f80512357ede81425d38"
+    },
+    "audio/music/DoYouHear.mp3": {
+      "bytes": 2570501,
+      "sha256": "a16066b3f957621a6c2b110e72db11f31332a2a1412f915f1945f5f3947c11f6"
+    },
+    "audio/music/Don'tPrayToIt.ogg": {
+      "bytes": 1779060,
+      "sha256": "e5bdae4602c5d932ce850f5b812ff9405eef11d15f2c3528926b70e2818b6ec4"
+    },
+    "audio/music/Don'tPrayToIt.mp3": {
+      "bytes": 1520828,
+      "sha256": "2e352b60dbcbe94ece8f021f61a4392b4e07cdb639dda0261b22da07e7da38e9"
+    },
+    "audio/music/DollWorld.ogg": {
+      "bytes": 2200006,
+      "sha256": "4fb7a22403e4cc70a03b2829b1de4600ae67b222d499827dce7f599e0f34f79b"
+    },
+    "audio/music/DollWorld.mp3": {
+      "bytes": 1894320,
+      "sha256": "23b71befb7ddb0b028a3c0ff9e403936e7e83228807746a1f5cfa859660061e0"
+    },
+    "audio/music/DoomsdayFaith.ogg": {
+      "bytes": 1192107,
+      "sha256": "093aa516f7a0767b25ddaa1cd48593664301f1efeee09411125cc9325b3e3ede"
+    },
+    "audio/music/DoomsdayFaith.mp3": {
+      "bytes": 1019188,
+      "sha256": "32ab4e5739c7dbebdc7a2b5bb6e3570aea95e68328b91e7a968d8862045b093c"
+    },
+    "audio/music/DreamFeeling.ogg": {
+      "bytes": 1173511,
+      "sha256": "592bfe36bc500cc513be1b3c93df6172ef530d036a30b4c02314f2d9fe07639f"
+    },
+    "audio/music/DreamFeeling.mp3": {
+      "bytes": 1029246,
+      "sha256": "42f48e60002cc7ea61052354737ce45e51975c605b075793ab317e7cbe16d021"
+    },
+    "audio/music/Dystopia.ogg": {
+      "bytes": 2015519,
+      "sha256": "404d13a05b08162366fa0578bb9da7861431c2f8669026511ed0e0f28fd9c226"
+    },
+    "audio/music/Dystopia.mp3": {
+      "bytes": 1649623,
+      "sha256": "d1e89914df8d359b2f94668dac70688e82270ff9a8fbbaa95f2bde80e4443d49"
+    },
+    "audio/music/Drop.ogg": {
+      "bytes": 2923247,
+      "sha256": "0fff3c653b03a96c97686107d45abf739d063b2b5e6abedbb4258bd132da0c91"
+    },
+    "audio/music/Drop.mp3": {
+      "bytes": 2441521,
+      "sha256": "e61c1b85e0fcccf0236773a1baef9323c0895aa632bff9799cf1b1cc19c116a5"
+    },
+    "audio/music/ESPLab.ogg": {
+      "bytes": 2602113,
+      "sha256": "a59e9e84e29b11b80581e2807e83b1a7d006c7d923164aa6a3f3efcee31229a6"
+    },
+    "audio/music/ESPLab.mp3": {
+      "bytes": 2352617,
+      "sha256": "80a73276500fca6cd472553cdd7cb3cb3facdcf7a94a49e0ae822e4e26f88779"
+    },
+    "audio/music/EmptyTrickster.ogg": {
+      "bytes": 1946142,
+      "sha256": "dc0d2b2eb350575a8c77d2ec6a367bd87eed893a3eea68570ac055d51e152e74"
+    },
+    "audio/music/EmptyTrickster.mp3": {
+      "bytes": 1591828,
+      "sha256": "383eb9610db6f88c7ab62ab98e7c0a2b3f132b47f1597c0dfe1493adaf913d0a"
+    },
+    "audio/music/Episteme.ogg": {
+      "bytes": 1926942,
+      "sha256": "d30211e7207cb826f813ec2a1e379cce0d648536e5046800f6d7ceec63277250"
+    },
+    "audio/music/Episteme.mp3": {
+      "bytes": 1606863,
+      "sha256": "fff5631695df98e90c23dd86cca51e91b7c8733bfd578b3c7f8735c9bcd6503c"
+    },
+    "audio/music/ForceOfWill.ogg": {
+      "bytes": 1146362,
+      "sha256": "6a0b0ba9001df59fdff9a6c3593156c0d7f2736a1c9dc5211ed478e0ae712890"
+    },
+    "audio/music/ForceOfWill.mp3": {
+      "bytes": 907358,
+      "sha256": "d5a386c45330809137be26cebb5e9177bfd2aff09c64c3bbf426e4af84549e82"
+    },
+    "audio/music/FemmeFatale.ogg": {
+      "bytes": 2109243,
+      "sha256": "6c862144f47844b8dc258fea30161363215eeb18fe63f30f63e7066bb94e7275"
+    },
+    "audio/music/FemmeFatale.mp3": {
+      "bytes": 1728480,
+      "sha256": "6de6698ee8e4afe0fc61820c4d9fd66f36d5ac475da685bff119755d537e7d79"
+    },
+    "audio/music/Fractal.ogg": {
+      "bytes": 2315485,
+      "sha256": "0ee3b3e266713819ef2e82424499d46bc6b2c8c51e960f8f428dd6a71cb54310"
+    },
+    "audio/music/Fractal.mp3": {
+      "bytes": 1912515,
+      "sha256": "33f89a2008976f9b022f9ba55d055034eef92abe6643253b1ee5c23daf23eeb6"
+    },
+    "audio/music/Gale.ogg": {
+      "bytes": 1620282,
+      "sha256": "4c0da3fc559b571fdc98926ff98fece44fc86afe1d18c1f3454b604c1b88740b"
+    },
+    "audio/music/Gale.mp3": {
+      "bytes": 1421616,
+      "sha256": "a5ec284fd81a0b8aa04983a34326c3368ef8d589ebd8fb9d04ecacf7566a7b21"
+    },
+    "audio/music/FromEventHorizonWithLove.ogg": {
+      "bytes": 2619842,
+      "sha256": "97c7fe2052c50129e02e2ee77d5e10327840dda661eaa0290a4123b6e8ca2cf5"
+    },
+    "audio/music/FromEventHorizonWithLove.mp3": {
+      "bytes": 2303975,
+      "sha256": "20535f004008ed081e3e1cf116b7b974893b2859096974bbb4325236e5d47b07"
+    },
+    "audio/music/GiveUp.ogg": {
+      "bytes": 1311090,
+      "sha256": "75e474b8bd0e39a7f092f9666e9eb3e0336a5f79b9d674a45bea7dc44586f851"
+    },
+    "audio/music/GiveUp.mp3": {
+      "bytes": 1103235,
+      "sha256": "a2cd268c3beef60289928038c51db489f4d601f9fd77d5a7e1565e74347f4334"
+    },
+    "audio/music/HauntedMansion.ogg": {
+      "bytes": 1702868,
+      "sha256": "bffd8d194d426b3e47e0d9c406f157229a8cb8862be713886c9ba04ad068955b"
+    },
+    "audio/music/HauntedMansion.mp3": {
+      "bytes": 1341506,
+      "sha256": "fd843ca6095d44e4282d52fec29603d3e6778f25fb83eae13304b8d5aba53367"
+    },
+    "audio/music/HideInTheDark.ogg": {
+      "bytes": 1414393,
+      "sha256": "32906800000a6dd804eb067472543269ecf93eecbeda7b725e2945f92f784393"
+    },
+    "audio/music/HideInTheDark.mp3": {
+      "bytes": 1281252,
+      "sha256": "148c73d7658aa92c3a5734d680e9bebb2c7cc75f37b6feac87eec651e6cff326"
+    },
+    "audio/music/HisWhereabouts.ogg": {
+      "bytes": 1837859,
+      "sha256": "227975431d83211a44333df436a55641a60deb382d8ff0ed4f06abc43df3470e"
+    },
+    "audio/music/HisWhereabouts.mp3": {
+      "bytes": 1520087,
+      "sha256": "1664cd07e33afa791a2c2b6782813a6429521830f4eea77d8ff23079ea19df2d"
+    },
+    "audio/music/Holybell.ogg": {
+      "bytes": 1375244,
+      "sha256": "2d1736c46abeaf6440089c9bfb6274a2fa654ca61af411c2804d12efd377d74c"
+    },
+    "audio/music/Holybell.mp3": {
+      "bytes": 1156121,
+      "sha256": "42b739ba955b3f35761466da29bf463af96cad193d8f682fbce27a270f7a297c"
+    },
+    "audio/music/ITSUKUSIMINOKIMI.ogg": {
+      "bytes": 1138096,
+      "sha256": "b4bf0195d1ba05c493b3cdf23424467b64308083a25410f667c95f62fd06bc7b"
+    },
+    "audio/music/ITSUKUSIMINOKIMI.mp3": {
+      "bytes": 935699,
+      "sha256": "8e7d55fcf1ef89f636c60ecebb5e32332513de4615ba0de6f62bca1743a57fd9"
+    },
+    "audio/music/Illusionist.ogg": {
+      "bytes": 1306258,
+      "sha256": "b475e740bd2dd0d58c311f1ced3a520996ece942554d90a6c5be5a6e19ba75e9"
+    },
+    "audio/music/Illusionist.mp3": {
+      "bytes": 1086042,
+      "sha256": "bd473c88740c9e54a2aa220223f827ca86ecc57ff58c656164dbca6ec797bd51"
+    },
+    "audio/music/KarakuriYashiki.ogg": {
+      "bytes": 1075443,
+      "sha256": "ead64829e2a4edef0752bc384682f6531035c8a0dbc798b40f6557e3549889c5"
+    },
+    "audio/music/KarakuriYashiki.mp3": {
+      "bytes": 896132,
+      "sha256": "12d69c2bef875712b3a34125818b166a5744205c3d6944b7b273aa94459ab7d0"
+    },
+    "audio/music/KingOverAllTheSonsOfPride.ogg": {
+      "bytes": 1772861,
+      "sha256": "5e37b77a394154cce15f326ae14feeacd32a7867375620167a454a52a0c0ae5b"
+    },
+    "audio/music/KingOverAllTheSonsOfPride.mp3": {
+      "bytes": 1576841,
+      "sha256": "877b0fdd916a75d3995522c499c70a3b581b2752e93ded0e91de5a464738710a"
+    },
+    "audio/music/InquisitorOfSalem.ogg": {
+      "bytes": 4089377,
+      "sha256": "0187bfa0610ddffee945d45d667c72518fa5d7366a2690d9658b9135d92fc08e"
+    },
+    "audio/music/InquisitorOfSalem.mp3": {
+      "bytes": 3509757,
+      "sha256": "b323538b840b6ed0e9638d7019bc2ae4a2ca80a1c580e2237064844a3b6dea5a"
+    },
+    "audio/music/KoikoiAmeshikou.ogg": {
+      "bytes": 3150664,
+      "sha256": "1d956b51dfd40bf5847e165152afd27963027443cb2cf24145b1fe6be21ff213"
+    },
+    "audio/music/KoikoiAmeshikou.mp3": {
+      "bytes": 2491614,
+      "sha256": "0169c0d475fd14721c856831a5bffea43a3ccb38d0f08219d1bd13beeffeb22b"
+    },
+    "audio/music/Komorebi.ogg": {
+      "bytes": 1517691,
+      "sha256": "4e15470ca719fc635fcfa3f485fbd2dc12c3d6c53a1815d15543954c4eb32452"
+    },
+    "audio/music/Komorebi.mp3": {
+      "bytes": 1352000,
+      "sha256": "fd8cc748f8e99867d6601cb5ec6e7824f462c10c429c79d1c53758016f6ea2ab"
+    },
+    "audio/music/LamentingTrees.ogg": {
+      "bytes": 1619258,
+      "sha256": "3fc6eb2a4f6a5325272c7b3eeaf487110f0b58754af3c7bede98b0f5050e2775"
+    },
+    "audio/music/LamentingTrees.mp3": {
+      "bytes": 1365718,
+      "sha256": "1f1b87c253f4f9f704f42f23902d3e4cf5c4e4ecba70a75d1283182b75e29186"
+    },
+    "audio/music/M45.ogg": {
+      "bytes": 1310263,
+      "sha256": "1d55b782efcb765dbdc2ec462881712f7b16b6f987269fb7c4a293a24e5fcc0d"
+    },
+    "audio/music/M45.mp3": {
+      "bytes": 1102325,
+      "sha256": "dee1840711c052be08d15f8299d7448f3b778548fd7eb81aac40181f37fe96f1"
+    },
+    "audio/music/MATSURIKA.ogg": {
+      "bytes": 1083546,
+      "sha256": "cbf98a2f645e9ccb8ebb692a2ffa197a570fe75068b51f8523c50921ff59ea4e"
+    },
+    "audio/music/MATSURIKA.mp3": {
+      "bytes": 878500,
+      "sha256": "4f5140d9afc8e79e38eae2103bc61564fd450acb8353913d8ef9378fb413b2f6"
+    },
+    "audio/music/LiarParanoia_inst.ogg": {
+      "bytes": 2241355,
+      "sha256": "b42d947634166c54aac837e36b4a8108af8ddd397cff86a52cac343cf8218030"
+    },
+    "audio/music/LiarParanoia_inst.mp3": {
+      "bytes": 1955245,
+      "sha256": "4e808730ef3ffa7d2383ecb81d6d2d201f1f60f1171749d7d8ad9e6109f7cc82"
+    },
+    "audio/music/MatsuNiTsuru.ogg": {
+      "bytes": 1045581,
+      "sha256": "b4e883cb980c7a432158628bc9948ab35ecac798c13e9f32a6e273610d414142"
+    },
+    "audio/music/MatsuNiTsuru.mp3": {
+      "bytes": 850639,
+      "sha256": "d5fc84f72ea0e1069b262ab3f4b796e7d8e8406a66ec6ae945e23256f9e28634"
+    },
+    "audio/music/MIKOKAGURA.ogg": {
+      "bytes": 1876187,
+      "sha256": "2083436b8894af39883656f7fb3d9027e8813e6744e18277080593e1556f94ff"
+    },
+    "audio/music/MIKOKAGURA.mp3": {
+      "bytes": 1507888,
+      "sha256": "63db4155e558f3beacd9ddf9592781a0fa5b50df4c7f9ec998ecf849a107557f"
+    },
+    "audio/music/Magicworks.ogg": {
+      "bytes": 2567390,
+      "sha256": "f9f8fc68bc8a6461030f767e3e690d6b83e1abe4889f335ed8f5c699c87ebf0c"
+    },
+    "audio/music/Magicworks.mp3": {
+      "bytes": 2060333,
+      "sha256": "9348e47ebf73b44aafcafa33c1df89d645d2bb74cf941c329ac3c49f57bd7acb"
+    },
+    "audio/music/MermaidVoice.ogg": {
+      "bytes": 1261172,
+      "sha256": "a9ed28868ad5d5d98926091d512d8f9fb21a33c758c284d215a0aeea75368991"
+    },
+    "audio/music/MermaidVoice.mp3": {
+      "bytes": 1064481,
+      "sha256": "5488428663fbdde9b5dc68f9457710ac3f8fdc1d50faa3582ef20c4c1763025a"
+    },
+    "audio/music/MidnightClocktower.ogg": {
+      "bytes": 1983471,
+      "sha256": "fdb8991091e95a7b3d2432fbc610450df596971eed6b5f9e57d5d89a11813c34"
+    },
+    "audio/music/MidnightClocktower.mp3": {
+      "bytes": 1569118,
+      "sha256": "3faf8f2e7e8a9787283378b6bd7be8a67d8907ff82f2dbad62d9e06f5edeb23b"
+    },
+    "audio/music/MineAndMinecart.ogg": {
+      "bytes": 1607345,
+      "sha256": "f43048c727d2ac46d574a0bcbdb22054fb12593ed78eae9905c279acfbcd1edc"
+    },
+    "audio/music/MineAndMinecart.mp3": {
+      "bytes": 1451847,
+      "sha256": "5e97362f8db4cbfde2838c5fae3330bebdf43a42da3417ca15fcc0bd22ca9703"
+    },
+    "audio/music/MysteryMansion.ogg": {
+      "bytes": 1258271,
+      "sha256": "6133f12738dde54c8dfa6b6999c7f8ecc226cae32d5f1ac03c6d4e0f091680eb"
+    },
+    "audio/music/MysteryMansion.mp3": {
+      "bytes": 1008326,
+      "sha256": "81edbe5894daea3df9221a75e5cf0cb484d8dca17fc46606789771ed21789d8d"
+    },
+    "audio/music/MonsterInMe.ogg": {
+      "bytes": 2664852,
+      "sha256": "97d911ee710924182c927449c15bb8c073e2dcff8c150cd2d4bf777d185e2a2d"
+    },
+    "audio/music/MonsterInMe.mp3": {
+      "bytes": 2266223,
+      "sha256": "df6e280cea00cdb6a87f5861b8165be117ca8e7cb53f364bb169e0d08ead4f28"
+    },
+    "audio/music/NANATSUKAZE.ogg": {
+      "bytes": 1414007,
+      "sha256": "d4267f13920af0449e7a660dc625176143233d6362efa0977ecca5c7b313651e"
+    },
+    "audio/music/NANATSUKAZE.mp3": {
+      "bytes": 1161933,
+      "sha256": "9e8e17defa64fa0c78f36b8955cbeae18df5944a3af26ef03b53a9443f67e2ff"
+    },
+    "audio/music/NightmareOfInternalOrgans.ogg": {
+      "bytes": 1400419,
+      "sha256": "b16de9a95191be71318fbb7db75b1fc47a7549d23f682bf25d4dbff982d26696"
+    },
+    "audio/music/NightmareOfInternalOrgans.mp3": {
+      "bytes": 955482,
+      "sha256": "411b85b53e1c35e9e82637dd8a19c6560a8c42232ea94817348207e82c89bcde"
+    },
+    "audio/music/NecroMarionette.ogg": {
+      "bytes": 2731561,
+      "sha256": "fb82c04cba73c00b2100276b8ddd61c22d403a8b80e52b620a38217058b5ba10"
+    },
+    "audio/music/NecroMarionette.mp3": {
+      "bytes": 2118914,
+      "sha256": "096010350d2f214d430928bd13c625b558d334e4eed9697ca812d19686ce3b7d"
+    },
+    "audio/music/Noah'sArk.ogg": {
+      "bytes": 2885723,
+      "sha256": "64b3e4770d8e3fc452fc5bfd053fe8e6b640fd132469fb8c3f5d7ff1eff2bd77"
+    },
+    "audio/music/Noah'sArk.mp3": {
+      "bytes": 2439374,
+      "sha256": "b6635a23cd7faec36898a3e6d995693ff270a8f98c651b8870e13a1b22d69b64"
+    },
+    "audio/music/Nosferatu.ogg": {
+      "bytes": 2814172,
+      "sha256": "141717153a895800c07a95cda85db68b5a411053c76a5cbc51cc1758f2ba21c5"
+    },
+    "audio/music/Nosferatu.mp3": {
+      "bytes": 2306937,
+      "sha256": "0e3f592b1328fa571449e019bdca8cf3c60cc5e83099280b0f5abec20744f407"
+    },
+    "audio/music/NyanNyan.ogg": {
+      "bytes": 1111946,
+      "sha256": "d2769f467c439e71eb46ae7c9402314c56b7679fa8041212f5b92d20a90ef1ce"
+    },
+    "audio/music/NyanNyan.mp3": {
+      "bytes": 832877,
+      "sha256": "4a7ba3eb617db7dac3f95643d23f8d5066a1c1db57c77234b823c9da12da3074"
+    },
+    "audio/music/ONIHIME.ogg": {
+      "bytes": 1670339,
+      "sha256": "c27de808f90d14e7971f869710cc32ba57015e9b440363705d7a6ee4caed4c73"
+    },
+    "audio/music/ONIHIME.mp3": {
+      "bytes": 1334372,
+      "sha256": "d36926deec1d337cc3aa424ad641b64e6351f614241325deabeec6d226d8d836"
+    },
+    "audio/music/OlympiaTheInsaneDiva.ogg": {
+      "bytes": 3285973,
+      "sha256": "f60b9beb5d93527105303dcba78c0d5f6339913db726d1f105577f5e2bb02718"
+    },
+    "audio/music/OlympiaTheInsaneDiva.mp3": {
+      "bytes": 2649851,
+      "sha256": "8d1682279f642c8554cfc9595b89523b5c985a1344675a65b68973e33576eaa2"
+    },
+    "audio/music/Operette.ogg": {
+      "bytes": 3135894,
+      "sha256": "5cda5fbd4d88e6d3e72b956316556d79615df793e587f7245425b96bd6eb8ae2"
+    },
+    "audio/music/Operette.mp3": {
+      "bytes": 2361527,
+      "sha256": "90b99cb10b5a8bfdd1d78cf9ffdf22fe68539ffc6fc4d5457e4b35162ac9ea6d"
+    },
+    "audio/music/PermutationCity.ogg": {
+      "bytes": 2170095,
+      "sha256": "e09010aacfdaaf2c91e2000b76bcce4c557ba5ed725f40932b41eb16544c2a73"
+    },
+    "audio/music/PermutationCity.mp3": {
+      "bytes": 1789130,
+      "sha256": "dadd90670344b681d5023aad811bd03d1c597077f754723a4216e7cfef259038"
+    },
+    "audio/music/PerfectSimulator.ogg": {
+      "bytes": 2705981,
+      "sha256": "5e0c0a07d25b23962580a1bcf6ce48948277fe2914a3ec1d5a5259a997a42ab7"
+    },
+    "audio/music/PerfectSimulator.mp3": {
+      "bytes": 2300096,
+      "sha256": "354cb60e1e99192dd566da8856bb2252388f60b60dcd462ae242c7b1404c3660"
+    },
+    "audio/music/Phalanx.ogg": {
+      "bytes": 1263861,
+      "sha256": "93926951a517bfd8af3d2a8b4df9e3c245049339b3a1803e6dd45a44e29477a7"
+    },
+    "audio/music/Phalanx.mp3": {
+      "bytes": 1046865,
+      "sha256": "ed346950ea317914885ec3e030107522ee34c7948385099b0b88cde06483a531"
+    },
+    "audio/music/PetitMagie.ogg": {
+      "bytes": 2683658,
+      "sha256": "7250dc3d057225a3165b2227b9686ef72ef0c0b3d9df9e47c368e014f9149b56"
+    },
+    "audio/music/PetitMagie.mp3": {
+      "bytes": 2120812,
+      "sha256": "ed90470464755bdbf9e3884107c55f3f248207d12574224204b0ecd3abe041b2"
+    },
+    "audio/music/PrimitiveCurse.ogg": {
+      "bytes": 1090492,
+      "sha256": "cc8d64c95d566292d4ba4295c123ccaddd7dab623b57d1fffa65f7b27430f4f1"
+    },
+    "audio/music/PrimitiveCurse.mp3": {
+      "bytes": 922420,
+      "sha256": "f3b7c844315c84963a2450a4e4cdb8f8b22bdd97013fe344b36af982095f37c3"
+    },
+    "audio/music/PhantomOfHeilbronn.ogg": {
+      "bytes": 2245613,
+      "sha256": "78749069f58c5c707c6cb37952bda4c6088fbac6d3f495dcd2ad2e692a375b79"
+    },
+    "audio/music/PhantomOfHeilbronn.mp3": {
+      "bytes": 1959261,
+      "sha256": "1600c2ef8ca365ecc35c75924927e62b69413d050ef75c120177dab62814b630"
+    },
+    "audio/music/Psycomachia.ogg": {
+      "bytes": 1882468,
+      "sha256": "f0b792a97b9816a6d0359a8af084a586a9c53797fbb00832097807f95d49866d"
+    },
+    "audio/music/Psycomachia.mp3": {
+      "bytes": 1677376,
+      "sha256": "28d51dc2f200d387a37b756ed4dc5c22294a381d4cfb39dbd92a8ffd9573e79a"
+    },
+    "audio/music/RebuiltOrder.ogg": {
+      "bytes": 3627578,
+      "sha256": "9246bc2f1ca89228818463cb7ceea580b64de573d29d48e7624dd39936502809"
+    },
+    "audio/music/RebuiltOrder.mp3": {
+      "bytes": 2930786,
+      "sha256": "fb234a1fa9492780f838d7949ec42a011f014c6ae49e9f837220391c25cfc5bd"
+    },
+    "audio/music/Rest.ogg": {
+      "bytes": 1796480,
+      "sha256": "4dbef2e1e000b9bde15e0c6e08671a4222bb7e4797394ae621d80e7ba9db2a53"
+    },
+    "audio/music/Rest.mp3": {
+      "bytes": 1508224,
+      "sha256": "1381f42d5a6280df662005f92eabed9c60c603d1f39615432cc3028cd67b9c3a"
+    },
+    "audio/music/SAKURAHA.ogg": {
+      "bytes": 1071346,
+      "sha256": "75f1958344a8930504f3abdf10d51a498cc3befb331ad9897926e181e01aca40"
+    },
+    "audio/music/SAKURAHA.mp3": {
+      "bytes": 960315,
+      "sha256": "86a6ac4bb04ad0594d7d5f6ec703edb52cfa8e297d00f3b73f4740d43d7b4a47"
+    },
+    "audio/music/ReverseClock.ogg": {
+      "bytes": 3224536,
+      "sha256": "c70a3b88863971074df697127f367a9593d400bf4b0e2c437e1a0c0d6fc90ab2"
+    },
+    "audio/music/ReverseClock.mp3": {
+      "bytes": 2752036,
+      "sha256": "da31061962603ae371fad0b4cb621e5a0a110cfa144a9fbda7b579e153c725ca"
+    },
+    "audio/music/SiegePerilous.ogg": {
+      "bytes": 2095492,
+      "sha256": "cde4457385a59a540eb0064f7691eebbc580e939731d8b46aed1ba6b29fab523"
+    },
+    "audio/music/SiegePerilous.mp3": {
+      "bytes": 1836446,
+      "sha256": "593b9de2b7ee4425d2f07c6d28305cb58181cecb3d85125fcc7683bfc68deae2"
+    },
+    "audio/music/SkyFellInSea.ogg": {
+      "bytes": 2143626,
+      "sha256": "72bf1cba123cc59a64f276863df25caf5de549a21940274f79bbf9e969ad60b0"
+    },
+    "audio/music/SkyFellInSea.mp3": {
+      "bytes": 1827382,
+      "sha256": "ec766b13b32ee9d62b7b01045a01da7e0e0890b3b4a69a8e86f16849975bb009"
+    },
+    "audio/music/SnowyNight.ogg": {
+      "bytes": 1515679,
+      "sha256": "4b11452e97288d0b90da1c3f5de211dc87fd5863e685ce99be07fc663461f684"
+    },
+    "audio/music/SnowyNight.mp3": {
+      "bytes": 1191145,
+      "sha256": "f08c3309fd15fb9284990db72736a01b803b86a6ce23d87fa0bf78badbe1157c"
+    },
+    "audio/music/StrangeEvent.ogg": {
+      "bytes": 1290540,
+      "sha256": "28b81455b47a39457d4c630f7ae4c43f048111484e63e2d56301a8f5b9bc40dc"
+    },
+    "audio/music/StrangeEvent.mp3": {
+      "bytes": 996214,
+      "sha256": "078c19e1b813bc095692545aa162413ee3910987c6e2b7afb9a79608174638e0"
+    },
+    "audio/music/Stargazer.ogg": {
+      "bytes": 1615817,
+      "sha256": "f1ff05d03a565517c8c6297dddfd039744fffb794dfabe06393300dd52b8c70e"
+    },
+    "audio/music/Stargazer.mp3": {
+      "bytes": 1259325,
+      "sha256": "1bfd3288bf48807472dad9e307b0ba7d42eeeede8b49d83d103bc19b56546bb2"
+    },
+    "audio/music/Suspicion.ogg": {
+      "bytes": 1045469,
+      "sha256": "f8e7eb5e9ad70fc1238bef35af35f01c3932732b6053870d2db246326ba4b830"
+    },
+    "audio/music/Suspicion.mp3": {
+      "bytes": 836576,
+      "sha256": "e100b0093841a753b5c3dcbbcee0de25f976a1d73efd425b6a096afe13f938f9"
+    },
+    "audio/music/Super-dreadnoughtMiningMachine.ogg": {
+      "bytes": 1641644,
+      "sha256": "052983b00b9c35cdad7ccec1bc9d92dfc03ae757cf888d301e9c60ae695eea77"
+    },
+    "audio/music/Super-dreadnoughtMiningMachine.mp3": {
+      "bytes": 1484954,
+      "sha256": "709748ad8d58b18d95bfc33754ba712fe32280089011a78d882ac974b44181e3"
+    },
+    "audio/music/SwordAndWish.ogg": {
+      "bytes": 1036254,
+      "sha256": "0e8bac3d247517e6202dded2b46ca49c2a689dbb54aebcfd475f4b287a04e49a"
+    },
+    "audio/music/SwordAndWish.mp3": {
+      "bytes": 845305,
+      "sha256": "cf50f535223e36590ba6fe11f129b661ca1c0919a1ccea386bd76de6f58a8bb5"
+    },
+    "audio/music/TaliaWhoSleepingBeauty.ogg": {
+      "bytes": 1692128,
+      "sha256": "d8f47ba68e3761f941f02be6dcd2e395327b7b72c15f6cbf7a7dd97ee979022e"
+    },
+    "audio/music/TaliaWhoSleepingBeauty.mp3": {
+      "bytes": 1483966,
+      "sha256": "76cc232a927990d5af0b9b815aff87c43894e00f39719119c01c784417bf98a2"
+    },
+    "audio/music/TatebaShakuyaku.ogg": {
+      "bytes": 2183376,
+      "sha256": "5ff84a64f48ad43eb18d3156b8e082b862c8dbb592c13dd43aee375ca67f3b5b"
+    },
+    "audio/music/TatebaShakuyaku.mp3": {
+      "bytes": 1898249,
+      "sha256": "fad6173938914997fed57182c1831f829e467af8a1d317a01c0772693b2f92a0"
+    },
+    "audio/music/Testament.ogg": {
+      "bytes": 2973427,
+      "sha256": "cfd8c44ebd0cddc8265e94bb36618451a6b0db81cea39fe15afe7a84857063cd"
+    },
+    "audio/music/Testament.mp3": {
+      "bytes": 2534229,
+      "sha256": "cfdc45a176945e2284ca3e3f2266be03636c61935b4a74217c6a6da95fc0a2d6"
+    },
+    "audio/music/TeaParty.ogg": {
+      "bytes": 1087779,
+      "sha256": "cf20ab237cadbb909ab2992949060cb117e122382f88511f3021007537a7e4a8"
+    },
+    "audio/music/TeaParty.mp3": {
+      "bytes": 756639,
+      "sha256": "47bfe0b8ed9d92e270ed85d2a2ab9de72fea4e26443da459ecef4e40d7313d4b"
+    },
+    "audio/music/TheFacelessPharaoh.ogg": {
+      "bytes": 1493249,
+      "sha256": "cf09612a88dda035c4934dbd4f5f6ee8e119362a896498dfd3e4208f63488637"
+    },
+    "audio/music/TheFacelessPharaoh.mp3": {
+      "bytes": 1215888,
+      "sha256": "b9e01b086eafdaa474bc41d1a3d180b0a3723b9cc937a37f8700958d66d837b1"
+    },
+    "audio/music/TheFlowersDoNotSeeTheLeaves.ogg": {
+      "bytes": 2582805,
+      "sha256": "d2db38f4801af078a58fc4ee942f234236ea0e5eee9256703f4f6dee067e6ec7"
+    },
+    "audio/music/TheFlowersDoNotSeeTheLeaves.mp3": {
+      "bytes": 2085495,
+      "sha256": "7630ecc17bcf6f0c6ef9d03f03f7858ba42dcb7d948fd5d4a8176cce86a4c89d"
+    },
+    "audio/music/TheHangedMan.ogg": {
+      "bytes": 1965284,
+      "sha256": "8c5c1dab01413e2f975992901ef6f34731625347179693527e0642bc0111b09e"
+    },
+    "audio/music/TheHangedMan.mp3": {
+      "bytes": 1766605,
+      "sha256": "258c898bf6c2e770abc1bfc976b1f8a43a5a52b1927d6cb16b8140ec0aa008d3"
+    },
+    "audio/music/TheHungryOne.ogg": {
+      "bytes": 2827953,
+      "sha256": "7e04b15540d2ddd7dd93fb3d26f29b8ea7467597996fb399944b51d05251e52b"
+    },
+    "audio/music/TheHungryOne.mp3": {
+      "bytes": 2248889,
+      "sha256": "b8fa021a713f7a534d3163b006b2d704ac6bd89b5fdac810d715529f889bdb46"
+    },
+    "audio/music/TheLightsInTheSkyAreStars.ogg": {
+      "bytes": 2590972,
+      "sha256": "7c8aa53b66379e1792c184bdd72ab7ede9919fa09e5aa951967b80299fc09472"
+    },
+    "audio/music/TheLightsInTheSkyAreStars.mp3": {
+      "bytes": 2107713,
+      "sha256": "a0ec61770b57f69ee2abf1fa99c4c6758444541013600ef12ee4e1abf2bc2d32"
+    },
+    "audio/music/ThornCastle.ogg": {
+      "bytes": 1784138,
+      "sha256": "8b8c3be5c0e5e0d78dc64e00b9588e5c8ca0ce59264c87fcc0095f3a09a4b192"
+    },
+    "audio/music/ThornCastle.mp3": {
+      "bytes": 1431925,
+      "sha256": "a9ce03dc5d0f292501f738dd0b6ea52cb3ddafa3dbc9b10188cbe286aee3bede"
+    },
+    "audio/music/Thread.ogg": {
+      "bytes": 1657352,
+      "sha256": "710da4153b6870362a6481e270899a28cd62fbed658ebd102a4f938740c39f16"
+    },
+    "audio/music/Thread.mp3": {
+      "bytes": 1390397,
+      "sha256": "ae278a3105b4de0ed38665009516463b700c325bf6f0c242a29b098b3ac544ac"
+    },
+    "audio/music/TillDeathDoUsPart.ogg": {
+      "bytes": 1660525,
+      "sha256": "556dbdc0cdaf1b147cd6c9b47703523344e7440a27703c67022e670d52e001a1"
+    },
+    "audio/music/TillDeathDoUsPart.mp3": {
+      "bytes": 1397562,
+      "sha256": "3d86313955de9340cfc515f89d8bb68c95d1e971b21873277f0847303a6fc651"
+    },
+    "audio/music/Tsumuhahime.ogg": {
+      "bytes": 1685583,
+      "sha256": "3d0ecab49748c95cf66b6358aa64cbceb594630cf0e445d860488c139d7fa69b"
+    },
+    "audio/music/Tsumuhahime.mp3": {
+      "bytes": 1380787,
+      "sha256": "cc417f5bbb1706101234725d5b7169648dcc2446fd94b3fc7bafd467ce5af89a"
+    },
+    "audio/music/UndergroundInvasion.ogg": {
+      "bytes": 973971,
+      "sha256": "b2dac43cd3f3226410add2ef16f7e90dad14a2b053c5925151c2f787c7e14a0b"
+    },
+    "audio/music/UndergroundInvasion.mp3": {
+      "bytes": 892860,
+      "sha256": "c3c085971d53cfc18437566ca96c16eab0dc075206097afb88a2d14d03a838ed"
+    },
+    "audio/music/UnderwaterGlory.ogg": {
+      "bytes": 1078299,
+      "sha256": "7f8c8766030d49cb2d5dd777818ce662de05430875542036d63a3afb755474e7"
+    },
+    "audio/music/UnderwaterGlory.mp3": {
+      "bytes": 927539,
+      "sha256": "c292899c9377799a471daf755ed614ddf66e4de2f266a68b32cfdf87076bc81c"
+    },
+    "audio/music/Unholy.ogg": {
+      "bytes": 2419287,
+      "sha256": "56a5dc42cde7ca18fdd6d9de52d526fb33929ddff4ba6f0a8e7b43cc139b2104"
+    },
+    "audio/music/Unholy.mp3": {
+      "bytes": 1959273,
+      "sha256": "fffba8451034f989e1eafbe91a683c8d3d2f7e05407faf4a12a27c3f6b732b47"
+    },
+    "audio/music/WhereIsFortuna.ogg": {
+      "bytes": 3099171,
+      "sha256": "1baf1a42f6439811793a7059edd468e6d6ba4f82b218fa5d8925c78206fc1cc2"
+    },
+    "audio/music/WhereIsFortuna.mp3": {
+      "bytes": 2911240,
+      "sha256": "e25245d0b8dbfcd73eccbf3b26a4deef0c620f924473f3a273d5de125a1e7b07"
+    },
+    "audio/music/WhisperOfRune.ogg": {
+      "bytes": 2177762,
+      "sha256": "d8f24dcb1e53f4fe900535ab947484e21a35dd50b3c8ca4ff58a00803f567de0"
+    },
+    "audio/music/WhisperOfRune.mp3": {
+      "bytes": 1743719,
+      "sha256": "d25ca3ff031239911e423da71d3e55d98abd2196465ba199d7a898b369f6f6c0"
+    },
+    "audio/music/WhiteFootprints.ogg": {
+      "bytes": 1332365,
+      "sha256": "c6855bb8a4cd7032fd3e72cc6b496ecdb73e83943133fadec1bf04a4ab7e1597"
+    },
+    "audio/music/WhiteFootprints.mp3": {
+      "bytes": 1098066,
+      "sha256": "a6bc597c26f1a78f542a3025d11646a89c705e74bec058ae48a0cac995e45d3a"
+    },
+    "audio/music/The11thLilith.ogg": {
+      "bytes": 1429814,
+      "sha256": "33f3add9a130e0dc8e438bfc8fccb5ff7cbc14d7c6403056826ec79f2e32587a"
+    },
+    "audio/music/The11thLilith.mp3": {
+      "bytes": 1265709,
+      "sha256": "5c04f2ab3acd3d4df1981a422ad65993c0218889044c6025471bb28363e4d5dd"
+    },
+    "audio/music/WineGlassAndLies.ogg": {
+      "bytes": 1001723,
+      "sha256": "0cebb6dcb3525f030f2a2efa719c40c8f2627ba5717d1bbdbff5625edf1178fe"
+    },
+    "audio/music/WineGlassAndLies.mp3": {
+      "bytes": 933412,
+      "sha256": "efa3a849c5273ed7aca24f01aadc52cd073ad203d82c65d8ad869842feb9e5d5"
+    },
+    "audio/music/WisdomTower.ogg": {
+      "bytes": 1887575,
+      "sha256": "a7ab2648398153df89880b65f5d5f686edd36805a73940bfaecc77bf25ee97d7"
+    },
+    "audio/music/WisdomTower.mp3": {
+      "bytes": 1853387,
+      "sha256": "9f21e3579390724835653ccc7c5e319b6277853a85520f50fdab8b91f55459ac"
+    },
+    "audio/music/Witchcraft.ogg": {
+      "bytes": 2645614,
+      "sha256": "57732819115a82d72585d7e8feed22a6814095c123e4e718a2c8f288e4409d6f"
+    },
+    "audio/music/Witchcraft.mp3": {
+      "bytes": 1903141,
+      "sha256": "8ec181f58a64cc325980819473499f75ee73670f56bc7af7e6afe83ca6eebffe"
+    },
+    "audio/music/WizardOfColor.ogg": {
+      "bytes": 2262938,
+      "sha256": "3cfc7c6aad9ca39da0e718c30eb10dad98c256bb8dddc8761bbf9c12dd78d4ae"
+    },
+    "audio/music/WizardOfColor.mp3": {
+      "bytes": 1767036,
+      "sha256": "08d04e278f9441dc2acb369854aae9d74e445bdc81a3153a3c4ec56a7bb46505"
+    },
+    "audio/music/WorldwalkerWings.ogg": {
+      "bytes": 2539836,
+      "sha256": "9a2d71c78a5471d0e4c37a8da595d86fca1a1d62101555b730d9e8213a286645"
+    },
+    "audio/music/WorldwalkerWings.mp3": {
+      "bytes": 2043734,
+      "sha256": "60d6045352f5889cbd4e199e3891a11a6b7d11db81b0bd9bd8df13914c5d971b"
+    },
+    "audio/music/YUKIKAZE.ogg": {
+      "bytes": 1722830,
+      "sha256": "c43ce568c210717290438579499369a9710ab9e20604b425116816729ee26939"
+    },
+    "audio/music/YUKIKAZE.mp3": {
+      "bytes": 1570497,
+      "sha256": "40fea3e5c02d8a3fa3b1e144f6f5569c6e0a49ec307e190d8f98cd2827f0c014"
+    },
+    "audio/music/Mercedes.ogg": {
+      "bytes": 1789169,
+      "sha256": "3cb546865d2190722db99206b5dace8aaf6bbd26abb8a6d437e10eb6b15ddeac"
+    },
+    "audio/music/Mercedes.mp3": {
+      "bytes": 1447765,
+      "sha256": "7b5007443ea9bdb17fc57ffed77548e3edd59908c19269e1a8ff76338ac05ec7"
+    },
+    "audio/music/ZoeOfAeon.ogg": {
+      "bytes": 1648751,
+      "sha256": "05cdce8a65c98dc52f60f4e351e89b7da86dd820279b1103b7099a6d8b342ba6"
+    },
+    "audio/music/ZoeOfAeon.mp3": {
+      "bytes": 1406496,
+      "sha256": "181693adcb875b4f323884c0feaa1c391cfb1ec9c92f8d62104151d314265206"
+    },
+    "audio/music/codeW3EXODUS.ogg": {
+      "bytes": 1177437,
+      "sha256": "8a4df020ac14f339e99e723fe9b00718a160335c60483140453745f39b41de27"
+    },
+    "audio/music/codeW3EXODUS.mp3": {
+      "bytes": 988208,
+      "sha256": "2000e7adbb23c1b12af069c763e26026e9a4905f0dc3d21a652808fea890adb0"
+    },
+    "audio/music/madoromi.ogg": {
+      "bytes": 893253,
+      "sha256": "78d830f3382cbd9199d681149501541e4e9e1e2271d476f6fd842590fe06de29"
+    },
+    "audio/music/madoromi.mp3": {
+      "bytes": 933749,
+      "sha256": "fecbed3f1db5e929ef00eb15c299eb1f753b9bfac1d265188214ddf75203ad4b"
+    },
+    "audio/music/CannotRemember.ogg": {
+      "bytes": 1967677,
+      "sha256": "fc555c3e44f9d545b2db492249a9ef583eb23a1ab4bced2216aaf708f3424290"
+    },
+    "audio/music/CannotRemember.mp3": {
+      "bytes": 1675951,
+      "sha256": "11af413cafbdb182c8df20c527f48d85ef66691cbe2adfeb6fd4685f2da86cb4"
+    },
+    "audio/music/Yaoyorozu.ogg": {
+      "bytes": 1493853,
+      "sha256": "f5ad271c1ce9ff51ce867dca27c1c250c492574614e3c2c14a440b6dee8abb37"
+    },
+    "audio/music/Yaoyorozu.mp3": {
+      "bytes": 1182248,
+      "sha256": "781ac99b92c7a76ee7c4f45b7d4cf59483baaecb16cb80be97b48489b8a8a0b9"
+    },
+    "audio/music/WhiteLily.ogg": {
+      "bytes": 3124227,
+      "sha256": "229e05b6778474cc492e3043f4d5223d58115fbb67825fec020efebc616f3cf8"
+    },
+    "audio/music/WhiteLily.mp3": {
+      "bytes": 2663536,
+      "sha256": "59839930f1bb2dfdc931b059eb3ee60f506a3f843a91e39540209985719b1b66"
+    },
+    "audio/sfx/interface-sounds--select_001.wav": {
+      "bytes": 3640,
+      "sha256": "ec599112d83c1fe55ef7c3d02b2252475996dcb63dba7904c6c83456390f91d1"
+    },
+    "audio/sfx/interface-sounds--select_002.wav": {
+      "bytes": 3640,
+      "sha256": "992836fb1ec0378cdd0e38bd6f324b4c15edfb201c07a9f53124e398827b1156"
+    },
+    "audio/sfx/interface-sounds--confirmation_001.wav": {
+      "bytes": 25642,
+      "sha256": "c0c6d0a967967250733fc1ca42adb5736c835ec0551a4e6512d403870e9fb688"
+    },
+    "audio/sfx/interface-sounds--back_001.wav": {
+      "bytes": 5456,
+      "sha256": "937a08d661f43e4e0558f429697b20b7faa65a5c0ece420e81dc537f1caf7eb5"
+    },
+    "audio/sfx/interface-sounds--error_002.wav": {
+      "bytes": 14670,
+      "sha256": "72f2accd8cb56521f3f2f244a5dc2d061d18cec36c4c39d7039026fcce5683be"
+    },
+    "audio/sfx/rpg-audio--bookOpen.wav": {
+      "bytes": 13402,
+      "sha256": "c698ca545dcc7a0cf06cc80496cc5c6501c98e3273c95cc437f292defbf6b116"
+    },
+    "audio/sfx/rpg-audio--bookFlip1.wav": {
+      "bytes": 67874,
+      "sha256": "c09daaa26f458a74d2d3880c175172d229c08946c755b5696bb07032e38f09e5"
+    },
+    "audio/sfx/rpg-audio--bookFlip2.wav": {
+      "bytes": 38044,
+      "sha256": "70e1aa451b78c34a745b9f56b54da54ef06b3fc5f3c8d1526322e17c59c66ccb"
+    },
+    "audio/sfx/rpg-audio--bookFlip3.wav": {
+      "bytes": 20418,
+      "sha256": "187af42aabf457d937071aca33ceee304850a152b80c8da1cba60f025b273ede"
+    },
+    "audio/sfx/rpg-audio--bookClose.wav": {
+      "bytes": 20418,
+      "sha256": "06cdf9292c434024375df5f8aecde434cd25b2cd98d3c626545ebad5175a5cd2"
+    },
+    "audio/sfx/rpg-audio--metalLatch.wav": {
+      "bytes": 23128,
+      "sha256": "7587dc3028b0e8e298009e90e6417112d1110217210812475b5e7b5be1b7bb10"
+    },
+    "audio/sfx/rpg-audio--doorOpen_2.wav": {
+      "bytes": 124734,
+      "sha256": "a706cd94a5027ce889586f3f8e421d8ed45c773969993a77c8f6fa1f0d0858b3"
+    },
+    "audio/sfx/rpg-audio--handleCoins.wav": {
+      "bytes": 74654,
+      "sha256": "63cf567feb7954039adf3feafb5e0f5c40ea4c358d182fb78824810f9cf81eaa"
+    },
+    "audio/sfx/rpg-audio--handleCoins2.wav": {
+      "bytes": 29908,
+      "sha256": "b928831b1e661682271e90de12c4aea0ba0127014ed25dafac98193fcd9afa65"
+    },
+    "audio/sfx/rpg-audio--doorOpen_1.wav": {
+      "bytes": 81132,
+      "sha256": "67a6413049bf940e26c5073e39908995c37b353644a789004cd3f34f5a831ddf"
+    },
+    "audio/sfx/rpg-audio--creak2.wav": {
+      "bytes": 73298,
+      "sha256": "ab3ce15590cecb2a498faff34f5a9a54905b74e244abb91fca6224fddc5771f9"
+    },
+    "audio/sfx/impact-sounds--footstep_concrete_000.wav": {
+      "bytes": 9164,
+      "sha256": "bc4579977a568d84d13f71e137b9668111910a8eae3228da2e051987be68c441"
+    },
+    "audio/sfx/impact-sounds--footstep_concrete_001.wav": {
+      "bytes": 9316,
+      "sha256": "38c70c47f55969874aaaf7fdeecb7116f88037c78ddf5e37f5b66aba29ff722c"
+    },
+    "audio/sfx/impact-sounds--footstep_concrete_002.wav": {
+      "bytes": 9770,
+      "sha256": "cfec61c3e7597d1b8b0b9c02d4d7f815bab5cb368e80040db097266da2d7a8da"
+    },
+    "audio/sfx/impact-sounds--footstep_concrete_003.wav": {
+      "bytes": 9568,
+      "sha256": "a184eebabb837abb60f7c8387bf62727bc10889ffde37a56f41936419384db3e"
+    },
+    "audio/sfx/impact-sounds--footstep_grass_000.wav": {
+      "bytes": 28110,
+      "sha256": "8d42a0136e46caa099538cbbe7d4c22775baa3364ea89db9d1febe6c9e6207fe"
+    },
+    "audio/sfx/impact-sounds--footstep_grass_001.wav": {
+      "bytes": 28302,
+      "sha256": "01286d43ab8f229be22ff926c3072f50b35f24b261aee55fea68f7976f155690"
+    },
+    "audio/sfx/impact-sounds--footstep_grass_002.wav": {
+      "bytes": 28302,
+      "sha256": "802c0c53aaad6840518a109f6b91910e64dff58961598ea2fc8869e7c75c6a86"
+    },
+    "audio/sfx/impact-sounds--footstep_grass_003.wav": {
+      "bytes": 28302,
+      "sha256": "caebea13c44f0bf925ea325cb20538e4135b5b0b3e9d707943f148c1c9071dde"
+    },
+    "audio/sfx/impact-sounds--footstep_snow_000.wav": {
+      "bytes": 28302,
+      "sha256": "276594aae8056a5c5bd5176ac3048f2e3dacf392d72868fe19e3c8b46281f714"
+    },
+    "audio/sfx/impact-sounds--footstep_snow_001.wav": {
+      "bytes": 28110,
+      "sha256": "6b6b5273187a74de40e0b1db4bb3a8b178cd63d24fb528b6c888b6bdd7a179ce"
+    },
+    "audio/sfx/impact-sounds--footstep_snow_002.wav": {
+      "bytes": 28110,
+      "sha256": "6b39c95dd278b12e42d2eb3283d3c79e430cfd85e8480bd016af6ce04dffa1f6"
+    },
+    "audio/sfx/impact-sounds--footstep_snow_003.wav": {
+      "bytes": 28302,
+      "sha256": "f604d13d58cbf8d4f1e483a3296f587bbc64bfdab8549515a2ac0a9e00f57828"
+    },
+    "audio/sfx/impact-sounds--footstep_wood_000.wav": {
+      "bytes": 24014,
+      "sha256": "7eca22e291ed115546b15ba368cccd4e5bed39ec9148f1ccc105eeb1e84d4290"
+    },
+    "audio/sfx/impact-sounds--footstep_wood_001.wav": {
+      "bytes": 22010,
+      "sha256": "75885647d02fd49819639705c3ab7c361954d3d92f363a366853d4307aa8ff2f"
+    },
+    "audio/sfx/impact-sounds--footstep_wood_002.wav": {
+      "bytes": 21994,
+      "sha256": "e86a29f174354b1549a78a3ad3acc1189fae0a8c4950938287e2f07dd455b341"
+    },
+    "audio/sfx/impact-sounds--footstep_wood_003.wav": {
+      "bytes": 22006,
+      "sha256": "19a4e14ffbb8779e37a078024da77d25bc580040f924a877b90dd228cf5d4216"
+    },
+    "audio/sfx/impact-sounds--footstep_carpet_000.wav": {
+      "bytes": 14798,
+      "sha256": "c5565073c3f7fadd3602dfe01de105fd44d0c0f0bba6eed10f95ca469bd64f5f"
+    },
+    "audio/sfx/impact-sounds--footstep_carpet_001.wav": {
+      "bytes": 12592,
+      "sha256": "ad3a80b3ba0eefae96d4b38ac1c53ef34901bd48ec0e603c740cd99d0029c858"
+    },
+    "audio/sfx/impact-sounds--footstep_carpet_002.wav": {
+      "bytes": 12592,
+      "sha256": "ad3a80b3ba0eefae96d4b38ac1c53ef34901bd48ec0e603c740cd99d0029c858"
+    },
+    "audio/sfx/impact-sounds--footstep_carpet_003.wav": {
+      "bytes": 12592,
+      "sha256": "15af9d6d721ee31f7092db86fc468b84ca4c910a494044922f9904ca8775e352"
+    },
+    "audio/sfx/impact-sounds--impactMetal_light_000.wav": {
+      "bytes": 32974,
+      "sha256": "2aecc26b7d444cee915add87a23ebb1b9fe5dbe9675c70687533bd4d5fdf598b"
+    },
+    "audio/sfx/impact-sounds--impactMetal_light_001.wav": {
+      "bytes": 22034,
+      "sha256": "579f674c802f77527912ae557b04e6c5948bc6a7762b02c80155bb134d940bb8"
+    },
+    "audio/sfx/impact-sounds--impactMetal_light_002.wav": {
+      "bytes": 20618,
+      "sha256": "45adf09497eb61e0e83cd4e119baed2a08a6d434bed2d5093a5447d703b35ed7"
+    },
+    "audio/sfx/impact-sounds--impactSoft_medium_000.wav": {
+      "bytes": 10230,
+      "sha256": "39b2b5d74524a3fe1d2c475dd252e60391c07d9a40e4125b378cb6a2c217e2ed"
+    },
+    "audio/sfx/impact-sounds--impactSoft_medium_001.wav": {
+      "bytes": 15988,
+      "sha256": "ab8d2ec56610912edbf45793664b44ad3255d9d6a9a497eb78eb6f79d84fb19c"
+    },
+    "audio/sfx/impact-sounds--impactSoft_medium_002.wav": {
+      "bytes": 11746,
+      "sha256": "813397658da92762ae82d76874f2d20bb691792fad45cae90a9df1220e002e77"
+    },
+    "audio/sfx/rpg-audio--cloth1.wav": {
+      "bytes": 58382,
+      "sha256": "4c5f2a2a60d42d635ff98dc89143d878e5c7d62aff7b8f04c877c7a044e56eaf"
+    },
+    "audio/sfx/rpg-audio--cloth2.wav": {
+      "bytes": 36688,
+      "sha256": "e4307d415427b814ac30b79d5c364185ff32fd7abaf1c8783a41206032ae3c2f"
+    },
+    "audio/sfx/rpg-audio--cloth3.wav": {
+      "bytes": 42112,
+      "sha256": "0fb3091f7dceeb3e2523de14c560d9a00670f4bfef2f617e701cb48ea1e0fd5e"
+    },
+    "audio/sfx/impact-sounds--impactGlass_light_000.wav": {
+      "bytes": 20430,
+      "sha256": "b0b0ec0039c9d09751065253ddf5fa892a984dcd35d6a30b8e904dfa4b3c2ad6"
+    },
+    "audio/sfx/impact-sounds--impactGlass_light_001.wav": {
+      "bytes": 18308,
+      "sha256": "9a7da496fa6eeef35879de0e21c0de84ad2cd37c98f340b07b5a12d3d210c257"
+    },
+    "audio/sfx/impact-sounds--impactGlass_light_002.wav": {
+      "bytes": 18308,
+      "sha256": "10b5d377935ec96934d9a1d34b443f9644002bf2e9cfe339b59a97695b75800c"
+    },
+    "audio/sfx/rpg-audio--knifeSlice.wav": {
+      "bytes": 52958,
+      "sha256": "d3041aae2cc64464851efc79ff22f40d3982568d75d97ad570d4b92cfc1b4995"
+    },
+    "audio/sfx/rpg-audio--knifeSlice2.wav": {
+      "bytes": 50246,
+      "sha256": "92755caaeb2127e573af78cf9a5209a5864e3414e65b74b3cae6a32f85af036b"
+    },
+    "audio/sfx/rpg-audio--drawKnife1.wav": {
+      "bytes": 35334,
+      "sha256": "fc5e565bf09e20f207ee0ab5a6c9f07a8b187680583bb7933763af7f88ef2cb3"
+    },
+    "audio/sfx/impact-sounds--impactPunch_heavy_000.wav": {
+      "bytes": 57322,
+      "sha256": "f3c8d373b82f055b83cb030d36eec668dd30a8711bb5e37a33c6cb1a43c77a76"
+    },
+    "audio/sfx/impact-sounds--impactPunch_heavy_001.wav": {
+      "bytes": 47348,
+      "sha256": "f1db400851478fb019dff2f9cf60c3957e16dbe095628de45f00713051c30627"
+    },
+    "audio/sfx/casino-audio--card-fan-1.wav": {
+      "bytes": 63654,
+      "sha256": "5cfe40df077a9eb369f962a55dc77de3ff50dc80516cfd1106c70731c9cff886"
+    },
+    "audio/sfx/casino-audio--card-shove-1.wav": {
+      "bytes": 67628,
+      "sha256": "f5658b1001a856b2ad6310441c70aa0652f7b5f9e931a076fa218996be2ab07f"
+    },
+    "audio/sfx/casino-audio--card-shove-2.wav": {
+      "bytes": 67714,
+      "sha256": "5c994a1e8ba861e08f72a8c93399ce7262ee4982020ee2e9364470528cfc94ff"
+    },
+    "audio/sfx/sci-fi-sounds--laserSmall_000.wav": {
+      "bytes": 20920,
+      "sha256": "1b6dac544a48c2cd4b6aa88f841991f69a3d402f6a39f0a64ddc0e46a5c21543"
+    },
+    "audio/sfx/sci-fi-sounds--laserSmall_001.wav": {
+      "bytes": 21638,
+      "sha256": "02cbe42a608857a71a62abd1af23f5c101e40db67c3ec352676187c7cf3d96cc"
+    },
+    "audio/sfx/sci-fi-sounds--laserSmall_002.wav": {
+      "bytes": 30442,
+      "sha256": "c6e39ae20e6eacdb5651e59c82d8127c30c2b671bdc6b4ba7ac0179e2020a76e"
+    },
+    "audio/sfx/impact-sounds--impactPunch_medium_000.wav": {
+      "bytes": 38052,
+      "sha256": "f7b2b024c31758b950ecdd1e62bb506da6e2900faa04ad8baa2915e5a78d5529"
+    },
+    "audio/sfx/impact-sounds--impactPunch_medium_001.wav": {
+      "bytes": 35508,
+      "sha256": "191c7cb03576e62bef18461b41fb81bf621282d38b88e1ecb00e214fb20f8f34"
+    },
+    "audio/sfx/impact-sounds--impactMining_000.wav": {
+      "bytes": 82760,
+      "sha256": "d927f84f7c4b21935ac9ba54e3c0051386695de0d79ca09485bfb399602f04e1"
+    },
+    "audio/sfx/impact-sounds--impactMining_001.wav": {
+      "bytes": 76760,
+      "sha256": "0707bcef90db433a5d463eabf5fdf6d81c254c740a166b7445693ec13c6d8c92"
+    },
+    "audio/sfx/impact-sounds--impactWood_heavy_000.wav": {
+      "bytes": 27432,
+      "sha256": "941db42f6b8d01880669c5ee4442d40e3365e175ecc997a8bcf78c73b6b959c0"
+    },
+    "audio/sfx/impact-sounds--impactWood_heavy_001.wav": {
+      "bytes": 27432,
+      "sha256": "b04ba43330f19a22702c24947451910b05854e9b64134f3f074493007a3a8912"
+    },
+    "audio/sfx/impact-sounds--impactGlass_medium_000.wav": {
+      "bytes": 47746,
+      "sha256": "b4c2961ff737a77de8730f8d41a5485d4cdb386356e4c117a967efbcc2b91636"
+    },
+    "audio/sfx/impact-sounds--impactGlass_medium_001.wav": {
+      "bytes": 47746,
+      "sha256": "491cf49e3c385ff7501b0e24f1c4eb777d453fa55c5e3fc8c1d8af2e8fb56166"
+    },
+    "audio/sfx/sci-fi-sounds--slime_000.wav": {
+      "bytes": 44178,
+      "sha256": "cb508d1e225e4ea215f8bb29768534bd83b16f0c22a2113dd1563dba3f0cb0e8"
+    },
+    "audio/sfx/sci-fi-sounds--slime_001.wav": {
+      "bytes": 75048,
+      "sha256": "66e757ec2a98caa466c7b5418a69adf7b0c2cb8f9c3c062a42b07d7320a37f3b"
+    },
+    "audio/sfx/digital-audio--phaserDown1.wav": {
+      "bytes": 41294,
+      "sha256": "74c53acedffa73d8bc3772f19042ef52bef531e11cc0517c628f0e775378eb14"
+    },
+    "audio/sfx/digital-audio--phaserDown2.wav": {
+      "bytes": 27470,
+      "sha256": "f7f9ec4538db2f5880654d86a9b291576c623095d6ffad968699585bc17827a2"
+    },
+    "audio/sfx/rpg-audio--chop.wav": {
+      "bytes": 21270,
+      "sha256": "82bc42769844aeadd3810ddff982ab43c4a6af054e7c32500769b11a1f1cb18b"
+    },
+    "audio/sfx/rpg-audio--metalClick.wav": {
+      "bytes": 39402,
+      "sha256": "5996c8cee8f5ded68f3e17435a12494962fb46f053fff24a54ba1ea218b927cb"
+    },
+    "audio/sfx/impact-sounds--impactPunch_medium_002.wav": {
+      "bytes": 47830,
+      "sha256": "11000949b811514bfb2c00ded5ad07e55105c5e8249bd7bfe281563db0dee7fd"
+    },
+    "audio/sfx/impact-sounds--impactMetal_medium_000.wav": {
+      "bytes": 23792,
+      "sha256": "1a71aa452e479189ee03a81bc4f970309e5c2cf03647c73af92f28d7609d74e6"
+    },
+    "audio/sfx/impact-sounds--impactMetal_medium_001.wav": {
+      "bytes": 12474,
+      "sha256": "57188afd873ce7aeaa2fd65ca9b15cb7c1c4a6f125c05d656c6301b68b7874cf"
+    },
+    "audio/sfx/impact-sounds--impactMetal_medium_002.wav": {
+      "bytes": 10330,
+      "sha256": "5f325b0b5cdab3bf3a6310c7c5cbf36026e561176363b99585d17fdbf9c4de0d"
+    },
+    "audio/sfx/impact-sounds--impactMining_002.wav": {
+      "bytes": 71050,
+      "sha256": "cb1ad1af845a9e2f18aa98a9eaf78a56b16224414bb5941b6c013ce73e86ad5d"
+    },
+    "audio/sfx/impact-sounds--impactGlass_heavy_000.wav": {
+      "bytes": 21098,
+      "sha256": "de383a310c77a21e69acf295e340e4fa15e36c0a800fd62604bc8689faa1ca95"
+    },
+    "audio/sfx/impact-sounds--impactGlass_heavy_001.wav": {
+      "bytes": 37916,
+      "sha256": "21e3b1e4d39a38e8ea4082def35c6ae8ccdb520f0ce4016aa51bffb47fc97ed8"
+    },
+    "audio/sfx/impact-sounds--impactGlass_heavy_002.wav": {
+      "bytes": 21622,
+      "sha256": "28b66510520d1847b8408fb0f00d78ba01d7ceff0e5fd4748a3468a505f4ae44"
+    },
+    "audio/sfx/impact-sounds--impactWood_medium_000.wav": {
+      "bytes": 29164,
+      "sha256": "60e6cc8cf136c92cde74ea52c5e0c908442f1a655348323e257611e7faae5e58"
+    },
+    "audio/sfx/impact-sounds--impactWood_medium_001.wav": {
+      "bytes": 29164,
+      "sha256": "b4ee89d99e90a013ce27d4c709bba5d80df4491af48f97359335e078cbd8d41c"
+    },
+    "audio/sfx/impact-sounds--impactWood_medium_002.wav": {
+      "bytes": 29164,
+      "sha256": "b1bc339a8192e863eef23a92191a0d3d1b0747177e63bd6ea83b70c2a9642614"
+    },
+    "audio/sfx/interface-sounds--glitch_001.wav": {
+      "bytes": 1588,
+      "sha256": "3b53d3c177dbfff9e82807a904caa30b89384016055e0a36e4d57ab03302afe3"
+    },
+    "audio/sfx/interface-sounds--glitch_002.wav": {
+      "bytes": 2470,
+      "sha256": "83d4e0683b3b6e183bb00e9005879cd3dd2d05f91211566714759df96464fd9c"
+    },
+    "audio/sfx/impact-sounds--impactPunch_heavy_002.wav": {
+      "bytes": 40428,
+      "sha256": "622d625f9e11d188270485065a9cdd583e5d4a9feb4504d7c8dfbc611e8f8472"
+    },
+    "audio/sfx/sci-fi-sounds--forceField_000.wav": {
+      "bytes": 75048,
+      "sha256": "97c56f58eb37a8f954075668cc8d456cd77dd32efa88999560d989aaa38d643c"
+    },
+    "audio/sfx/sci-fi-sounds--forceField_001.wav": {
+      "bytes": 75048,
+      "sha256": "e81ce2a63fc92f348f60df16888704d715b18b5dd7cda6c8aad313154555605c"
+    },
+    "audio/sfx/digital-audio--powerUp3.wav": {
+      "bytes": 75048,
+      "sha256": "e66c0966b5509d181b365cc784d08076970775af1ca3a4c8a30c2f12a8188da0"
+    },
+    "audio/sfx/digital-audio--powerUp7.wav": {
+      "bytes": 45902,
+      "sha256": "7f146610d0c37496ec40dcc005113ec88ff78cc1c6eddd7d3c36b9c92c0f60a9"
+    },
+    "audio/sfx/interface-sounds--glass_003.wav": {
+      "bytes": 10730,
+      "sha256": "8ad32f577c958233011f0fa6ba9c199ded0c086bd8330ec32b564df463312344"
+    },
+    "audio/sfx/rpg-audio--clothBelt.wav": {
+      "bytes": 63806,
+      "sha256": "e89666c676d6fe78975ace23b95bdcbc015a2765040c18010107ad1afeece820"
+    },
+    "audio/sfx/rpg-audio--clothBelt2.wav": {
+      "bytes": 66520,
+      "sha256": "4c776889c580f106f7e9031049d6136febdd4384ab5620b731fd527f9cb3fb79"
+    },
+    "audio/sfx/sci-fi-sounds--thrusterFire_000.wav": {
+      "bytes": 75048,
+      "sha256": "36d6fca78d69fc655fe7fce75f1fd6e03c2f7e680da901f2e143656b49904eaf"
+    },
+    "audio/sfx/sci-fi-sounds--thrusterFire_001.wav": {
+      "bytes": 75048,
+      "sha256": "f967a67b20c60170e7a1223dd4b08df9002c114749d7836c14b1a5433ab2fce2"
+    },
+    "audio/sfx/impact-sounds--impactGlass_heavy_003.wav": {
+      "bytes": 14952,
+      "sha256": "5e6a136e3cba82193bf8fe0695980c8303e91761c7e595b0d756a9a60a8129ca"
+    },
+    "audio/sfx/impact-sounds--impactGlass_heavy_004.wav": {
+      "bytes": 35030,
+      "sha256": "ca8f547a8913c3e58ba53fe3ce95a79f45b3f840384fdff5b1e2417323e51d4c"
+    },
+    "audio/sfx/digital-audio--zap1.wav": {
+      "bytes": 75048,
+      "sha256": "fe38e3a238001a9188df944ac8a6b2b8c291e07798a9833ab82caf49978cfe5e"
+    },
+    "audio/sfx/digital-audio--zap2.wav": {
+      "bytes": 75048,
+      "sha256": "043580f8481ba03fe24780660922ccae191e4ed8b4b6e63f2ff842fd8252b212"
+    },
+    "audio/sfx/digital-audio--phaserUp1.wav": {
+      "bytes": 45774,
+      "sha256": "ae1f1c09bda2c5897203fe5f6d1d00aa0fe2f53bd3028fd113e522dc386d03dc"
+    },
+    "audio/sfx/digital-audio--phaserUp2.wav": {
+      "bytes": 36686,
+      "sha256": "fb74d577d5b1799588514270ab0f48d3fbf7545d6b1e13d2eed3da0c0e1f7ae5"
+    },
+    "audio/sfx/impact-sounds--impactMining_003.wav": {
+      "bytes": 87548,
+      "sha256": "3248f3a4d1fb87fe816442d78748ad13dffeadd5b83e8b3b5fac84456653a6d0"
+    },
+    "audio/sfx/impact-sounds--impactMining_004.wav": {
+      "bytes": 73310,
+      "sha256": "5a997395088f391b71cc1b82d6e3cd52feabebea85005a501925004eb7602416"
+    },
+    "audio/sfx/digital-audio--powerUp1.wav": {
+      "bytes": 75048,
+      "sha256": "3169f79f738a7d230742f1d8c41aacadf8a26099a0fd399b0830f1cead02c6e3"
+    },
+    "audio/sfx/digital-audio--powerUp2.wav": {
+      "bytes": 41294,
+      "sha256": "1754bcf45e8d1d08774801a594f49e0a31e8e96f40fb610862094a7d9090acec"
+    },
+    "audio/sfx/digital-audio--lowDown.wav": {
+      "bytes": 68942,
+      "sha256": "772c30705dd3d2febc16d9efbde591c728624df02a392c34823fe68d65a100ca"
+    },
+    "audio/sfx/digital-audio--phaserDown3.wav": {
+      "bytes": 45774,
+      "sha256": "28afaf9c153c367e7f8e2547670495d32ff4be39243cf027d7bae203dbf50160"
+    },
+    "audio/sfx/digital-audio--laser4.wav": {
+      "bytes": 75048,
+      "sha256": "9f44514fe72c9751ca804202ef72e0e3cb6fa237780ba94e959a7303102619a2"
+    },
+    "audio/sfx/digital-audio--phaseJump1.wav": {
+      "bytes": 41294,
+      "sha256": "40ceddac9569c9da513ab35948ecf5e2db30bea83d1d2d27db52ef9cfc7af77a"
+    },
+    "audio/sfx/digital-audio--phaseJump2.wav": {
+      "bytes": 34382,
+      "sha256": "e249f18a8e62da8c4190ca18ead18a8350897920862bfe08ed32a8798e0c28c7"
+    },
+    "audio/sfx/rpg-audio--drawKnife2.wav": {
+      "bytes": 39402,
+      "sha256": "ddde64803ff217992b132fd84ead30fa6af1e9ddd15baa7fbf15115bee220257"
+    },
+    "audio/sfx/digital-audio--laser5.wav": {
+      "bytes": 75048,
+      "sha256": "64952779c1ed62e7c52ba100e4f869cb6e48903944dacfd16f594fec5125c1a1"
+    },
+    "audio/sfx/sci-fi-sounds--lowFrequency_explosion_001.wav": {
+      "bytes": 88282,
+      "sha256": "61c65d8bb29de4c593bd892c15d5b3cde3229351756eb1d337e4d0f1a42accda"
+    },
+    "audio/sfx/impact-sounds--impactSoft_heavy_001.wav": {
+      "bytes": 50276,
+      "sha256": "d05f34268addd9f814f3f31eeb897c57a63a069f53cb049c39ce99ed1efc97ee"
+    },
+    "audio/sfx/rpg-audio--cloth4.wav": {
+      "bytes": 33978,
+      "sha256": "bcbb23fb9d859e3d0d8c0505f6cdd51278f649459fe647ccac74c49e79da893a"
+    },
+    "audio/sfx/music-jingles--jingles_PIZZI00.wav": {
+      "bytes": 87250,
+      "sha256": "0ede1f541367d046255aa951a784e5a5c907bc0cc042001f5362dbc4b8142c55"
+    },
+    "audio/sfx/music-jingles--jingles_PIZZI15.wav": {
+      "bytes": 143174,
+      "sha256": "1fac066d88241e7759fae89995ccd52f20279e83111999a77e1be08943a92af0"
+    },
+    "audio/sfx/interface-sounds--bong_001.wav": {
+      "bytes": 10656,
+      "sha256": "30d427a402f5f68f6ad1c728c6f7fb0ade7bcfeadaf2a99121a652bbfc2e3239"
+    },
+    "audio/sfx/sci-fi-sounds--lowFrequency_explosion_000.wav": {
+      "bytes": 158838,
+      "sha256": "216829c4ef7f27699c09bae5e90c2c050145b37b8569fd075a0e21f2554f2d85"
+    },
+    "audio/audio-manifest.json": {
+      "bytes": 447441,
+      "sha256": "764c4cd820f4b27e6ea51d6181df7140a3b5db1367f133a4a594fdd94649bb2e"
+    },
+    "audio/CREDITS.txt": {
+      "bytes": 1169,
+      "sha256": "a8c1632fc17a94e723f4cacd7d732ca80820e6570c0bb5b6361cca0abc62e41a"
+    },
+    "LICENSE-CC-BY-NC-4.0.txt": {
+      "bytes": 19347,
+      "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
+    },
+    "NOTICE.txt": {
+      "bytes": 1577,
+      "sha256": "8e9de16cb6433f33dcd1482391004ab53779fcfc3172b0d6c68e2e8b2c0fdf54"
+    },
+    "M-ART-terms.txt": {
+      "bytes": 4523,
+      "sha256": "bf290387b6c8dfb02f4ac2106966d4f56f36f38d190fe3aa8ad8d76aad8bb167"
+    },
+    "credits.html": {
+      "bytes": 3344,
+      "sha256": "2264ba08adf1035acf886308104a71b75b9e6b147a5fe0cdff7b8eb1cffc4176"
+    },
+    "loader.html": {
+      "bytes": 8265,
+      "sha256": "9b81b6eb8d54af79008f9da834605964287b1f0f8416aa455f880de88b41ef33"
+    },
+    "index.html": {
+      "bytes": 4795,
+      "sha256": "4b7bfb7f79ae77e8696d719502f1a89c4ad2823e12d4e420b569819b937d7ac3"
+    },
+    ".nojekyll": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  }
+}
