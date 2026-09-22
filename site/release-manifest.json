@@ -1,21 +1,23 @@
 {
-  "revision": "protelysion-0.22.0-20260922",
+  "revision": "protelysion-0.23.0-20260922",
   "scope": {
     "themes": 48,
     "species": 432,
     "tierTemplates": 3024
   },
   "player": {
-    "author": "Pipoya",
-    "asset": "Female 13-1",
+    "provider": "user-supplied",
+    "asset": "chibi_sprite_4dir_fixed.png",
     "cell": [
-      32,
-      40
-    ]
+      192,
+      304
+    ],
+    "framesPerDirection": 4,
+    "mapActors": 1
   },
   "pck": {
-    "bytes": 106271868,
-    "sha256": "b596ddc87ada1333f9e15a1ac432f36f42f91bdbf6b3bf1e493debaf946052ae"
+    "bytes": 106977964,
+    "sha256": "150aeb7fd79f87d309cf8fb850d9f16a83977ae8284b88a7e00d0dc496ffda08"
   },
   "pckParts": [
     "game.pck.gz.001",
@@ -52,47 +54,47 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "934ab989a3a5af5a97e881ac1b35711c7179bf4b3114536620b792c673d572c8"
+      "sha256": "0978cb4810ea7b97da9cdbf51a44836b236127005fab38f1d162252f7d92867e"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
-      "sha256": "a996c72f34c59e45c2d480625a1af5979d30b67bfdbac1a8ecf268909e39ff9a"
+      "sha256": "d213ac12b6cd2cf63b82684a4643efbd815437381c1f7c1c5b385cf96092c906"
     },
     "game.pck.gz.003": {
       "bytes": 16777216,
-      "sha256": "4e92e54c486dd73798653211bff3336006d52b8e6f4e9d0951d0c6d1b28c4038"
+      "sha256": "38da9a989466d03dde3488466069cad43ca90542d13368b0325e2e610bf8909b"
     },
     "game.pck.gz.004": {
       "bytes": 16777216,
-      "sha256": "919f9a9149644b3b749ec4478b1d54786275540806f3f91abf13b1cccf5fc632"
+      "sha256": "9efc3f8c1349130fe3d85ea7c8186d94bf47d518c0d8a9a70148cb1b28f09e37"
     },
     "game.pck.gz.005": {
       "bytes": 16777216,
-      "sha256": "0b7c2d92c9fccb509dd5e715005f22d3bdf0bf952abd8c1dd98e31774a07c340"
+      "sha256": "28710588ea684aa68e8d42788c1f08b0846e1850affd247e659409c639409d38"
     },
     "game.pck.gz.006": {
       "bytes": 16777216,
-      "sha256": "0ab04ae360e5e0e0aa3298d2aa8671211ef852d0355482846c0d216110e1db02"
+      "sha256": "ca40ad19e7ca03b4cb67e8e7a679689d4b8a3a86450eabda93e4f2b551b8d8db"
     },
     "game.pck.gz.007": {
-      "bytes": 3662014,
-      "sha256": "141efa39771fb4055b496d4cc40e4e4ab279d501f62f7ceb5635c07930159807"
+      "bytes": 4367334,
+      "sha256": "d47c79bc3809c9dcb977314dc2911a2458be5d307cef99c5737db18b30171f35"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
       "sha256": "1c05c68c34f9708415aada51f17e1b0092d2cea709bf4a94cd38114f9e73d7d9"
     },
     "Player-CREDITS.txt": {
-      "bytes": 971,
-      "sha256": "d36a2c5fe2386d768e44a9b9397eb695a5a9bd50008ed50649ed84b01bcacee4"
+      "bytes": 1048,
+      "sha256": "a76ee98294b565fcb92c05633a6c947725fd0407dbd0613b333081af1660a9da"
     },
     "Godot-LICENSES.txt": {
       "bytes": 112917,
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 864300,
-      "sha256": "05b99f7a005ee19064767a67b239e5892c74b516d3e278d9812ac7241ef04ae8"
+      "bytes": 889450,
+      "sha256": "9c0b1938a13fe0a542b4753bb8f017f0b3424c0780960935b9361e9a6881abf0"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
@@ -1571,16 +1573,16 @@
       "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
     },
     "NOTICE.txt": {
-      "bytes": 1915,
-      "sha256": "12ce5f424f007e4aa7da72b38c34fd79341f146eec2eef8bfd3372eb88f82cef"
+      "bytes": 1976,
+      "sha256": "5d596734119b67e23bd5c68734d463e2b6d63910716533f83e86ac92a988aebe"
     },
     "M-ART-terms.txt": {
       "bytes": 4523,
       "sha256": "bf290387b6c8dfb02f4ac2106966d4f56f36f38d190fe3aa8ad8d76aad8bb167"
     },
     "credits.html": {
-      "bytes": 3682,
-      "sha256": "a89f316dc75219df8942fc0e2f93326e152ed765a4bbd063851b8af5936f4bfd"
+      "bytes": 3743,
+      "sha256": "89e9b613940873fdbf8bcfa261debf6200c7dbebf3d3f50abb29706d9a13774b"
     },
     "loader.html": {
       "bytes": 7977,

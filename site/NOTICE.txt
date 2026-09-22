@@ -13,7 +13,7 @@ https://img.baibai.cv/f/yeV2Fj/22-54-15-3016377526.png
 https://img.baibai.cv/f/WrevH4/%E9%BB%98%E8%AE%A4.png
 https://img.baibai.cv/f/56AzHz/cafe_bg.png
 
-Pipoya：PIPOYA FREE RPG Character Sprites 32x32 / Female 13-1；允许游戏商业/个人使用与编辑，禁止独立素材再分发或销售；仅随编译游戏包使用。
+默认行走精灵：用户提供的 chibi_sprite_4dir_fixed.png，经裁剪、抠图与脚底对齐后随运行包使用。不冒称Pipoya素材，不从项目代码许可推导原图版权或授权；处理记录见Player-CREDITS.txt。
 Napi / M-ART：https://mart.kitunebi.com/；允许作为游戏素材使用，不放弃著作权，禁止独立原声/音乐素材库再分发。本仓库是可运行的完整游戏，不是音乐素材库。
 Kenney：音效与短jingle，CC0 1.0。
 Godot及其第三方库：见site/Godot-LICENSES.txt。Noto Sans SC：见site/NotoSansSC-OFL.txt。

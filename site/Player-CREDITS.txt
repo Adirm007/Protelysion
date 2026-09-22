@@ -1,19 +1,10 @@
-# 默认少女行走图 / Player sprite
+# 默认行走精灵 / Default walking sprite
 
-- 作品：PIPOYA FREE RPG Character Sprites 32x32
-- 作者：Pipoya
-- 来源：https://pipoya.itch.io/pipoya-free-rpg-character-sprites-32x32
-- 官方包文件：Female/Female 13-1.png（浅紫发少女），下载日期 2026-09-22。
-- 原始规格：96×128，32×32/帧；下、左、右、上四向，每向3帧。
-- 适配：仅为本游戏原32×40帧位加透明边，不插值、不拉伸、不重新生成图像。
-- 运行文件：heroine-pipoya.png，96×160；步进顺序0,1,2,1；静止中帧。
+- 来源：用户于 2026-09-22 提供的 `chibi_sprite_4dir_fixed.png`。
+- 处理：仅裁剪、移除边缘连通的洋红底色、清理边缘染色和统一脚底锚点；未使用 AI 重绘角色。
+- 原图：848×1239，四向各四帧；原行序为下、右、左、上。
+- 运行图：`heroine-chibi.png`，768×1216；单帧192×304；行序为下、左、右、上，每向4帧，脚底锚点(96,296)。
+- 运行行为：无论队伍人数多少，地图上仅显示一名行走角色。战斗头像仍读取宿主头像，不替换为此行走图。
+- 制作脚本：`16-Godot可玩区域/tools/prepare-player-sprite.py`；源图与帧元数据保留在开发工作区。
 
-## 官方许可原文（2026-09-22核对）
-
-License
-- For commercial or personal use.
-- Use and edit freely.
-- Not redistribute or resell this assets.
-- It can be used for game development and other productions.
-
-本项目将其作为游戏内角色使用，仅随游戏编译资源包分发。不将该素材库、原图或适配图作为独立素材上传发布仓库，不将其改授为项目的CC BY-NC许可。
+此图替换旧的 Pipoya 行走图，旧图不再进入当前运行包。提供者不等于原画作者；本项目不冒称拥有角色或原图著作权，也不将其自动纳入原创代码的 CC BY-NC 许可。这里只记录用户提供和本项目实际处理，未另行核定原图的第三方授权。
