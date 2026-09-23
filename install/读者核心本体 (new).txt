@@ -1670,17 +1670,33 @@ _%>
 场景描写结束后，在正文末尾另起一行，原样呈现以下入口标签：
 <booksea-game>进入</booksea-game>
 <%_ } _%>
+
 <%_ {
-let bsNativeMessage = typeof SillyTavern !== 'undefined' && Array.isArray(SillyTavern.chat) ? SillyTavern.chat.at(-1) : null;
-let bsMatches = bsNativeMessage?.is_user === true && typeof matchChatMessages === 'function' && matchChatMessages(/^\s*离开普罗泰利西翁\s*$/, { start: -1, role: 'user' });
+let bsNativeContext = typeof SillyTavern !== 'undefined' ? SillyTavern : null;
+let bsMessages = Array.isArray(bsNativeContext?.chat) ? bsNativeContext.chat : [];
+let bsMessageId = bsMessages.length - 1;
+// A swipe/regeneration keeps the assistant slot in some host versions; bind its preceding user request.
+if (bsMessageId > 0 && bsMessages[bsMessageId]?.is_user !== true
+    && ['swipe', 'regenerate'].includes(typeof generateType === 'string' ? generateType : '')
+    && bsMessages[bsMessageId - 1]?.is_user === true) bsMessageId--;
+let bsNativeMessage = bsMessages[bsMessageId];
+let bsExitText = typeof getChatMessage === 'function' ? getChatMessage(bsMessageId) : bsNativeMessage?.mes;
+let bsMatches = bsNativeMessage?.is_user === true && /^\s*离开普罗泰利西翁\s*$/.test(String(bsExitText ?? ''));
 let bsBook = typeof getvar === 'function' ? getvar('booksea', { scope: 'local', defaults: {} }) : {};
-let bsInfo = typeof getvar === 'function' ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: -1, role: 'user' }, defaults: null }) : null;
-if (!bsInfo) bsInfo = bsNativeMessage?.extra?.bookseaHandoff;
+let bsInfo = bsMessageId >= 0 && typeof getvar === 'function'
+    ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: bsMessageId }, defaults: null }) : null;
+let bsSwipeInfo = bsNativeMessage?.swipe_info?.[bsNativeMessage?.swipe_id ?? 0];
+let bsOwnInfo = bsNativeMessage?.extra?.bookseaHandoff ?? bsSwipeInfo?.extra?.bookseaHandoff ?? bsSwipeInfo?.bookseaHandoff;
+if (bsOwnInfo) bsInfo = bsOwnInfo;
+let bsReceipts = bsMessageId >= 0 && typeof getvar === 'function'
+    ? getvar('bookseaSessionReceipts', { scope: 'message', withMsg: { id: bsMessageId }, defaults: {} }) : {};
 let bsState = bsBook?.lastExpedition;
 let bsRun = bsState?.mode === 'ended' ? bsState.run : bsBook?.lastEndedRun;
-let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsBook?.endings?.[bsRun?.id]?.contextId;
-// Recover facts for already-settled pre-0.24 exits, without mutating or awarding anything.
-if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRun && typeof bsContext === 'string') {
+let bsSavedContext = bsState?.mode === 'ended' ? bsState.hostContext : bsBook?.endings?.[bsRun?.id]?.contextId;
+let bsChatId = typeof bsNativeContext?.getCurrentChatId === 'function' ? bsNativeContext.getCurrentChatId() : bsNativeContext?.chatId;
+let bsContext = bsNativeContext?.characterId != null && bsChatId != null ? String(bsNativeContext.characterId) + ':' + String(bsChatId) : bsSavedContext;
+// Old settled exits can be read, never re-settled. New exits are self-contained in the bound message.
+if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRun && typeof bsSavedContext === 'string') {
   let bsFacts = [
     '参战与离场人员：' + JSON.stringify(bsRun.participants || []),
     '本趟深度记录：' + JSON.stringify(bsState.depthLog || { depth: bsState.depth }),
@@ -1689,11 +1705,15 @@ if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRu
     '本趟已经结束；结算由程序完成，不再重复发放奖励。'
   ];
   if (bsRun.status === 'failed') bsFacts.push('最终倒下与此前离场记录：' + JSON.stringify(bsRun.failureSignal || {}));
-  bsInfo = { version: 2, kind: 'exit', contextId: bsContext, runId: bsRun.id, status: bsRun.status, summary: bsFacts.join(String.fromCharCode(10)) };
+  bsInfo = { version: 2, kind: 'exit', contextId: bsSavedContext, runId: bsRun.id, status: bsRun.status, summary: bsFacts.join(String.fromCharCode(10)) };
 }
-if (bsMatches && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'failed'
+// Chat metadata is only a rebuildable mirror. Its absence must not discard a settled message's facts.
+let bsBound = bsInfo && (bsOwnInfo === bsInfo || bsReceipts?.[bsInfo.runId]?.settled === true
+    || (bsRun?.id === bsInfo.runId && bsRun.status === bsInfo.status));
+let bsSameKnownRun = !bsRun || (bsRun.id === bsInfo?.runId && bsRun.status === bsInfo?.status);
+if (bsMatches && bsBound && bsSameKnownRun && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'failed'
     && typeof bsContext === 'string' && bsInfo.contextId === bsContext
-    && bsRun?.id === bsInfo.runId && bsRun.status === 'failed' && typeof bsInfo.summary === 'string'
+    && typeof bsInfo.summary === 'string' && bsInfo.summary.trim().length > 0
     && !bsBook?.activeExpedition && !bsBook?.activeRun) {
 _%>
 [普罗泰利西翁败退离场]
@@ -1701,7 +1721,7 @@ _%>
 <本趟已结算事实>
 <%- bsInfo.summary %>
 </本趟已结算事实>
-承接上述记录，描写最终倒下成员的败退和回归；此前安全离场和未参战者保持各自既有状态。本趟经验、FP及盲盒收益已清零，不补发奖励。
+承接上述记录，描写最终倒下成员的败退和回归；此前安全离场和未参战者保持各自既有状态。本趟经验、FP及盲盒收益已清零，不补发奖励，也不再次生成清零或补发这些收益的 UpdateVariable/JSONPatch。
 宿主三资源恢复属于已经完成的数值结算；本次复活剧情、时间代价及原有附带机制仍依原读者核心处理，作为同一次离场事件承接。
 游玩期间的外界时停已结束，现在衔接原核心的复活阶段。
 <%_ let bsRevival = typeof getLocalVar === 'function' ? getLocalVar('复活机制') : ''; if (bsRevival) { _%>
@@ -1710,17 +1730,33 @@ _%>
 </原核心复活规则>
 <%_ } _%>
 <%_ } } _%>
+
 <%_ {
-let bsNativeMessage = typeof SillyTavern !== 'undefined' && Array.isArray(SillyTavern.chat) ? SillyTavern.chat.at(-1) : null;
-let bsMatches = bsNativeMessage?.is_user === true && typeof matchChatMessages === 'function' && matchChatMessages(/^\s*离开普罗泰利西翁\s*$/, { start: -1, role: 'user' });
+let bsNativeContext = typeof SillyTavern !== 'undefined' ? SillyTavern : null;
+let bsMessages = Array.isArray(bsNativeContext?.chat) ? bsNativeContext.chat : [];
+let bsMessageId = bsMessages.length - 1;
+// A swipe/regeneration keeps the assistant slot in some host versions; bind its preceding user request.
+if (bsMessageId > 0 && bsMessages[bsMessageId]?.is_user !== true
+    && ['swipe', 'regenerate'].includes(typeof generateType === 'string' ? generateType : '')
+    && bsMessages[bsMessageId - 1]?.is_user === true) bsMessageId--;
+let bsNativeMessage = bsMessages[bsMessageId];
+let bsExitText = typeof getChatMessage === 'function' ? getChatMessage(bsMessageId) : bsNativeMessage?.mes;
+let bsMatches = bsNativeMessage?.is_user === true && /^\s*离开普罗泰利西翁\s*$/.test(String(bsExitText ?? ''));
 let bsBook = typeof getvar === 'function' ? getvar('booksea', { scope: 'local', defaults: {} }) : {};
-let bsInfo = typeof getvar === 'function' ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: -1, role: 'user' }, defaults: null }) : null;
-if (!bsInfo) bsInfo = bsNativeMessage?.extra?.bookseaHandoff;
+let bsInfo = bsMessageId >= 0 && typeof getvar === 'function'
+    ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: bsMessageId }, defaults: null }) : null;
+let bsSwipeInfo = bsNativeMessage?.swipe_info?.[bsNativeMessage?.swipe_id ?? 0];
+let bsOwnInfo = bsNativeMessage?.extra?.bookseaHandoff ?? bsSwipeInfo?.extra?.bookseaHandoff ?? bsSwipeInfo?.bookseaHandoff;
+if (bsOwnInfo) bsInfo = bsOwnInfo;
+let bsReceipts = bsMessageId >= 0 && typeof getvar === 'function'
+    ? getvar('bookseaSessionReceipts', { scope: 'message', withMsg: { id: bsMessageId }, defaults: {} }) : {};
 let bsState = bsBook?.lastExpedition;
 let bsRun = bsState?.mode === 'ended' ? bsState.run : bsBook?.lastEndedRun;
-let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsBook?.endings?.[bsRun?.id]?.contextId;
-// Recover facts for already-settled pre-0.24 exits, without mutating or awarding anything.
-if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRun && typeof bsContext === 'string') {
+let bsSavedContext = bsState?.mode === 'ended' ? bsState.hostContext : bsBook?.endings?.[bsRun?.id]?.contextId;
+let bsChatId = typeof bsNativeContext?.getCurrentChatId === 'function' ? bsNativeContext.getCurrentChatId() : bsNativeContext?.chatId;
+let bsContext = bsNativeContext?.characterId != null && bsChatId != null ? String(bsNativeContext.characterId) + ':' + String(bsChatId) : bsSavedContext;
+// Old settled exits can be read, never re-settled. New exits are self-contained in the bound message.
+if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRun && typeof bsSavedContext === 'string') {
   let bsFacts = [
     '参战与离场人员：' + JSON.stringify(bsRun.participants || []),
     '本趟深度记录：' + JSON.stringify(bsState.depthLog || { depth: bsState.depth }),
@@ -1729,11 +1765,15 @@ if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRu
     '本趟已经结束；结算由程序完成，不再重复发放奖励。'
   ];
   if (bsRun.status === 'failed') bsFacts.push('最终倒下与此前离场记录：' + JSON.stringify(bsRun.failureSignal || {}));
-  bsInfo = { version: 2, kind: 'exit', contextId: bsContext, runId: bsRun.id, status: bsRun.status, summary: bsFacts.join(String.fromCharCode(10)) };
+  bsInfo = { version: 2, kind: 'exit', contextId: bsSavedContext, runId: bsRun.id, status: bsRun.status, summary: bsFacts.join(String.fromCharCode(10)) };
 }
-if (bsMatches && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'success'
+// Chat metadata is only a rebuildable mirror. Its absence must not discard a settled message's facts.
+let bsBound = bsInfo && (bsOwnInfo === bsInfo || bsReceipts?.[bsInfo.runId]?.settled === true
+    || (bsRun?.id === bsInfo.runId && bsRun.status === bsInfo.status));
+let bsSameKnownRun = !bsRun || (bsRun.id === bsInfo?.runId && bsRun.status === bsInfo?.status);
+if (bsMatches && bsBound && bsSameKnownRun && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'success'
     && typeof bsContext === 'string' && bsInfo.contextId === bsContext
-    && bsRun?.id === bsInfo.runId && bsRun.status === 'success' && typeof bsInfo.summary === 'string'
+    && typeof bsInfo.summary === 'string' && bsInfo.summary.trim().length > 0
     && !bsBook?.activeExpedition && !bsBook?.activeRun) {
 _%>
 [普罗泰利西翁离场]
@@ -1742,5 +1782,8 @@ _%>
 <%- bsInfo.summary %>
 </本趟已结算事实>
 请承接记录中的参战者、实际遭遇、最深层级及离场方式，描写回归并继续原剧情。经验、FP与未开启盲盒以宿主已经完成的结算为准，不再重复奖励；游玩期间外界时间保持不变。
+本段只供叙事，不得用 UpdateVariable/JSONPatch 再次增加或撤销本趟经验、FP、盲盒或重置资源；不要把有下潜和遭遇的历练写成刚进门就离开。
+【本轮只读回执】上述战斗、经验和物品已经由程序写入当前变量，不是等待你归账的“新发生事件”。本轮仅输出离场叙事与读者回应，不再执行通用的战斗经验更新规则；不输出任何 UpdateVariable/JSONPatch 操作，也不再次调整等级、属性点、背包或外界时间。若宿主格式强制要求变量块，其中 JSONPatch 必须是空数组 []。
+For this exit receipt, all game results are already committed. Narrate only. Do not emit variable-update operations; a mandatory JSONPatch block must contain [] only.
 <%_ } } _%>
 <%_ /* BOOKSEA_READER_HANDOFF_END */ _%>
