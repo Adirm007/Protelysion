@@ -1,9 +1,11 @@
 {
-  "revision": "protelysion-0.23.0-20260922",
+  "revision": "protelysion-0.24.0-20260923",
   "scope": {
     "themes": 48,
-    "species": 432,
-    "tierTemplates": 3024
+    "species": 433,
+    "tierTemplates": 3031,
+    "themeSpecies": 432,
+    "commonSpecies": 1
   },
   "player": {
     "provider": "user-supplied",
@@ -16,8 +18,8 @@
     "mapActors": 1
   },
   "pck": {
-    "bytes": 106977964,
-    "sha256": "150aeb7fd79f87d309cf8fb850d9f16a83977ae8284b88a7e00d0dc496ffda08"
+    "bytes": 107102440,
+    "sha256": "8281e8663ababbf3f4e74a35dba6a02db36888152d457ca116e1c2ba803ca43e"
   },
   "pckParts": [
     "game.pck.gz.001",
@@ -54,31 +56,31 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "0978cb4810ea7b97da9cdbf51a44836b236127005fab38f1d162252f7d92867e"
+      "sha256": "2cbcec794a8f63fb1e4b6e8d93baa841cb701e8b8260d4f7aba36b37861fc37d"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
-      "sha256": "d213ac12b6cd2cf63b82684a4643efbd815437381c1f7c1c5b385cf96092c906"
+      "sha256": "62e4ac9600535c6ebc99673c8ba03ec4bf80dfce7a612610f3ac593b1c114b7a"
     },
     "game.pck.gz.003": {
       "bytes": 16777216,
-      "sha256": "38da9a989466d03dde3488466069cad43ca90542d13368b0325e2e610bf8909b"
+      "sha256": "a889534d565bacb63c0b77e3f566827f886b89f33830f1e71ecffbd76938851f"
     },
     "game.pck.gz.004": {
       "bytes": 16777216,
-      "sha256": "9efc3f8c1349130fe3d85ea7c8186d94bf47d518c0d8a9a70148cb1b28f09e37"
+      "sha256": "95803bbf9a2c11cd804a78cc11b80ff9bfc42ffeac247cb1c47f50a5be880143"
     },
     "game.pck.gz.005": {
       "bytes": 16777216,
-      "sha256": "28710588ea684aa68e8d42788c1f08b0846e1850affd247e659409c639409d38"
+      "sha256": "ba76b9aa79c7427b4e7e21a26742bfac60f6c122784522a90153c69348ba5e37"
     },
     "game.pck.gz.006": {
       "bytes": 16777216,
-      "sha256": "ca40ad19e7ca03b4cb67e8e7a679689d4b8a3a86450eabda93e4f2b551b8d8db"
+      "sha256": "2fd1729473e0d3bd87bafa3100382290e3aa60976b3993fa68d059eb52806df9"
     },
     "game.pck.gz.007": {
-      "bytes": 4367334,
-      "sha256": "d47c79bc3809c9dcb977314dc2911a2458be5d307cef99c5737db18b30171f35"
+      "bytes": 4506681,
+      "sha256": "e1604d446e1fabbdd4f9a90db85c335fb82bc871c6cce075e56b5099b071eb76"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
@@ -93,8 +95,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 889450,
-      "sha256": "9c0b1938a13fe0a542b4753bb8f017f0b3424c0780960935b9361e9a6881abf0"
+      "bytes": 894187,
+      "sha256": "b35fb2f6d09f7ee6317b9459d67898818abe1f6a2fe18b9f369d84b21fd2dd41"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

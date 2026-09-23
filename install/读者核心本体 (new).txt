@@ -1671,52 +1671,76 @@ _%>
 <booksea-game>进入</booksea-game>
 <%_ } _%>
 <%_ {
-let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-let bsVars = bsApi?.getVariables?.({ type: 'chat' }) || {};
-let bsLatest = bsApi?.getChatMessages?.(-1)?.[0];
-let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
-let bsInfo = bsLatest?.extra?.bookseaHandoff;
-let bsState = bsVars.booksea?.lastExpedition;
-let bsRun = bsState?.mode === 'ended' ? bsState.run : bsVars.booksea?.lastEndedRun;
-let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsVars.booksea?.endings?.[bsInfo?.runId]?.contextId;
-if (bsLatest?.role === 'user' && bsText === '离开普罗泰利西翁'
-    && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'failed'
+let bsNativeMessage = typeof SillyTavern !== 'undefined' && Array.isArray(SillyTavern.chat) ? SillyTavern.chat.at(-1) : null;
+let bsMatches = bsNativeMessage?.is_user === true && typeof matchChatMessages === 'function' && matchChatMessages(/^\s*离开普罗泰利西翁\s*$/, { start: -1, role: 'user' });
+let bsBook = typeof getvar === 'function' ? getvar('booksea', { scope: 'local', defaults: {} }) : {};
+let bsInfo = typeof getvar === 'function' ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: -1, role: 'user' }, defaults: null }) : null;
+if (!bsInfo) bsInfo = bsNativeMessage?.extra?.bookseaHandoff;
+let bsState = bsBook?.lastExpedition;
+let bsRun = bsState?.mode === 'ended' ? bsState.run : bsBook?.lastEndedRun;
+let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsBook?.endings?.[bsRun?.id]?.contextId;
+// Recover facts for already-settled pre-0.24 exits, without mutating or awarding anything.
+if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRun && typeof bsContext === 'string') {
+  let bsFacts = [
+    '参战与离场人员：' + JSON.stringify(bsRun.participants || []),
+    '本趟深度记录：' + JSON.stringify(bsState.depthLog || { depth: bsState.depth }),
+    '实际遭遇：' + JSON.stringify(bsState.encounters || []),
+    '已结算的FP与未开启盲盒：' + JSON.stringify(bsRun.status === 'success' ? (bsRun.rewards || []) : []),
+    '本趟已经结束；结算由程序完成，不再重复发放奖励。'
+  ];
+  if (bsRun.status === 'failed') bsFacts.push('最终倒下与此前离场记录：' + JSON.stringify(bsRun.failureSignal || {}));
+  bsInfo = { version: 2, kind: 'exit', contextId: bsContext, runId: bsRun.id, status: bsRun.status, summary: bsFacts.join(String.fromCharCode(10)) };
+}
+if (bsMatches && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'failed'
     && typeof bsContext === 'string' && bsInfo.contextId === bsContext
     && bsRun?.id === bsInfo.runId && bsRun.status === 'failed' && typeof bsInfo.summary === 'string'
-    && !bsVars.booksea?.activeExpedition && !bsVars.booksea?.activeRun) {
+    && !bsBook?.activeExpedition && !bsBook?.activeRun) {
 _%>
 [普罗泰利西翁败退离场]
+本趟迷宫历练已经失败结束，用户及相关同行者正在离开普罗泰利西翁、回归原场景；不是仍在迷宫，也不是新的入场请求。
 <本趟已结算事实>
 <%- bsInfo.summary %>
 </本趟已结算事实>
-承接上述记录，描写最终倒下成员的败退、离开普罗泰利西翁及回归过程；此前安全离场和未参战者保持各自既有状态。
+承接上述记录，描写最终倒下成员的败退和回归；此前安全离场和未参战者保持各自既有状态。本趟经验、FP及盲盒收益已清零，不补发奖励。
 宿主三资源恢复属于已经完成的数值结算；本次复活剧情、时间代价及原有附带机制仍依原读者核心处理，作为同一次离场事件承接。
 游玩期间的外界时停已结束，现在衔接原核心的复活阶段。
 <%_ let bsRevival = typeof getLocalVar === 'function' ? getLocalVar('复活机制') : ''; if (bsRevival) { _%>
 <原核心复活规则>
 <%- bsRevival %>
 </原核心复活规则>
-<%_ } } } _%>
+<%_ } _%>
+<%_ } } _%>
 <%_ {
-let bsApi = typeof TavernHelper !== 'undefined' ? TavernHelper : null;
-let bsVars = bsApi?.getVariables?.({ type: 'chat' }) || {};
-let bsLatest = bsApi?.getChatMessages?.(-1)?.[0];
-let bsText = typeof bsLatest?.message === 'string' ? bsLatest.message.trim() : '';
-let bsInfo = bsLatest?.extra?.bookseaHandoff;
-let bsState = bsVars.booksea?.lastExpedition;
-let bsRun = bsState?.mode === 'ended' ? bsState.run : bsVars.booksea?.lastEndedRun;
-let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsVars.booksea?.endings?.[bsInfo?.runId]?.contextId;
-if (bsLatest?.role === 'user' && bsText === '离开普罗泰利西翁'
-    && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'success'
+let bsNativeMessage = typeof SillyTavern !== 'undefined' && Array.isArray(SillyTavern.chat) ? SillyTavern.chat.at(-1) : null;
+let bsMatches = bsNativeMessage?.is_user === true && typeof matchChatMessages === 'function' && matchChatMessages(/^\s*离开普罗泰利西翁\s*$/, { start: -1, role: 'user' });
+let bsBook = typeof getvar === 'function' ? getvar('booksea', { scope: 'local', defaults: {} }) : {};
+let bsInfo = typeof getvar === 'function' ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: -1, role: 'user' }, defaults: null }) : null;
+if (!bsInfo) bsInfo = bsNativeMessage?.extra?.bookseaHandoff;
+let bsState = bsBook?.lastExpedition;
+let bsRun = bsState?.mode === 'ended' ? bsState.run : bsBook?.lastEndedRun;
+let bsContext = bsState?.mode === 'ended' ? bsState.hostContext : bsBook?.endings?.[bsRun?.id]?.contextId;
+// Recover facts for already-settled pre-0.24 exits, without mutating or awarding anything.
+if (!bsInfo && bsState?.mode === 'ended' && bsState.writeback === 'done' && bsRun && typeof bsContext === 'string') {
+  let bsFacts = [
+    '参战与离场人员：' + JSON.stringify(bsRun.participants || []),
+    '本趟深度记录：' + JSON.stringify(bsState.depthLog || { depth: bsState.depth }),
+    '实际遭遇：' + JSON.stringify(bsState.encounters || []),
+    '已结算的FP与未开启盲盒：' + JSON.stringify(bsRun.status === 'success' ? (bsRun.rewards || []) : []),
+    '本趟已经结束；结算由程序完成，不再重复发放奖励。'
+  ];
+  if (bsRun.status === 'failed') bsFacts.push('最终倒下与此前离场记录：' + JSON.stringify(bsRun.failureSignal || {}));
+  bsInfo = { version: 2, kind: 'exit', contextId: bsContext, runId: bsRun.id, status: bsRun.status, summary: bsFacts.join(String.fromCharCode(10)) };
+}
+if (bsMatches && bsInfo?.version === 2 && bsInfo.kind === 'exit' && bsInfo.status === 'success'
     && typeof bsContext === 'string' && bsInfo.contextId === bsContext
     && bsRun?.id === bsInfo.runId && bsRun.status === 'success' && typeof bsInfo.summary === 'string'
-    && !bsVars.booksea?.activeExpedition && !bsVars.booksea?.activeRun) {
+    && !bsBook?.activeExpedition && !bsBook?.activeRun) {
 _%>
 [普罗泰利西翁离场]
-承接以下本趟记录，描写离开普罗泰利西翁、回到原来场景的过程。
+用户及本趟同行者已经完成迷宫历练并离开普罗泰利西翁，现在回到进入迷宫前的原场景；这不是新的入场请求。
 <本趟已结算事实>
 <%- bsInfo.summary %>
 </本趟已结算事实>
-数值与物品采用宿主当前的已结算记录；游玩期间外界时间保持不变。本文承接离场后的剧情。
+请承接记录中的参战者、实际遭遇、最深层级及离场方式，描写回归并继续原剧情。经验、FP与未开启盲盒以宿主已经完成的结算为准，不再重复奖励；游玩期间外界时间保持不变。
 <%_ } } _%>
 <%_ /* BOOKSEA_READER_HANDOFF_END */ _%>
