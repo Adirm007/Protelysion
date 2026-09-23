@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.24.1-20260923-r2",
+  "revision": "protelysion-0.24.3-20260924-dialogue-battle-audio",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -18,8 +18,8 @@
     "mapActors": 1
   },
   "pck": {
-    "bytes": 107102440,
-    "sha256": "8281e8663ababbf3f4e74a35dba6a02db36888152d457ca116e1c2ba803ca43e"
+    "bytes": 107831776,
+    "sha256": "f5682b2d059d2091f42eddc4d89c90361c411a7bbd695cc0bb0a893020147148"
   },
   "pckParts": [
     "game.pck.gz.001",
@@ -56,31 +56,31 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "2cbcec794a8f63fb1e4b6e8d93baa841cb701e8b8260d4f7aba36b37861fc37d"
+      "sha256": "d6704637f8340172fecfeb57bbb0d6e46dea53d087ade77a7f9ba021cbdccb80"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
-      "sha256": "62e4ac9600535c6ebc99673c8ba03ec4bf80dfce7a612610f3ac593b1c114b7a"
+      "sha256": "d698b4bbcf50826867400ed766208786b214db49a65ff98942c79b7cb3aa8d73"
     },
     "game.pck.gz.003": {
       "bytes": 16777216,
-      "sha256": "a889534d565bacb63c0b77e3f566827f886b89f33830f1e71ecffbd76938851f"
+      "sha256": "5af3ece500fa4e6def7095dfaa52c068b1a1ff646f1f1f62bd35baa83629116f"
     },
     "game.pck.gz.004": {
       "bytes": 16777216,
-      "sha256": "95803bbf9a2c11cd804a78cc11b80ff9bfc42ffeac247cb1c47f50a5be880143"
+      "sha256": "0e4ccc0ba288ae5876ed4130e7dc8e4260d71dd2426c92502b6e8317499ad46e"
     },
     "game.pck.gz.005": {
       "bytes": 16777216,
-      "sha256": "ba76b9aa79c7427b4e7e21a26742bfac60f6c122784522a90153c69348ba5e37"
+      "sha256": "e3a5a9870482ccd4189b1e31a8ac83c4d8ed39b0536c450ed26b618c6b55586e"
     },
     "game.pck.gz.006": {
       "bytes": 16777216,
-      "sha256": "2fd1729473e0d3bd87bafa3100382290e3aa60976b3993fa68d059eb52806df9"
+      "sha256": "b9afdc183338062e9ad66e9bfa22aefcac50bab0c33b565ea5f73d481d60842c"
     },
     "game.pck.gz.007": {
-      "bytes": 4506681,
-      "sha256": "e1604d446e1fabbdd4f9a90db85c335fb82bc871c6cce075e56b5099b071eb76"
+      "bytes": 5235320,
+      "sha256": "a7e91ae8c3664e6a8dd6279a70fc0310c68909b87a983f2a24f60d5f6d521b83"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
@@ -90,13 +90,17 @@
       "bytes": 1048,
       "sha256": "a76ee98294b565fcb92c05633a6c947725fd0407dbd0613b333081af1660a9da"
     },
+    "Supplier-CREDITS.txt": {
+      "bytes": 1911,
+      "sha256": "5997541219b27c3d8184ad3a46a45197d34153239d7b29924bf2e6ed697b83ee"
+    },
     "Godot-LICENSES.txt": {
       "bytes": 112917,
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 894403,
-      "sha256": "e1edb414c26cccf76dc4f202c231b3112baeb21c3e2abe41e6ef922ffd297815"
+      "bytes": 919481,
+      "sha256": "6dd2f61e9c426e7dbebb3bccbfdef6bb3da682bad5829154758a1a39b8eb914a"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
@@ -1562,29 +1566,233 @@
       "bytes": 158838,
       "sha256": "216829c4ef7f27699c09bae5e90c2c050145b37b8569fd075a0e21f2554f2d85"
     },
+    "audio/sfx/a2-rd-blade-01.wav": {
+      "bytes": 25370,
+      "sha256": "d3014252a6fa15a0ec465f931d5303fc81e14a60024aebf269ceb274e96ac521"
+    },
+    "audio/sfx/a2-rd-blade-02.wav": {
+      "bytes": 27076,
+      "sha256": "8b9c91d17e93ca715487b57805724e816c4784d2ee2af6e05a4f63820acf65f5"
+    },
+    "audio/sfx/a2-rd-blade-03.wav": {
+      "bytes": 34482,
+      "sha256": "b1dcdcb9d31f6e2e91e147e07463c8f13237baf5343fb05c045804b8e77abbf2"
+    },
+    "audio/sfx/a2-rd-creature-hurt-01.wav": {
+      "bytes": 51518,
+      "sha256": "4072756121bea83062cc58453f849dcd20fcef60e331e3872a9151bbe55ed37c"
+    },
+    "audio/sfx/a2-rd-creature-hurt-02.wav": {
+      "bytes": 58798,
+      "sha256": "d8a763af9956e9ac238afe03727d8e8246a07bc9381556dbed79e127c8f570cc"
+    },
+    "audio/sfx/a2-rd-creature-roar-01.wav": {
+      "bytes": 56004,
+      "sha256": "2c16a02edee7704577dcaafa5cf185c47ee6ef940c78edefd032d9c84dd1e840"
+    },
+    "audio/sfx/a2-rd-creature-roar-02.wav": {
+      "bytes": 91346,
+      "sha256": "27acfcb81a216770c995c1158b3fea03187ec74f8eb01acca9b43e0bf870b553"
+    },
+    "audio/sfx/a2-rd-creature-monster-01.wav": {
+      "bytes": 22808,
+      "sha256": "3cbb130fbf6be5c1acbd612c6c5b2de167125a5c369616074cd6e1b5376e619a"
+    },
+    "audio/sfx/a2-rd-creature-monster-02.wav": {
+      "bytes": 20138,
+      "sha256": "a04edbbc51f0b496ca904ef79b4b724758440bdfdd73cd9612f17b405aed33db"
+    },
+    "audio/sfx/a2-rd-creature-slime-01.wav": {
+      "bytes": 57692,
+      "sha256": "eca86911c04c4fafd3bd1e56c0b4e0e3d3374c94bf644f8aa7b249166868caeb"
+    },
+    "audio/sfx/a2-rd-creature-slime-02.wav": {
+      "bytes": 62060,
+      "sha256": "fc64771c29e7b370337ef9eee24989cf22c082f712638cc3a4a2a9f898d51b02"
+    },
+    "audio/sfx/a2-rd-item-gem-01.wav": {
+      "bytes": 21728,
+      "sha256": "9d31ea4fc86d3c66bcb5c7591b5b42f466c29ab7f5799e87b29da74285c2e223"
+    },
+    "audio/sfx/a2-rd-item-gem-02.wav": {
+      "bytes": 17050,
+      "sha256": "500551f555c77aebe683e0766cf93e1b2c10a7047b140d07bd9bab5248728561"
+    },
+    "audio/sfx/a2-rd-stones-01.wav": {
+      "bytes": 58416,
+      "sha256": "d8056d5f3b766ea83978965a37a387dbda55faa597da7943e45b6ce44177aa95"
+    },
+    "audio/sfx/a2-rd-stones-02.wav": {
+      "bytes": 60976,
+      "sha256": "2c3560b357eedfbb357b1114ea72f297c3cb50b57a0c052d3285ed0a10c9bb0e"
+    },
+    "audio/sfx/a2-rd-stones-03.wav": {
+      "bytes": 88244,
+      "sha256": "969702c89714ff909db52b95d3feb0bda366df14458dc9d9600c9a2e18ddb7c3"
+    },
+    "audio/sfx/a2-rd-stones-04.wav": {
+      "bytes": 32226,
+      "sha256": "9ec229dab77dfa643795e15153871208bdff6e6bf4750f10aa8a7ce03525e2de"
+    },
+    "audio/sfx/a2-rd-wood-01.wav": {
+      "bytes": 20892,
+      "sha256": "30b2c3219c5cad5be58015ddc13926f84e4ac31a8c8b18af385cb0abb93bcd87"
+    },
+    "audio/sfx/a2-rd-wood-02.wav": {
+      "bytes": 16648,
+      "sha256": "16926e51ebb36a4ae6107e53df42ba9f2c8c8205041b1d67df84b95036a040a6"
+    },
+    "audio/sfx/a2-rd-wood-03.wav": {
+      "bytes": 26332,
+      "sha256": "d1d091f36ea326f413f0cd9b1f1abdd788d07dfba31b02be33c3ba2b32f00923"
+    },
+    "audio/sfx/a2-rd-metal-01.wav": {
+      "bytes": 47354,
+      "sha256": "a4cad1ccbd66413971a4b0cf19adef926dae6a12048823d907523f8eb32cde39"
+    },
+    "audio/sfx/a2-rd-metal-02.wav": {
+      "bytes": 49818,
+      "sha256": "ac89322f0a444b879a8a6f3e906eb477aea2a0693de501490d9ddb62da182dcd"
+    },
+    "audio/sfx/a2-rd-metal-03.wav": {
+      "bytes": 37624,
+      "sha256": "ed4ea62ab7a9a903c52426eba3ada98f946b17ad3483497ae9d9361af02ef7b4"
+    },
+    "audio/sfx/a2-rd-spell-01.wav": {
+      "bytes": 55874,
+      "sha256": "6c3072007839d4469036ef6ed215b8ed83a2f1a2893c7836ede456ce685d23a5"
+    },
+    "audio/sfx/a2-rd-spell-02.wav": {
+      "bytes": 47232,
+      "sha256": "8b544b6792d2e7eeaaa42be45a77b3e2bad90aac70cd950b0936f69e8b4633c9"
+    },
+    "audio/sfx/a2-rd-spell-fire-01.wav": {
+      "bytes": 88244,
+      "sha256": "dd0a518371ecaaba286335a00c2a0b19ea020e4069cee8b737bd756503de5c8c"
+    },
+    "audio/sfx/a2-rd-spell-fire-02.wav": {
+      "bytes": 88244,
+      "sha256": "762b01452a285528d68db9f49b0dc6b2ecef9d977fcfecc3d980075dcfd9825a"
+    },
+    "audio/sfx/a2-rd-spell-fire-03.wav": {
+      "bytes": 88244,
+      "sha256": "43fd5c74e4f27afa9a365d6e074810889e7c9111ddecc268d681db9d89f28b74"
+    },
+    "audio/sfx/a2-rd-spell-fire-04.wav": {
+      "bytes": 88244,
+      "sha256": "e62fb1869278fd3a964288a132f7ba2704ee37971a6f7272e09efc88f3d3d6ce"
+    },
+    "audio/sfx/a2-ad-swing-01.wav": {
+      "bytes": 18282,
+      "sha256": "1b66ac40cc524cd44ac56e56720df08dee8f62e307ed89876ee093c3fc34911f"
+    },
+    "audio/sfx/a2-ad-swing-02.wav": {
+      "bytes": 11968,
+      "sha256": "06335054f5443be5949285abef40c9dd0a1bfa4e5505916255ad531d00ddb444"
+    },
+    "audio/sfx/a2-ad-swing-03.wav": {
+      "bytes": 9876,
+      "sha256": "44b3de678d1596f2542490a1516ff51cc3f045c2f047030b7ba224ce099b34f3"
+    },
+    "audio/sfx/a2-ad-blade-01.wav": {
+      "bytes": 47494,
+      "sha256": "59e1eae6aa2516e10aa46bcd69ad0df1191bbb2fe0e478382c08ead1e9feb457"
+    },
+    "audio/sfx/a2-ad-blade-02.wav": {
+      "bytes": 30798,
+      "sha256": "7ba90845d460f6ceee7fc53bac6b431ec9f64e04c5a33ae56330baa88f97f5a0"
+    },
+    "audio/sfx/a2-ad-blade-03.wav": {
+      "bytes": 44658,
+      "sha256": "46949caf4f1da32845559108b65030be2fb78bfc1206ea17e1dd3083652b6522"
+    },
+    "audio/sfx/a2-ad-magic-01.wav": {
+      "bytes": 74662,
+      "sha256": "8111b6d3f4900b41bcbbe5b6ad6ad3fd1d75cb2ffce2c66f89c7aeacbcc2f2e6"
+    },
+    "audio/sfx/a2-ad-magic-02.wav": {
+      "bytes": 105884,
+      "sha256": "df61c2199727429397f0b06b8a5e6255a8f2513ba9ffb31f0b0fa1c14087724f"
+    },
+    "audio/sfx/a2-ad-bite-01.wav": {
+      "bytes": 33854,
+      "sha256": "90355a04547744390c825c080b0f6a04b44a419e4084245b8361a3d5aa8e4294"
+    },
+    "audio/sfx/a2-ad-bite-02.wav": {
+      "bytes": 30732,
+      "sha256": "6c8fe88b1fc724d344398978002cf1ff740c526cbda49ec6f8e6d3e0012e73b9"
+    },
+    "audio/sfx/a2-ad-giant-01.wav": {
+      "bytes": 53232,
+      "sha256": "62090c3c86195325f7cb6c2d8ae4ad9326a255e2c9efbd10ad8fa18e77bd3078"
+    },
+    "audio/sfx/a2-ad-giant-02.wav": {
+      "bytes": 80644,
+      "sha256": "38d1c5c2f103d22f846f9fdeaf8b9fb35d3fd9fc778affed6edab5d51b10ac66"
+    },
+    "audio/sfx/a2-ad-shade-01.wav": {
+      "bytes": 42850,
+      "sha256": "dc289af3bca818e123eed99e5c79cf8b5027dde3458ba95e9dadd2c675026a47"
+    },
+    "audio/sfx/a2-ad-shade-02.wav": {
+      "bytes": 45364,
+      "sha256": "3ea460721b5a0d9a917f112306a63222e2fa19d1e4ccd44f7c160ad8cb57ea60"
+    },
+    "audio/sfx/a2-ad-shade-03.wav": {
+      "bytes": 49760,
+      "sha256": "27b0959623e0ec34e3665f268b9b8ea6edd43619f8fb7eb9cb53d7b87f9407ca"
+    },
+    "audio/sfx/a2-bart-coldsnap.wav": {
+      "bytes": 101474,
+      "sha256": "17842622c92575892c0f99678631ef2ea946f069ebdc77b062590e5fb974d3bb"
+    },
+    "audio/sfx/a2-bart-ice.wav": {
+      "bytes": 101474,
+      "sha256": "488b824b47983500007e86ccb1bfc849acf49d26c50361bd251c2a502fe9e39e"
+    },
+    "audio/sfx/a2-qubodup-electric-1.wav": {
+      "bytes": 58814,
+      "sha256": "6f245daf8d36900a96678374d41e7d8a348ed30c8be38f1065b5f52049f7178e"
+    },
+    "audio/sfx/a2-qubodup-electric-2.wav": {
+      "bytes": 61460,
+      "sha256": "467f3c76ddf2fa00c5862c62d2c0e37fc6b36159b8bf2666eb236af6ea01f9d2"
+    },
+    "audio/sfx/a2-qubodup-ice-1.wav": {
+      "bytes": 72558,
+      "sha256": "53c29999f6477e00bd4a76f90e162e6e49bc3af1dd38751ca882ffb04a44e290"
+    },
+    "audio/sfx/a2-qubodup-ice-2.wav": {
+      "bytes": 44940,
+      "sha256": "791f49f1c48eb3ac656cace980cffe122a14e214bc8d387702d2cc2e651aa066"
+    },
+    "audio/sfx/a2-paper-writing.wav": {
+      "bytes": 71926,
+      "sha256": "7d8d6b0fae87903eb2388424dd7f5d33d78e407b4e5d771a3f68ad41854d9860"
+    },
     "audio/audio-manifest.json": {
-      "bytes": 447441,
-      "sha256": "764c4cd820f4b27e6ea51d6181df7140a3b5db1367f133a4a594fdd94649bb2e"
+      "bytes": 533869,
+      "sha256": "304cbda6d3b7379815a00d742bc613c167318a1e810bab90138c935e4371398a"
     },
     "audio/CREDITS.txt": {
-      "bytes": 1169,
-      "sha256": "a8c1632fc17a94e723f4cacd7d732ca80820e6570c0bb5b6361cca0abc62e41a"
+      "bytes": 3304,
+      "sha256": "829c8c623fb341ead0b8a419dfe576e6df2cf53c09489a62f24cd8f98b895a1f"
     },
     "LICENSE-CC-BY-NC-4.0.txt": {
       "bytes": 19347,
       "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
     },
     "NOTICE.txt": {
-      "bytes": 1976,
-      "sha256": "5d596734119b67e23bd5c68734d463e2b6d63910716533f83e86ac92a988aebe"
+      "bytes": 2619,
+      "sha256": "2c112f945976be9f041ac3f09370d1381a647367d6c962925f50f21bba82c584"
     },
     "M-ART-terms.txt": {
       "bytes": 4523,
       "sha256": "bf290387b6c8dfb02f4ac2106966d4f56f36f38d190fe3aa8ad8d76aad8bb167"
     },
     "credits.html": {
-      "bytes": 3743,
-      "sha256": "89e9b613940873fdbf8bcfa261debf6200c7dbebf3d3f50abb29706d9a13774b"
+      "bytes": 6533,
+      "sha256": "243a3eb6055cbf18b7fc50a61e76c2a72cf3060132c397ae287d4da05c7a6fa8"
     },
     "loader.html": {
       "bytes": 7977,

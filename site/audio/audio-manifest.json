@@ -15,8 +15,8 @@
       "variants": [
         "interface-sounds--confirmation_001"
       ],
-      "gainDb": -4,
-      "cooldownMs": 120,
+      "gainDb": -3,
+      "cooldownMs": 90,
       "pitchVariation": 0
     },
     "ui.cancel": {
@@ -24,7 +24,7 @@
         "interface-sounds--back_001"
       ],
       "gainDb": -5,
-      "cooldownMs": 120,
+      "cooldownMs": 100,
       "pitchVariation": 0
     },
     "ui.error": {
@@ -373,46 +373,52 @@
     },
     "shield": {
       "variants": [
-        "sci-fi-sounds--forceField_000",
-        "sci-fi-sounds--forceField_001"
+        "a2-rd-spell-01",
+        "a2-rd-spell-02"
       ],
-      "gainDb": -10,
-      "cooldownMs": 200,
-      "pitchVariation": 0.025
+      "gainDb": -4,
+      "cooldownMs": 90,
+      "pitchVariation": 0.02
     },
     "shield.break": {
       "variants": [
-        "impact-sounds--impactGlass_heavy_002"
+        "a2-bart-coldsnap",
+        "a2-bart-ice",
+        "a2-qubodup-ice-1",
+        "a2-qubodup-ice-2"
       ],
-      "gainDb": -4,
-      "cooldownMs": 200,
+      "gainDb": -1,
+      "cooldownMs": 100,
       "pitchVariation": 0.025
     },
     "heal": {
       "variants": [
-        "digital-audio--powerUp3",
-        "digital-audio--powerUp7"
+        "a2-rd-item-gem-01",
+        "a2-rd-item-gem-02",
+        "a2-ad-magic-01"
       ],
-      "gainDb": -8,
-      "cooldownMs": 250,
-      "pitchVariation": 0
+      "gainDb": -5,
+      "cooldownMs": 90,
+      "pitchVariation": 0.015
     },
     "status": {
       "variants": [
-        "interface-sounds--glass_003"
+        "a2-rd-spell-01",
+        "a2-rd-spell-02",
+        "a2-rd-item-gem-01",
+        "a2-rd-item-gem-02"
       ],
-      "gainDb": -6,
-      "cooldownMs": 250,
-      "pitchVariation": 0
+      "gainDb": -7,
+      "cooldownMs": 90,
+      "pitchVariation": 0.02
     },
     "miss": {
       "variants": [
-        "rpg-audio--clothBelt",
-        "rpg-audio--clothBelt2"
+        "a2-ad-swing-03"
       ],
-      "gainDb": -8,
-      "cooldownMs": 150,
-      "pitchVariation": 0.025
+      "gainDb": -4,
+      "cooldownMs": 50,
+      "pitchVariation": 0.04
     },
     "magic.fire": {
       "variants": [
@@ -566,6 +572,599 @@
       "gainDb": -10,
       "cooldownMs": 12000,
       "pitchVariation": 0
+    },
+    "ui.move": {
+      "variants": [
+        "interface-sounds--select_001",
+        "interface-sounds--select_002"
+      ],
+      "gainDb": -8,
+      "cooldownMs": 55,
+      "pitchVariation": 0
+    },
+    "dialogue.write": {
+      "variants": [
+        "a2-paper-writing"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 0,
+      "pitchVariation": 0
+    },
+    "guard.block": {
+      "variants": [
+        "a2-rd-metal-01",
+        "a2-rd-metal-02",
+        "a2-ad-blade-02",
+        "a2-ad-blade-03"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 70,
+      "pitchVariation": 0.025
+    },
+    "reaction.beast": {
+      "variants": [
+        "a2-rd-creature-hurt-01",
+        "a2-rd-creature-hurt-02"
+      ],
+      "gainDb": -6,
+      "cooldownMs": 100,
+      "pitchVariation": 0.03
+    },
+    "party.hurt": {
+      "variants": [
+        "impact-sounds--impactPunch_heavy_002",
+        "impact-sounds--impactSoft_heavy_001"
+      ],
+      "gainDb": -1,
+      "cooldownMs": 80,
+      "pitchVariation": 0.02
+    },
+    "enemy.intent": {
+      "variants": [
+        "a2-ad-blade-01",
+        "a2-ad-blade-02"
+      ],
+      "gainDb": -8,
+      "cooldownMs": 80,
+      "pitchVariation": 0.025
+    },
+    "cast.channel": {
+      "variants": [
+        "a2-rd-spell-01",
+        "a2-rd-spell-02",
+        "a2-ad-magic-01",
+        "a2-ad-magic-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 180,
+      "pitchVariation": 0.02
+    },
+    "cast.fail": {
+      "variants": [
+        "interface-sounds--error_002"
+      ],
+      "gainDb": -3,
+      "cooldownMs": 140,
+      "pitchVariation": 0
+    },
+    "release.slash": {
+      "variants": [
+        "a2-ad-swing-01",
+        "a2-ad-swing-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.slash": {
+      "variants": [
+        "a2-rd-blade-01",
+        "a2-rd-blade-02",
+        "a2-rd-blade-03"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.pierce": {
+      "variants": [
+        "a2-ad-swing-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.pierce": {
+      "variants": [
+        "a2-ad-bite-01",
+        "a2-ad-bite-02",
+        "a2-rd-blade-03"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.heavy": {
+      "variants": [
+        "a2-ad-swing-01",
+        "a2-ad-swing-02"
+      ],
+      "gainDb": -7,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.heavy": {
+      "variants": [
+        "impact-sounds--impactPunch_heavy_000",
+        "impact-sounds--impactPunch_heavy_001",
+        "a2-rd-stones-01"
+      ],
+      "gainDb": -1,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.fire": {
+      "variants": [
+        "a2-rd-spell-fire-01",
+        "a2-rd-spell-fire-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.fire": {
+      "variants": [
+        "a2-rd-spell-fire-03",
+        "a2-rd-spell-fire-04"
+      ],
+      "gainDb": -1,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.ice": {
+      "variants": [
+        "a2-bart-coldsnap",
+        "a2-bart-ice"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.ice": {
+      "variants": [
+        "a2-qubodup-ice-1",
+        "a2-qubodup-ice-2"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.lightning": {
+      "variants": [
+        "a2-qubodup-electric-1"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.lightning": {
+      "variants": [
+        "a2-qubodup-electric-2",
+        "digital-audio--zap1"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.water": {
+      "variants": [
+        "a2-rd-creature-slime-01",
+        "a2-rd-creature-slime-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.water": {
+      "variants": [
+        "sci-fi-sounds--slime_000",
+        "sci-fi-sounds--slime_001"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.wind": {
+      "variants": [
+        "a2-ad-swing-01",
+        "a2-ad-swing-02",
+        "a2-ad-swing-03"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.wind": {
+      "variants": [
+        "digital-audio--phaserUp1",
+        "digital-audio--phaserUp2"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.earth": {
+      "variants": [
+        "a2-rd-stones-01",
+        "a2-rd-stones-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.earth": {
+      "variants": [
+        "a2-rd-stones-03",
+        "a2-rd-stones-04"
+      ],
+      "gainDb": -1,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.light": {
+      "variants": [
+        "a2-rd-item-gem-01",
+        "a2-rd-item-gem-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.light": {
+      "variants": [
+        "a2-ad-magic-01",
+        "a2-ad-magic-02"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.dark": {
+      "variants": [
+        "a2-ad-shade-01",
+        "a2-ad-shade-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.dark": {
+      "variants": [
+        "a2-rd-creature-monster-01",
+        "a2-rd-creature-monster-02"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.energy": {
+      "variants": [
+        "a2-ad-magic-01",
+        "a2-ad-magic-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.energy": {
+      "variants": [
+        "a2-rd-spell-01",
+        "a2-rd-spell-02"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.mental": {
+      "variants": [
+        "a2-ad-shade-03",
+        "a2-rd-spell-01"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.mental": {
+      "variants": [
+        "digital-audio--phaserDown1",
+        "digital-audio--phaserDown2"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.paper": {
+      "variants": [
+        "casino-audio--card-fan-1",
+        "casino-audio--card-shove-1"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.paper": {
+      "variants": [
+        "rpg-audio--cloth1",
+        "rpg-audio--cloth2",
+        "a2-rd-blade-01"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.machine": {
+      "variants": [
+        "sci-fi-sounds--laserSmall_000",
+        "sci-fi-sounds--laserSmall_001"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.machine": {
+      "variants": [
+        "a2-rd-metal-01",
+        "a2-rd-metal-02",
+        "a2-rd-metal-03"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.beast": {
+      "variants": [
+        "a2-rd-creature-roar-01",
+        "a2-rd-creature-roar-02"
+      ],
+      "gainDb": -7,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.beast": {
+      "variants": [
+        "a2-ad-bite-01",
+        "a2-ad-bite-02",
+        "impact-sounds--impactPunch_heavy_002"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.stone": {
+      "variants": [
+        "a2-rd-stones-01",
+        "a2-rd-stones-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.stone": {
+      "variants": [
+        "a2-rd-stones-03",
+        "a2-rd-stones-04"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.wood": {
+      "variants": [
+        "a2-rd-wood-01"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.wood": {
+      "variants": [
+        "a2-rd-wood-02",
+        "a2-rd-wood-03"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.glass": {
+      "variants": [
+        "a2-rd-item-gem-01",
+        "a2-rd-item-gem-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.glass": {
+      "variants": [
+        "a2-qubodup-ice-1",
+        "a2-qubodup-ice-2"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.slime": {
+      "variants": [
+        "a2-rd-creature-slime-01",
+        "a2-rd-creature-slime-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.slime": {
+      "variants": [
+        "sci-fi-sounds--slime_000",
+        "sci-fi-sounds--slime_001"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.spirit": {
+      "variants": [
+        "a2-ad-shade-01",
+        "a2-ad-shade-02",
+        "a2-ad-shade-03"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.spirit": {
+      "variants": [
+        "a2-rd-spell-01",
+        "a2-rd-spell-02"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "release.insect": {
+      "variants": [
+        "a2-ad-swing-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 65,
+      "pitchVariation": 0.035
+    },
+    "impact.insect": {
+      "variants": [
+        "a2-ad-bite-01",
+        "a2-ad-bite-02"
+      ],
+      "gainDb": -2,
+      "cooldownMs": 45,
+      "pitchVariation": 0.03
+    },
+    "enemy.flesh": {
+      "variants": [
+        "a2-ad-blade-01",
+        "a2-ad-blade-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.metal": {
+      "variants": [
+        "a2-rd-metal-01",
+        "a2-rd-metal-02",
+        "a2-rd-metal-03"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.paper": {
+      "variants": [
+        "casino-audio--card-fan-1",
+        "casino-audio--card-shove-1"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.machine": {
+      "variants": [
+        "sci-fi-sounds--laserSmall_002"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.beast": {
+      "variants": [
+        "a2-rd-creature-roar-01",
+        "a2-rd-creature-roar-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.stone": {
+      "variants": [
+        "a2-ad-giant-01",
+        "a2-ad-giant-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.wood": {
+      "variants": [
+        "a2-rd-wood-01",
+        "a2-rd-wood-02",
+        "a2-rd-wood-03"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.glass": {
+      "variants": [
+        "a2-rd-item-gem-01",
+        "a2-rd-item-gem-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.slime": {
+      "variants": [
+        "a2-rd-creature-slime-01",
+        "a2-rd-creature-slime-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.spirit": {
+      "variants": [
+        "a2-ad-shade-01",
+        "a2-ad-shade-02",
+        "a2-ad-shade-03"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "enemy.insect": {
+      "variants": [
+        "a2-ad-bite-01",
+        "a2-ad-bite-02"
+      ],
+      "gainDb": -9,
+      "cooldownMs": 100,
+      "pitchVariation": 0.02
+    },
+    "buff": {
+      "variants": [
+        "a2-rd-item-gem-01",
+        "a2-rd-item-gem-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 100,
+      "pitchVariation": 0.015
+    },
+    "debuff": {
+      "variants": [
+        "a2-ad-shade-01",
+        "a2-ad-shade-02"
+      ],
+      "gainDb": -5,
+      "cooldownMs": 100,
+      "pitchVariation": 0.025
     }
   },
   "themes": {
@@ -13203,6 +13802,2043 @@
         "sfx/sci-fi-sounds--lowFrequency_explosion_000.wav": 158838
       },
       "processing": "44.1 kHz PCM; short long tails fade out for gameplay. Original source OGG retained in authoring directory only."
+    },
+    "a2-rd-blade-01": {
+      "id": "a2-rd-blade-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "blade_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "caf7a7cb9b25cda4bd487c1d12d18b74a34bb18c816fd67277cf3c8d7ef32a3a",
+      "files": {
+        "wav": "sfx/a2-rd-blade-01.wav"
+      },
+      "duration": 0.28714285714285714,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 50652,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -27.301
+      },
+      "sha256": {
+        "sfx/a2-rd-blade-01.wav": "d3014252a6fa15a0ec465f931d5303fc81e14a60024aebf269ceb274e96ac521"
+      },
+      "bytes": {
+        "sfx/a2-rd-blade-01.wav": 25370
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0037868480725623582,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-blade-02": {
+      "id": "a2-rd-blade-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "blade_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "c770afec8f62f14d3d082d5437c5cec28e2751d393df645ddd938eabc2588abd",
+      "files": {
+        "wav": "sfx/a2-rd-blade-02.wav"
+      },
+      "duration": 0.30648526077097504,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 54064,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -27.181
+      },
+      "sha256": {
+        "sfx/a2-rd-blade-02.wav": "8b9c91d17e93ca715487b57805724e816c4784d2ee2af6e05a4f63820acf65f5"
+      },
+      "bytes": {
+        "sfx/a2-rd-blade-02.wav": 27076
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.006916099773242631,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-blade-03": {
+      "id": "a2-rd-blade-03",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "blade_03.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "2cd9e6926f4602a4350e703eeae4df520053e290f358ab692632d651ad368a7c",
+      "files": {
+        "wav": "sfx/a2-rd-blade-03.wav"
+      },
+      "duration": 0.390453514739229,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 68876,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -29.696
+      },
+      "sha256": {
+        "sfx/a2-rd-blade-03.wav": "b1dcdcb9d31f6e2e91e147e07463c8f13237baf5343fb05c045804b8e77abbf2"
+      },
+      "bytes": {
+        "sfx/a2-rd-blade-03.wav": 34482
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.005442176870748299,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-hurt-01": {
+      "id": "a2-rd-creature-hurt-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_hurt_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "9948f9ce067e1aae7bd780e974d51ceae03f2611a52afffb0e092ba47e9dc8e1",
+      "files": {
+        "wav": "sfx/a2-rd-creature-hurt-01.wav"
+      },
+      "duration": 0.5836054421768707,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 102948,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -21.047
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-hurt-01.wav": "4072756121bea83062cc58453f849dcd20fcef60e331e3872a9151bbe55ed37c"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-hurt-01.wav": 51518
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.03768707482993197,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-hurt-02": {
+      "id": "a2-rd-creature-hurt-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_hurt_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "a4ea983e62ace874754c51d78239bd8b6532227119bd511c38fa827b2ccbca70",
+      "files": {
+        "wav": "sfx/a2-rd-creature-hurt-02.wav"
+      },
+      "duration": 0.6661451247165533,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 117508,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -25.4
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-hurt-02.wav": "d8a763af9956e9ac238afe03727d8e8246a07bc9381556dbed79e127c8f570cc"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-hurt-02.wav": 58798
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.011541950113378685,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-roar-01": {
+      "id": "a2-rd-creature-roar-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_roar_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "ca1b9198490f29037e6e6487dd6db6165ca8b2583a445c0edd6b9f474d2d1f5f",
+      "files": {
+        "wav": "sfx/a2-rd-creature-roar-01.wav"
+      },
+      "duration": 0.6344671201814059,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 111920,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -18.177
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-roar-01.wav": "2c16a02edee7704577dcaafa5cf185c47ee6ef940c78edefd032d9c84dd1e840"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-roar-01.wav": 56004
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.005351473922902495,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-roar-02": {
+      "id": "a2-rd-creature-roar-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_roar_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "4da0cf77a3506e1b573ec40e3688dc66400d1734853510db357fb3f843cde242",
+      "files": {
+        "wav": "sfx/a2-rd-creature-roar-02.wav"
+      },
+      "duration": 1.035170068027211,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 182604,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -23.631
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-roar-02.wav": "27acfcb81a216770c995c1158b3fea03187ec74f8eb01acca9b43e0bf870b553"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-roar-02.wav": 91346
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.007551020408163266,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-monster-01": {
+      "id": "a2-rd-creature-monster-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_monster_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "28d047e95058cecc3513eb831d14072318526fcb9207d8a50aad0f666e17893a",
+      "files": {
+        "wav": "sfx/a2-rd-creature-monster-01.wav"
+      },
+      "duration": 0.2580952380952381,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 45528,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -27.229
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-monster-01.wav": "3cbb130fbf6be5c1acbd612c6c5b2de167125a5c369616074cd6e1b5376e619a"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-monster-01.wav": 22808
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-monster-02": {
+      "id": "a2-rd-creature-monster-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_monster_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "2892a32ddfc8d0fc3896f6487adf5a2eb6f3f5766fa02151bddd55e18f218f2f",
+      "files": {
+        "wav": "sfx/a2-rd-creature-monster-02.wav"
+      },
+      "duration": 0.22782312925170067,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 40188,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -27.843
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-monster-02.wav": "a04edbbc51f0b496ca904ef79b4b724758440bdfdd73cd9612f17b405aed33db"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-monster-02.wav": 20138
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.008435374149659863,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-slime-01": {
+      "id": "a2-rd-creature-slime-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_slime_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "746d6ef073abfadd43fe184c50c6a2528350d4f566f2c0f54cd51ff0eb665118",
+      "files": {
+        "wav": "sfx/a2-rd-creature-slime-01.wav"
+      },
+      "duration": 0.6536054421768708,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 115296,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -25.638
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-slime-01.wav": "eca86911c04c4fafd3bd1e56c0b4e0e3d3374c94bf644f8aa7b249166868caeb"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-slime-01.wav": 57692
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.018798185941043082,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-creature-slime-02": {
+      "id": "a2-rd-creature-slime-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "creature_slime_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "8c26b66076752b712dad7be704a3e4e11d3a49847fbd804ba7f858024ff33c8d",
+      "files": {
+        "wav": "sfx/a2-rd-creature-slime-02.wav"
+      },
+      "duration": 0.7031292517006803,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 124032,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -28.469
+      },
+      "sha256": {
+        "sfx/a2-rd-creature-slime-02.wav": "fc64771c29e7b370337ef9eee24989cf22c082f712638cc3a4a2a9f898d51b02"
+      },
+      "bytes": {
+        "sfx/a2-rd-creature-slime-02.wav": 62060
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0380952380952381,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-item-gem-01": {
+      "id": "a2-rd-item-gem-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "item_gem_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "8a5d2964febb0c69cc4df2ee5257d173f2cae6960d9534df0001dbf356f27028",
+      "files": {
+        "wav": "sfx/a2-rd-item-gem-01.wav"
+      },
+      "duration": 0.24585034013605442,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 43368,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -28.465
+      },
+      "sha256": {
+        "sfx/a2-rd-item-gem-01.wav": "9d31ea4fc86d3c66bcb5c7591b5b42f466c29ab7f5799e87b29da74285c2e223"
+      },
+      "bytes": {
+        "sfx/a2-rd-item-gem-01.wav": 21728
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0010204081632653062,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-item-gem-02": {
+      "id": "a2-rd-item-gem-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "item_gem_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "a5f4b0b3ae0e272765619289ef6709513e0dfa0785d7559e8a223176a8bcf181",
+      "files": {
+        "wav": "sfx/a2-rd-item-gem-02.wav"
+      },
+      "duration": 0.19281179138321997,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 34012,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -32.487
+      },
+      "sha256": {
+        "sfx/a2-rd-item-gem-02.wav": "500551f555c77aebe683e0766cf93e1b2c10a7047b140d07bd9bab5248728561"
+      },
+      "bytes": {
+        "sfx/a2-rd-item-gem-02.wav": 17050
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.006780045351473923,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-stones-01": {
+      "id": "a2-rd-stones-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "stones_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "d11ce95031c2c36ae2a00979620fa95a7a3f5c6d6f2ac86962ed292aa556be8d",
+      "files": {
+        "wav": "sfx/a2-rd-stones-01.wav"
+      },
+      "duration": 0.6618140589569161,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 116744,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -34.682
+      },
+      "sha256": {
+        "sfx/a2-rd-stones-01.wav": "d8056d5f3b766ea83978965a37a387dbda55faa597da7943e45b6ce44177aa95"
+      },
+      "bytes": {
+        "sfx/a2-rd-stones-01.wav": 58416
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.019024943310657596,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-stones-02": {
+      "id": "a2-rd-stones-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "stones_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "57dc6b85ee986e68ddc4b7fb2b41cc1c885151677d32439fdb299492a3103a65",
+      "files": {
+        "wav": "sfx/a2-rd-stones-02.wav"
+      },
+      "duration": 0.6908390022675737,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 121864,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -34.051
+      },
+      "sha256": {
+        "sfx/a2-rd-stones-02.wav": "2c3560b357eedfbb357b1114ea72f297c3cb50b57a0c052d3285ed0a10c9bb0e"
+      },
+      "bytes": {
+        "sfx/a2-rd-stones-02.wav": 60976
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.08653061224489796,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-stones-03": {
+      "id": "a2-rd-stones-03",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "stones_03.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "b86d143d7ef4974c2b97fda9e5d1861482646eec754e15935eeb3680ea0d71da",
+      "files": {
+        "wav": "sfx/a2-rd-stones-03.wav"
+      },
+      "duration": 1.0,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 176400,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -33.256
+      },
+      "sha256": {
+        "sfx/a2-rd-stones-03.wav": "969702c89714ff909db52b95d3feb0bda366df14458dc9d9600c9a2e18ddb7c3"
+      },
+      "bytes": {
+        "sfx/a2-rd-stones-03.wav": 88244
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-stones-04": {
+      "id": "a2-rd-stones-04",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "stones_04.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "66f1cef820f66d86414d481b37a48a7b7ea11f4a5d7358372ebcfb506af0e652",
+      "files": {
+        "wav": "sfx/a2-rd-stones-04.wav"
+      },
+      "duration": 0.364875283446712,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 64364,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -29.226
+      },
+      "sha256": {
+        "sfx/a2-rd-stones-04.wav": "9ec229dab77dfa643795e15153871208bdff6e6bf4750f10aa8a7ce03525e2de"
+      },
+      "bytes": {
+        "sfx/a2-rd-stones-04.wav": 32226
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.01852607709750567,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-wood-01": {
+      "id": "a2-rd-wood-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "wood_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "55d4527a1f7d8e158eff0921f7a533340ab6be69a7b9b52fdac7a19b9d8e1cb2",
+      "files": {
+        "wav": "sfx/a2-rd-wood-01.wav"
+      },
+      "duration": 0.2363718820861678,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 41696,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -31.666
+      },
+      "sha256": {
+        "sfx/a2-rd-wood-01.wav": "30b2c3219c5cad5be58015ddc13926f84e4ac31a8c8b18af385cb0abb93bcd87"
+      },
+      "bytes": {
+        "sfx/a2-rd-wood-01.wav": 20892
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0029478458049886623,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-wood-02": {
+      "id": "a2-rd-wood-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "wood_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "e64b95a1ec7675f28f8837ee4e4e81aa8e5b28e272159a0b3ed124fed037fc4f",
+      "files": {
+        "wav": "sfx/a2-rd-wood-02.wav"
+      },
+      "duration": 0.18825396825396826,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 33208,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -31.762
+      },
+      "sha256": {
+        "sfx/a2-rd-wood-02.wav": "16926e51ebb36a4ae6107e53df42ba9f2c8c8205041b1d67df84b95036a040a6"
+      },
+      "bytes": {
+        "sfx/a2-rd-wood-02.wav": 16648
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-wood-03": {
+      "id": "a2-rd-wood-03",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "wood_03.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "64bc25ac915ded78136ef36f71867b08ac462b9178f7db9b461dafaea0a27fdd",
+      "files": {
+        "wav": "sfx/a2-rd-wood-03.wav"
+      },
+      "duration": 0.2980498866213152,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 52576,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -26.775
+      },
+      "sha256": {
+        "sfx/a2-rd-wood-03.wav": "d1d091f36ea326f413f0cd9b1f1abdd788d07dfba31b02be33c3ba2b32f00923"
+      },
+      "bytes": {
+        "sfx/a2-rd-wood-03.wav": 26332
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-metal-01": {
+      "id": "a2-rd-metal-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "metal_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "433d7adf123f9de425047f6dec3f7b4da510c0fd0208d4893a22be8bd22d9e34",
+      "files": {
+        "wav": "sfx/a2-rd-metal-01.wav"
+      },
+      "duration": 0.5363945578231293,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 94620,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -32.505
+      },
+      "sha256": {
+        "sfx/a2-rd-metal-01.wav": "a4cad1ccbd66413971a4b0cf19adef926dae6a12048823d907523f8eb32cde39"
+      },
+      "bytes": {
+        "sfx/a2-rd-metal-01.wav": 47354
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.039478458049886624,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-metal-02": {
+      "id": "a2-rd-metal-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "metal_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "30fcaab83dc3fff5335b78f87f9df305f6f8bd7316e2b46e2a4eaed85ee21768",
+      "files": {
+        "wav": "sfx/a2-rd-metal-02.wav"
+      },
+      "duration": 0.5643310657596372,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 99548,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -24.733
+      },
+      "sha256": {
+        "sfx/a2-rd-metal-02.wav": "ac89322f0a444b879a8a6f3e906eb477aea2a0693de501490d9ddb62da182dcd"
+      },
+      "bytes": {
+        "sfx/a2-rd-metal-02.wav": 49818
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-metal-03": {
+      "id": "a2-rd-metal-03",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "metal_03.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "e780e2c2125161ed84fad0501af74bccc19ee9075dc9fac1d7d6f292ab3e81e2",
+      "files": {
+        "wav": "sfx/a2-rd-metal-03.wav"
+      },
+      "duration": 0.4260770975056689,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 75160,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -26.824
+      },
+      "sha256": {
+        "sfx/a2-rd-metal-03.wav": "ed4ea62ab7a9a903c52426eba3ada98f946b17ad3483497ae9d9361af02ef7b4"
+      },
+      "bytes": {
+        "sfx/a2-rd-metal-03.wav": 37624
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-spell-01": {
+      "id": "a2-rd-spell-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "spell_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "09821a53c418c5eeeac4fa25bada9d245e822fed302eeeae9ae4151522a45ae5",
+      "files": {
+        "wav": "sfx/a2-rd-spell-01.wav"
+      },
+      "duration": 0.6329931972789116,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 111660,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -24.385
+      },
+      "sha256": {
+        "sfx/a2-rd-spell-01.wav": "6c3072007839d4469036ef6ed215b8ed83a2f1a2893c7836ede456ce685d23a5"
+      },
+      "bytes": {
+        "sfx/a2-rd-spell-01.wav": 55874
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-spell-02": {
+      "id": "a2-rd-spell-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "spell_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "bf9c48b76921e56aa266172d969a2c08215d6ce0ffae7c3584f23fa05d3f8bd4",
+      "files": {
+        "wav": "sfx/a2-rd-spell-02.wav"
+      },
+      "duration": 0.5350113378684808,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 94376,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -26.036
+      },
+      "sha256": {
+        "sfx/a2-rd-spell-02.wav": "8b544b6792d2e7eeaaa42be45a77b3e2bad90aac70cd950b0936f69e8b4633c9"
+      },
+      "bytes": {
+        "sfx/a2-rd-spell-02.wav": 47232
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.011360544217687075,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-spell-fire-01": {
+      "id": "a2-rd-spell-fire-01",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "spell_fire_01.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "02fa3a2c6e79e868e546802f45127c5cdda69aba6d5a24ac997ea66f81a816cb",
+      "files": {
+        "wav": "sfx/a2-rd-spell-fire-01.wav"
+      },
+      "duration": 1.0,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 176400,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -28.528
+      },
+      "sha256": {
+        "sfx/a2-rd-spell-fire-01.wav": "dd0a518371ecaaba286335a00c2a0b19ea020e4069cee8b737bd756503de5c8c"
+      },
+      "bytes": {
+        "sfx/a2-rd-spell-fire-01.wav": 88244
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0014285714285714286,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-spell-fire-02": {
+      "id": "a2-rd-spell-fire-02",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "spell_fire_02.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "bf1eef4993f0adb4bd3a1c1ec91f8f6e4ddeb32d922671a14561846d5b7cab98",
+      "files": {
+        "wav": "sfx/a2-rd-spell-fire-02.wav"
+      },
+      "duration": 1.0,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 176400,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -24.324
+      },
+      "sha256": {
+        "sfx/a2-rd-spell-fire-02.wav": "762b01452a285528d68db9f49b0dc6b2ecef9d977fcfecc3d980075dcfd9825a"
+      },
+      "bytes": {
+        "sfx/a2-rd-spell-fire-02.wav": 88244
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-spell-fire-03": {
+      "id": "a2-rd-spell-fire-03",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "spell_fire_03.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "2e4edee4ff8d7898198f1ab5213e086965e14a665cb947d53759505e28ddd3e4",
+      "files": {
+        "wav": "sfx/a2-rd-spell-fire-03.wav"
+      },
+      "duration": 1.0,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 176400,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -27.549
+      },
+      "sha256": {
+        "sfx/a2-rd-spell-fire-03.wav": "43fd5c74e4f27afa9a365d6e074810889e7c9111ddecc268d681db9d89f28b74"
+      },
+      "bytes": {
+        "sfx/a2-rd-spell-fire-03.wav": 88244
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-rd-spell-fire-04": {
+      "id": "a2-rd-spell-fire-04",
+      "title": "80 CC0 RPG SFX",
+      "artist": "rubberduck",
+      "pack": "rubberduck-rpg80",
+      "member": "spell_fire_04.ogg",
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "sourceSha256": "64d653cd0cc6eb71bb45a1dfbba29eaa769ed5b663cce275082d6971e4f2ca8e",
+      "files": {
+        "wav": "sfx/a2-rd-spell-fire-04.wav"
+      },
+      "duration": 1.0,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 176400,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -28.422
+      },
+      "sha256": {
+        "sfx/a2-rd-spell-fire-04.wav": "e62fb1869278fd3a964288a132f7ba2704ee37971a6f7272e09efc88f3d3d6ce"
+      },
+      "bytes": {
+        "sfx/a2-rd-spell-fire-04.wav": 88244
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.011950113378684808,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-swing-01": {
+      "id": "a2-ad-swing-01",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/swing.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "c7d50b9cb20ccda5aee6c023f4450915594061e36f3f9e78af241ca9fde0f817",
+      "files": {
+        "wav": "sfx/a2-ad-swing-01.wav"
+      },
+      "duration": 0.20678004535147393,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 36476,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -25.536
+      },
+      "sha256": {
+        "sfx/a2-ad-swing-01.wav": "1b66ac40cc524cd44ac56e56720df08dee8f62e307ed89876ee093c3fc34911f"
+      },
+      "bytes": {
+        "sfx/a2-ad-swing-01.wav": 18282
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.02238095238095238,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-swing-02": {
+      "id": "a2-ad-swing-02",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/swing2.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "2e4064e294d136e06c40cc562df969493907e6873f39895ca86b4a6b2e034c6e",
+      "files": {
+        "wav": "sfx/a2-ad-swing-02.wav"
+      },
+      "duration": 0.13519274376417234,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 23848,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -22.844
+      },
+      "sha256": {
+        "sfx/a2-ad-swing-02.wav": "06335054f5443be5949285abef40c9dd0a1bfa4e5505916255ad531d00ddb444"
+      },
+      "bytes": {
+        "sfx/a2-ad-swing-02.wav": 11968
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.010634920634920634,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-swing-03": {
+      "id": "a2-ad-swing-03",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/swing3.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "d725421956c9958de6d7a17c4fca299abe583a1800c59eaec358ec2e82d79bae",
+      "files": {
+        "wav": "sfx/a2-ad-swing-03.wav"
+      },
+      "duration": 0.11147392290249433,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 19664,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -21.549
+      },
+      "sha256": {
+        "sfx/a2-ad-swing-03.wav": "44b3de678d1596f2542490a1516ff51cc3f045c2f047030b7ba224ce099b34f3"
+      },
+      "bytes": {
+        "sfx/a2-ad-swing-03.wav": 9876
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.02655328798185941,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-blade-01": {
+      "id": "a2-ad-blade-01",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/sword-unsheathe.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "2cc0518b65d3a11b4f7cf22a5be6700d36fa1e681491dfb71b87ae5bce2296f6",
+      "files": {
+        "wav": "sfx/a2-ad-blade-01.wav"
+      },
+      "duration": 0.5379818594104309,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 94900,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -22.619
+      },
+      "sha256": {
+        "sfx/a2-ad-blade-01.wav": "59e1eae6aa2516e10aa46bcd69ad0df1191bbb2fe0e478382c08ead1e9feb457"
+      },
+      "bytes": {
+        "sfx/a2-ad-blade-01.wav": 47494
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.003696145124716553,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-blade-02": {
+      "id": "a2-ad-blade-02",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/sword-unsheathe2.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "1df8bdb5e4f852821a9b5b7cf27b2c1c516c3a6382cb14b2865005d786503b0a",
+      "files": {
+        "wav": "sfx/a2-ad-blade-02.wav"
+      },
+      "duration": 0.34868480725623585,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 61508,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -25.088
+      },
+      "sha256": {
+        "sfx/a2-ad-blade-02.wav": "7ba90845d460f6ceee7fc53bac6b431ec9f64e04c5a33ae56330baa88f97f5a0"
+      },
+      "bytes": {
+        "sfx/a2-ad-blade-02.wav": 30798
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.020068027210884354,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-blade-03": {
+      "id": "a2-ad-blade-03",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/sword-unsheathe3.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "4a1a54402789bd08278c332086ed427805dc5d42c3e7c3fce0f30d1e19e20c91",
+      "files": {
+        "wav": "sfx/a2-ad-blade-03.wav"
+      },
+      "duration": 0.505827664399093,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 89228,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -23.631
+      },
+      "sha256": {
+        "sfx/a2-ad-blade-03.wav": "46949caf4f1da32845559108b65030be2fb78bfc1206ea17e1dd3083652b6522"
+      },
+      "bytes": {
+        "sfx/a2-ad-blade-03.wav": 44658
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.008253968253968255,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-magic-01": {
+      "id": "a2-ad-magic-01",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/magic1.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "cadea162f3fe91c27666ab2a0516fa3bf156997d92d4f8145919126bca7b1e8a",
+      "files": {
+        "wav": "sfx/a2-ad-magic-01.wav"
+      },
+      "duration": 0.8460090702947846,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 149236,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -21.57
+      },
+      "sha256": {
+        "sfx/a2-ad-magic-01.wav": "8111b6d3f4900b41bcbbe5b6ad6ad3fd1d75cb2ffce2c66f89c7aeacbcc2f2e6"
+      },
+      "bytes": {
+        "sfx/a2-ad-magic-01.wav": 74662
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.029002267573696144,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-magic-02": {
+      "id": "a2-ad-magic-02",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/battle/spell.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "61d79416a7cbb04e1f46618ded72386f82bb6bd9dc170170480d271f4efb3958",
+      "files": {
+        "wav": "sfx/a2-ad-magic-02.wav"
+      },
+      "duration": 1.2,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 211680,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -20.446
+      },
+      "sha256": {
+        "sfx/a2-ad-magic-02.wav": "df61c2199727429397f0b06b8a5e6255a8f2513ba9ffb31f0b0fa1c14087724f"
+      },
+      "bytes": {
+        "sfx/a2-ad-magic-02.wav": 105884
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.07716553287981859,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-bite-01": {
+      "id": "a2-ad-bite-01",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/beetle/bite-small.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "bc0e9d150aaf71aefa99111cfff90ca1deea5e72fb31c7371df75288d74ab2b5",
+      "files": {
+        "wav": "sfx/a2-ad-bite-01.wav"
+      },
+      "duration": 0.38333333333333336,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 67620,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -26.387
+      },
+      "sha256": {
+        "sfx/a2-ad-bite-01.wav": "90355a04547744390c825c080b0f6a04b44a419e4084245b8361a3d5aa8e4294"
+      },
+      "bytes": {
+        "sfx/a2-ad-bite-01.wav": 33854
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-bite-02": {
+      "id": "a2-ad-bite-02",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/beetle/bite-small2.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "58318528da572fc30eb50487aa733a6dc7f9c06d2ca5141dae8ab57aac022c96",
+      "files": {
+        "wav": "sfx/a2-ad-bite-02.wav"
+      },
+      "duration": 0.34793650793650793,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 61376,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -31.51
+      },
+      "sha256": {
+        "sfx/a2-ad-bite-02.wav": "6c8fe88b1fc724d344398978002cf1ff740c526cbda49ec6f8e6d3e0012e73b9"
+      },
+      "bytes": {
+        "sfx/a2-ad-bite-02.wav": 30732
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-giant-01": {
+      "id": "a2-ad-giant-01",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/giant/giant1.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "e9aeb6012c03fb426019f8d485d0da8a6aaf2e46499acd3636afe05966cd752e",
+      "files": {
+        "wav": "sfx/a2-ad-giant-01.wav"
+      },
+      "duration": 0.6030385487528345,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 106376,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -21.361
+      },
+      "sha256": {
+        "sfx/a2-ad-giant-01.wav": "62090c3c86195325f7cb6c2d8ae4ad9326a255e2c9efbd10ad8fa18e77bd3078"
+      },
+      "bytes": {
+        "sfx/a2-ad-giant-01.wav": 53232
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.04281179138321996,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-giant-02": {
+      "id": "a2-ad-giant-02",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/giant/giant2.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "3e5b30a8fa8f6eb8f94bb50a43fb410669f78da13f4108f60f8a851ddde2f2a8",
+      "files": {
+        "wav": "sfx/a2-ad-giant-02.wav"
+      },
+      "duration": 0.9138321995464853,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 161200,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -20.998
+      },
+      "sha256": {
+        "sfx/a2-ad-giant-02.wav": "38d1c5c2f103d22f846f9fdeaf8b9fb35d3fd9fc778affed6edab5d51b10ac66"
+      },
+      "bytes": {
+        "sfx/a2-ad-giant-02.wav": 80644
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.012222222222222223,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-shade-01": {
+      "id": "a2-ad-shade-01",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/shade/shade1.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "962c30499b62b49eb78e70ae72073b26f3a6328bf3bab1ad093f3d7a4db26f7c",
+      "files": {
+        "wav": "sfx/a2-ad-shade-01.wav"
+      },
+      "duration": 0.48532879818594105,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 85612,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -22.442
+      },
+      "sha256": {
+        "sfx/a2-ad-shade-01.wav": "dc289af3bca818e123eed99e5c79cf8b5027dde3458ba95e9dadd2c675026a47"
+      },
+      "bytes": {
+        "sfx/a2-ad-shade-01.wav": 42850
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.044897959183673466,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-shade-02": {
+      "id": "a2-ad-shade-02",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/shade/shade2.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "f83ebcb33463c08a8b1845adaee0df836f047ad05c91ac6ad57f9acd6813a76e",
+      "files": {
+        "wav": "sfx/a2-ad-shade-02.wav"
+      },
+      "duration": 0.5138321995464853,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 90640,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -22.371
+      },
+      "sha256": {
+        "sfx/a2-ad-shade-02.wav": "3ea460721b5a0d9a917f112306a63222e2fa19d1e4ccd44f7c160ad8cb57ea60"
+      },
+      "bytes": {
+        "sfx/a2-ad-shade-02.wav": 45364
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.037210884353741494,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-ad-shade-03": {
+      "id": "a2-ad-shade-03",
+      "title": "RPG Sound Pack",
+      "artist": "artisticdude",
+      "pack": "artisticdude-rpg95",
+      "member": "RPG Sound Pack/NPC/shade/shade3.wav",
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "sourceSha256": "e3835f7d72240580a609e40159a70cd084a4d9a851c5f6c469db385ba9691a05",
+      "files": {
+        "wav": "sfx/a2-ad-shade-03.wav"
+      },
+      "duration": 0.5636734693877551,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 99432,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -23.895
+      },
+      "sha256": {
+        "sfx/a2-ad-shade-03.wav": "27b0959623e0ec34e3665f268b9b8ea6edd43619f8fb7eb9cb53d7b87f9407ca"
+      },
+      "bytes": {
+        "sfx/a2-ad-shade-03.wav": 49760
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.030612244897959183,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-bart-coldsnap": {
+      "id": "a2-bart-coldsnap",
+      "title": "Ice spells",
+      "artist": "bart (source by Stephan / pdsounds)",
+      "pack": "bart-ice",
+      "member": "coldsnap.wav",
+      "page": "https://opengameart.org/content/ice-spells",
+      "url": "https://opengameart.org/sites/default/files/icespells.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "45f02a204fc7cc896a17487080376c521ac2e564fe3da4d24cffa0086f8d6a54",
+      "sourceSha256": "090977264d65d90a50b04e9f0c1c4e02fb194e5b50d9fe244f0079a4da54158c",
+      "files": {
+        "wav": "sfx/a2-bart-coldsnap.wav"
+      },
+      "duration": 1.15,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 202860,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -40.941
+      },
+      "sha256": {
+        "sfx/a2-bart-coldsnap.wav": "17842622c92575892c0f99678631ef2ea946f069ebdc77b062590e5fb974d3bb"
+      },
+      "bytes": {
+        "sfx/a2-bart-coldsnap.wav": 101474
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-bart-ice": {
+      "id": "a2-bart-ice",
+      "title": "Ice spells",
+      "artist": "bart (source by Stephan / pdsounds)",
+      "pack": "bart-ice",
+      "member": "ice.wav",
+      "page": "https://opengameart.org/content/ice-spells",
+      "url": "https://opengameart.org/sites/default/files/icespells.zip",
+      "license": "CC0-1.0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/",
+      "sourceArchiveSHA256": "45f02a204fc7cc896a17487080376c521ac2e564fe3da4d24cffa0086f8d6a54",
+      "sourceSha256": "c3039c864d056d0e4951b84b96a7bb0044ca8cb58aeae514fc256145872b6a94",
+      "files": {
+        "wav": "sfx/a2-bart-ice.wav"
+      },
+      "duration": 1.15,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 202860,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -37.283
+      },
+      "sha256": {
+        "sfx/a2-bart-ice.wav": "488b824b47983500007e86ccb1bfc849acf49d26c50361bd251c2a502fe9e39e"
+      },
+      "bytes": {
+        "sfx/a2-bart-ice.wav": 101474
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0007482993197278912,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-qubodup-electric-1": {
+      "id": "a2-qubodup-electric-1",
+      "title": "Ice & Electricity Magic",
+      "artist": "Iwan 'qubodup' Gabovitch",
+      "pack": "qubodup-ice-electricity",
+      "member": "qubodupIceAndElectricitySpells/qubodupElectricityDamage01.flac",
+      "page": "https://opengameart.org/content/ice-electricity-magic",
+      "url": "https://opengameart.org/sites/default/files/qubodupIceAndElectricitySpells.7z",
+      "license": "CC-BY-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourceArchiveSHA256": "e38bf3046f1503d7bad52894ff6d3d4d2e18d595746ab68151667c84a1b12a8d",
+      "sourceSha256": "b61131bbed47caec321f5b3ee43ebe47d91c9f5d18084348ce2af73544ca4ecc",
+      "files": {
+        "wav": "sfx/a2-qubodup-electric-1.wav"
+      },
+      "duration": 0.6663265306122449,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 117540,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -25.322
+      },
+      "sha256": {
+        "sfx/a2-qubodup-electric-1.wav": "6f245daf8d36900a96678374d41e7d8a348ed30c8be38f1065b5f52049f7178e"
+      },
+      "bytes": {
+        "sfx/a2-qubodup-electric-1.wav": 58814
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-qubodup-electric-2": {
+      "id": "a2-qubodup-electric-2",
+      "title": "Ice & Electricity Magic",
+      "artist": "Iwan 'qubodup' Gabovitch",
+      "pack": "qubodup-ice-electricity",
+      "member": "qubodupIceAndElectricitySpells/qubodupElectricityDamage02.flac",
+      "page": "https://opengameart.org/content/ice-electricity-magic",
+      "url": "https://opengameart.org/sites/default/files/qubodupIceAndElectricitySpells.7z",
+      "license": "CC-BY-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourceArchiveSHA256": "e38bf3046f1503d7bad52894ff6d3d4d2e18d595746ab68151667c84a1b12a8d",
+      "sourceSha256": "04226646faf6c81fb56bed3b86e12e6ad7bd28ab763b3a9dac6a10a0382593ab",
+      "files": {
+        "wav": "sfx/a2-qubodup-electric-2.wav"
+      },
+      "duration": 0.6963265306122449,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 122832,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -24.753
+      },
+      "sha256": {
+        "sfx/a2-qubodup-electric-2.wav": "467f3c76ddf2fa00c5862c62d2c0e37fc6b36159b8bf2666eb236af6ea01f9d2"
+      },
+      "bytes": {
+        "sfx/a2-qubodup-electric-2.wav": 61460
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-qubodup-ice-1": {
+      "id": "a2-qubodup-ice-1",
+      "title": "Ice & Electricity Magic",
+      "artist": "Iwan 'qubodup' Gabovitch",
+      "pack": "qubodup-ice-electricity",
+      "member": "qubodupIceAndElectricitySpells/qubodupIceDamage01.flac",
+      "page": "https://opengameart.org/content/ice-electricity-magic",
+      "url": "https://opengameart.org/sites/default/files/qubodupIceAndElectricitySpells.7z",
+      "license": "CC-BY-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourceArchiveSHA256": "e38bf3046f1503d7bad52894ff6d3d4d2e18d595746ab68151667c84a1b12a8d",
+      "sourceSha256": "7fa1b626d12bac9c83c2347f115e6b27fa49b4797aef81ac0c77300e32de6122",
+      "files": {
+        "wav": "sfx/a2-qubodup-ice-1.wav"
+      },
+      "duration": 0.8221541950113379,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 145028,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -26.367
+      },
+      "sha256": {
+        "sfx/a2-qubodup-ice-1.wav": "53c29999f6477e00bd4a76f90e162e6e49bc3af1dd38751ca882ffb04a44e290"
+      },
+      "bytes": {
+        "sfx/a2-qubodup-ice-1.wav": 72558
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.00020408163265306123,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-qubodup-ice-2": {
+      "id": "a2-qubodup-ice-2",
+      "title": "Ice & Electricity Magic",
+      "artist": "Iwan 'qubodup' Gabovitch",
+      "pack": "qubodup-ice-electricity",
+      "member": "qubodupIceAndElectricitySpells/qubodupIceDamage02.flac",
+      "page": "https://opengameart.org/content/ice-electricity-magic",
+      "url": "https://opengameart.org/sites/default/files/qubodupIceAndElectricitySpells.7z",
+      "license": "CC-BY-3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/3.0/",
+      "sourceArchiveSHA256": "e38bf3046f1503d7bad52894ff6d3d4d2e18d595746ab68151667c84a1b12a8d",
+      "sourceSha256": "582dbad281d44c102eaf0f790f65707e9b83d90d9429d38df757bcba85ca4298",
+      "files": {
+        "wav": "sfx/a2-qubodup-ice-2.wav"
+      },
+      "duration": 0.5090249433106576,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 89792,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -25.273
+      },
+      "sha256": {
+        "sfx/a2-qubodup-ice-2.wav": "791f49f1c48eb3ac656cace980cffe122a14e214bc8d387702d2cc2e651aa066"
+      },
+      "bytes": {
+        "sfx/a2-qubodup-ice-2.wav": 44940
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.0,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=35",
+        "loopCrossfadeSeconds": 0,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
+    "a2-paper-writing": {
+      "id": "a2-paper-writing",
+      "title": "Paper Scratch Pencil drawing line",
+      "artist": "johannesschmidt",
+      "pack": "writing-paper",
+      "member": null,
+      "page": "https://freesound.org/people/johannesschmidt/sounds/339741/",
+      "url": "https://cdn.freesound.org/previews/339/339741_5670420-hq.mp3",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceArchiveSHA256": "e4f31a8cd32f9280f2807a808c749e61e671cfcf2a2ce666e693d6e391cdf9da",
+      "sourceSha256": "e4f31a8cd32f9280f2807a808c749e61e671cfcf2a2ce666e693d6e391cdf9da",
+      "files": {
+        "wav": "sfx/a2-paper-writing.wav"
+      },
+      "duration": 0.8149886621315193,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 143764,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -22.043
+      },
+      "sha256": {
+        "sfx/a2-paper-writing.wav": "7d8d6b0fae87903eb2388424dd7f5d33d78e407b4e5d771a3f68ad41854d9860"
+      },
+      "bytes": {
+        "sfx/a2-paper-writing.wav": 71926
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.3,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=180,lowpass=f=7800",
+        "loopCrossfadeSeconds": 0.035,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    }
+  },
+  "revision": "booksea-combat-dialogue/2",
+  "effectSources": {
+    "rubberduck-rpg80": {
+      "page": "https://opengameart.org/content/80-cc0-rpg-sfx",
+      "url": "https://opengameart.org/sites/default/files/80-CC0-RPG-SFX_0.zip",
+      "sha256": "1c2f06ff4e8563b5b8b745b23cf213c1474142a69bb82bd8f5e10d9b3f7a7bbd",
+      "license": "CC0-1.0",
+      "author": "rubberduck",
+      "archive": "rubberduck-rpg80.zip",
+      "title": "80 CC0 RPG SFX"
+    },
+    "artisticdude-rpg95": {
+      "page": "https://opengameart.org/content/rpg-sound-pack",
+      "url": "https://opengameart.org/sites/default/files/rpg_sound_pack.zip",
+      "sha256": "f80754a9c04854e30c9da89d0186540ad097309d98b41387b6e83029e2601421",
+      "license": "CC0-1.0",
+      "author": "artisticdude",
+      "archive": "artisticdude-rpg95.zip",
+      "title": "RPG Sound Pack"
+    },
+    "bart-ice": {
+      "page": "https://opengameart.org/content/ice-spells",
+      "url": "https://opengameart.org/sites/default/files/icespells.zip",
+      "sha256": "45f02a204fc7cc896a17487080376c521ac2e564fe3da4d24cffa0086f8d6a54",
+      "license": "CC0-1.0",
+      "author": "bart (source by Stephan / pdsounds)",
+      "archive": "bart-ice.zip",
+      "title": "Ice spells"
+    },
+    "qubodup-ice-electricity": {
+      "page": "https://opengameart.org/content/ice-electricity-magic",
+      "url": "https://opengameart.org/sites/default/files/qubodupIceAndElectricitySpells.7z",
+      "sha256": "e38bf3046f1503d7bad52894ff6d3d4d2e18d595746ab68151667c84a1b12a8d",
+      "license": "CC-BY-3.0",
+      "author": "Iwan 'qubodup' Gabovitch",
+      "archive": "qubodup-ice-electricity.7z",
+      "title": "Ice & Electricity Magic"
+    },
+    "writing-paper": {
+      "page": "https://freesound.org/people/johannesschmidt/sounds/339741/",
+      "url": "https://cdn.freesound.org/previews/339/339741_5670420-hq.mp3",
+      "sha256": "e4f31a8cd32f9280f2807a808c749e61e671cfcf2a2ce666e693d6e391cdf9da",
+      "license": "CC-BY-4.0",
+      "author": "johannesschmidt",
+      "archive": "writing-paper.mp3",
+      "title": "Paper Scratch Pencil drawing line"
     }
   }
 }

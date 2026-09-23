@@ -14,8 +14,9 @@ https://img.baibai.cv/f/WrevH4/%E9%BB%98%E8%AE%A4.png
 https://img.baibai.cv/f/56AzHz/cafe_bg.png
 
 默认行走精灵：用户提供的 chibi_sprite_4dir_fixed.png，经裁剪、抠图与脚底对齐后随运行包使用。不冒称Pipoya素材，不从项目代码许可推导原图版权或授权；处理记录见Player-CREDITS.txt。
+补给员原图由用户于2026-09-23随需求提供，像素精灵由该图辅助生成并处理；用户于2026-09-24确认v3形象并授权随本版本推送仓库；不声称拥有原图或角色版权，不由本项目代码许可授予额外素材版权。详见Supplier-CREDITS.txt。
 Napi / M-ART：https://mart.kitunebi.com/；允许作为游戏素材使用，不放弃著作权，禁止独立原声/音乐素材库再分发。本仓库是可运行的完整游戏，不是音乐素材库。
-Kenney：音效与短jingle，CC0 1.0。
+Kenney：原有音效与短jingle，CC0 1.0。新增RPG音效：rubberduck、artisticdude、bart（CC0）；Iwan qubodup Gabovitch（CC BY 3.0）；纸笔书写录音：johannesschmidt（CC BY 4.0）。已作裁剪、单声道转换、响度校准与短淡化。逐项作者、原页面、许可链接及修改见audio/CREDITS.txt和audio/audio-manifest.json，不并入项目代码许可。
 Godot及其第三方库：见site/Godot-LICENSES.txt。Noto Sans SC：见site/NotoSansSC-OFL.txt。
 音乐逐曲信息见site/audio/audio-manifest.json；少女详细加工与许可见site/Player-CREDITS.txt。
 </pre><pre>《书海》音乐与音效 / Booksea audio credits
@@ -41,4 +42,39 @@ Some long effects are shortened with tail fades and converted to PCM WAV.
 Every installed track/sample is listed with its original title, author, official
 source page, processing, loop metadata, and SHA256 in audio-manifest.json.
 The game runs from local copies, not by hotlinking the authors&#39; servers.
+
+=== A2: Dialogue and Battle Audio (2026-09-24) ===
+The existing Kenney/M-ART credits above remain applicable to A1 assets. The following additional sounds have their own licenses.
+
+80 CC0 RPG SFX (rubberduck-rpg80)
+Author: rubberduck
+Source: https://opengameart.org/content/80-cc0-rpg-sfx
+License: CC0-1.0 - https://creativecommons.org/publicdomain/zero/1.0/
+Changes: selected/cropped, mono PCM conversion, peak normalization and short fades; pencil recording loop-crossfaded. No endorsement by original authors is implied.
+
+RPG Sound Pack (artisticdude-rpg95)
+Author: artisticdude
+Source: https://opengameart.org/content/rpg-sound-pack
+License: CC0-1.0 - https://creativecommons.org/publicdomain/zero/1.0/
+Changes: selected/cropped, mono PCM conversion, peak normalization and short fades; pencil recording loop-crossfaded. No endorsement by original authors is implied.
+
+Ice spells (bart-ice)
+Author: bart (source by Stephan / pdsounds)
+Source: https://opengameart.org/content/ice-spells
+License: CC0-1.0 - https://creativecommons.org/publicdomain/zero/1.0/
+Changes: selected/cropped, mono PCM conversion, peak normalization and short fades; pencil recording loop-crossfaded. No endorsement by original authors is implied.
+
+Ice &amp; Electricity Magic (qubodup-ice-electricity)
+Author: Iwan &#39;qubodup&#39; Gabovitch
+Source: https://opengameart.org/content/ice-electricity-magic
+License: CC-BY-3.0 - https://creativecommons.org/licenses/by/3.0/
+Changes: selected/cropped, mono PCM conversion, peak normalization and short fades; pencil recording loop-crossfaded. No endorsement by original authors is implied.
+
+Paper Scratch Pencil drawing line (writing-paper)
+Author: johannesschmidt
+Source: https://freesound.org/people/johannesschmidt/sounds/339741/
+License: CC-BY-4.0 - https://creativecommons.org/licenses/by/4.0/
+Changes: selected/cropped, mono PCM conversion, peak normalization and short fades; pencil recording loop-crossfaded. No endorsement by original authors is implied.
+
+Only selected sounds are shipped as part of this game. No Bilibili or RPG Maker RTP sound was extracted. Full per-file provenance is in audio-manifest.json.
 </pre><p><a href="LICENSE-CC-BY-NC-4.0.txt">原创部分CC BY-NC 4.0</a> · <a href="Godot-LICENSES.txt">Godot许可</a> · <a href="NotoSansSC-OFL.txt">字体OFL</a> · <a href="Player-CREDITS.txt">行走精灵说明</a> · <a href="M-ART-terms.txt">M-ART官方规则记录</a></p>

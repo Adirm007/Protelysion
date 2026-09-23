@@ -14,7 +14,8 @@ https://img.baibai.cv/f/WrevH4/%E9%BB%98%E8%AE%A4.png
 https://img.baibai.cv/f/56AzHz/cafe_bg.png
 
 默认行走精灵：用户提供的 chibi_sprite_4dir_fixed.png，经裁剪、抠图与脚底对齐后随运行包使用。不冒称Pipoya素材，不从项目代码许可推导原图版权或授权；处理记录见Player-CREDITS.txt。
+补给员原图由用户于2026-09-23随需求提供，像素精灵由该图辅助生成并处理；用户于2026-09-24确认v3形象并授权随本版本推送仓库；不声称拥有原图或角色版权，不由本项目代码许可授予额外素材版权。详见Supplier-CREDITS.txt。
 Napi / M-ART：https://mart.kitunebi.com/；允许作为游戏素材使用，不放弃著作权，禁止独立原声/音乐素材库再分发。本仓库是可运行的完整游戏，不是音乐素材库。
-Kenney：音效与短jingle，CC0 1.0。
+Kenney：原有音效与短jingle，CC0 1.0。新增RPG音效：rubberduck、artisticdude、bart（CC0）；Iwan qubodup Gabovitch（CC BY 3.0）；纸笔书写录音：johannesschmidt（CC BY 4.0）。已作裁剪、单声道转换、响度校准与短淡化。逐项作者、原页面、许可链接及修改见audio/CREDITS.txt和audio/audio-manifest.json，不并入项目代码许可。
 Godot及其第三方库：见site/Godot-LICENSES.txt。Noto Sans SC：见site/NotoSansSC-OFL.txt。
 音乐逐曲信息见site/audio/audio-manifest.json；少女详细加工与许可见site/Player-CREDITS.txt。
