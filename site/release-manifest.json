@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.25.1-20260925-p5-hd2d-maps",
+  "revision": "protelysion-0.26.0-20260925-monster-materials",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1234140,
-      "sha256": "aed2b98f3ec6296c505857d12b908f85be05b489b51144e0da42342bcf4d1927"
+      "bytes": 1301437,
+      "sha256": "502f5e7d987b182d6ed09072db88e131e925b9e0cef93edfd9bb5ac42c5f90e1"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
