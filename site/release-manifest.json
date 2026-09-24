@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.25.0-20260925-p5-hd2d-maps",
+  "revision": "protelysion-0.25.1-20260925-p5-hd2d-maps",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -18,8 +18,8 @@
     "mapActors": 1
   },
   "pck": {
-    "bytes": 49262868,
-    "sha256": "0385c982ce91a830c88fad6b64d62431f4df09e4f5730d0d48f81894ff26a0c4"
+    "bytes": 49263012,
+    "sha256": "2505588bdf3ddfdbff9fa290d9aab4f5097a1e856c73739c6196159883c4f7f7"
   },
   "pckParts": [
     "game.pck.gz.001",
@@ -52,15 +52,15 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "50682adb582cd40ebb95c195e9f00ddb4717f901e14e69e240e69e761e7ac413"
+      "sha256": "14a81d3dd905df7d9589caea40a435f9bfa5a54a5e78ea252fef2d46993e3181"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
-      "sha256": "555cafba4cba8d973495d04cc58aeef57b76b696eb935bfdafc5516c95831fcb"
+      "sha256": "3bf88b832296b821869d2b42a0b903f1c0442dcb8db3dd1969ee2f9194a0558c"
     },
     "game.pck.gz.003": {
-      "bytes": 15182779,
-      "sha256": "c7a3334c49e1a9ad7ad89086fbc58425515d630d6c0d55254bbac87761bda17b"
+      "bytes": 15182941,
+      "sha256": "5a1e6c68a45388658d0b5572415343fb4417e14027a35e32fc30deb19ac0da27"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
