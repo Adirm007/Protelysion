@@ -95,3 +95,16 @@ python ../22-发布/booksea-github/tools/materialize.py
 ```
 
 发行库为 `https://github.com/Adirm007/Protelysion`，网页入口为 `https://adirm007.github.io/Protelysion/`。依用户授权在上述门禁完成后提交与推送；推送和Pages生效是两个独立步骤，均需再核验，不能由本地构建结果推断。
+
+## 6. 实际发布结果
+
+- 已发布到 `main`：提交 `2ac97804283b0f5d780ebb6274388106d3b8e216`，69个变更文件。远端引用与本机HEAD完全相同，远端跟踪引用已校准，发行库工作树干净。
+- 原生Git HTTPS多次发生TLS握手失败/超时；最终通过GitHub官方Git Database API发布。69个blob、完整tree和commit SHA均与已经验证的本地提交完全一致，非强制快进，没有改作者/时间/父提交或另造代码版本。
+- 使用本机已有Git登录，仅在本机进程内进行GitHub认证；未打印、写入或转送凭据，未关闭TLS证书校验，也未永久改Git传输配置。中途失败的对象上传由校验缓存续传。
+- GitHub Pages工作流 `35916579755` 已完成，结论 `success`：https://github.com/Adirm007/Protelysion/actions/runs/35916579755
+- 网页：https://adirm007.github.io/Protelysion/ ，HTTP 200；实际公开资源清单为 `protelysion-0.24.3-20260924-dialogue-battle-audio`。
+- 公开发行JS、音频清单、纸笔/火焰样本与两份署名说明共6项SHA/字节数和测试版本一致。CI另完整校验全部发行资源/PCK。没有把静态资源校验描述成真人在线全流程或实体手机音质验收。
+- 69个变更文件与未压缩PCK的GitHub令牌/私钥模式检查未见命中；没有发布原素材下载包或宿主数据。
+- 再次核对20份保护文件SHA，现用酒馆仍未更改；没有停服、重启、清聊天/角色/存档或调用真实模型。
+
+机器证据：`verification/audio-0243/publication.json`、`public-web-verification.json`、`release-secret-pattern-audit.json`（均位于09实现目录）。校验记录不包含认证秘密。

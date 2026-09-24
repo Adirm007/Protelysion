@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.24.3-20260924-dialogue-battle-audio",
+  "revision": "protelysion-0.25.0-20260925-p5-hd2d-maps",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -18,17 +18,13 @@
     "mapActors": 1
   },
   "pck": {
-    "bytes": 107831776,
-    "sha256": "f5682b2d059d2091f42eddc4d89c90361c411a7bbd695cc0bb0a893020147148"
+    "bytes": 49262868,
+    "sha256": "0385c982ce91a830c88fad6b64d62431f4df09e4f5730d0d48f81894ff26a0c4"
   },
   "pckParts": [
     "game.pck.gz.001",
     "game.pck.gz.002",
-    "game.pck.gz.003",
-    "game.pck.gz.004",
-    "game.pck.gz.005",
-    "game.pck.gz.006",
-    "game.pck.gz.007"
+    "game.pck.gz.003"
   ],
   "wasm": {
     "bytes": 39514754,
@@ -56,31 +52,15 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "d6704637f8340172fecfeb57bbb0d6e46dea53d087ade77a7f9ba021cbdccb80"
+      "sha256": "50682adb582cd40ebb95c195e9f00ddb4717f901e14e69e240e69e761e7ac413"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
-      "sha256": "d698b4bbcf50826867400ed766208786b214db49a65ff98942c79b7cb3aa8d73"
+      "sha256": "555cafba4cba8d973495d04cc58aeef57b76b696eb935bfdafc5516c95831fcb"
     },
     "game.pck.gz.003": {
-      "bytes": 16777216,
-      "sha256": "5af3ece500fa4e6def7095dfaa52c068b1a1ff646f1f1f62bd35baa83629116f"
-    },
-    "game.pck.gz.004": {
-      "bytes": 16777216,
-      "sha256": "0e4ccc0ba288ae5876ed4130e7dc8e4260d71dd2426c92502b6e8317499ad46e"
-    },
-    "game.pck.gz.005": {
-      "bytes": 16777216,
-      "sha256": "e3a5a9870482ccd4189b1e31a8ac83c4d8ed39b0536c450ed26b618c6b55586e"
-    },
-    "game.pck.gz.006": {
-      "bytes": 16777216,
-      "sha256": "b9afdc183338062e9ad66e9bfa22aefcac50bab0c33b565ea5f73d481d60842c"
-    },
-    "game.pck.gz.007": {
-      "bytes": 5235320,
-      "sha256": "a7e91ae8c3664e6a8dd6279a70fc0310c68909b87a983f2a24f60d5f6d521b83"
+      "bytes": 15182779,
+      "sha256": "c7a3334c49e1a9ad7ad89086fbc58425515d630d6c0d55254bbac87761bda17b"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
@@ -99,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 919481,
-      "sha256": "6dd2f61e9c426e7dbebb3bccbfdef6bb3da682bad5829154758a1a39b8eb914a"
+      "bytes": 1234140,
+      "sha256": "aed2b98f3ec6296c505857d12b908f85be05b489b51144e0da42342bcf4d1927"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
