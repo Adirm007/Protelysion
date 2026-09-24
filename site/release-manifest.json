@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.26.0-20260925-monster-materials",
+  "revision": "protelysion-0.27.0-20260925-damage-types",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1301437,
-      "sha256": "502f5e7d987b182d6ed09072db88e131e925b9e0cef93edfd9bb5ac42c5f90e1"
+      "bytes": 1367575,
+      "sha256": "e863219b3ba385a43fcc721b5c15161bf68b9225d444ee9f63a38eb5e0f738a6"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
