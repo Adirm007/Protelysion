@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.30.0-20260925-enemy-malice",
+  "revision": "protelysion-0.31.0-20260925-original-malice",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1480170,
-      "sha256": "061c1c091235ff5396e5f22d4a7d791b0217d8fb986c29886d8f51d7f3c3badc"
+      "bytes": 1493263,
+      "sha256": "364e8d6fe146902c90d87965cea11486df4b0e34b709c93128431422baee3c0e"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
