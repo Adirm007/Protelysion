@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.28.0-20260925-monster-mechanics",
+  "revision": "protelysion-0.30.0-20260925-enemy-malice",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1455300,
-      "sha256": "87f572688149d1e4597fb18962eb8bf37076af74329a5a1b36f80cc87a0a4de0"
+      "bytes": 1480170,
+      "sha256": "061c1c091235ff5396e5f22d4a7d791b0217d8fb986c29886d8f51d7f3c3badc"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

@@ -253,3 +253,21 @@
     首层 P95 包含着色器预热的前几帧。
 - **兼容性**：玩法、地图生成（`p5-hd2d-2`）和存档格式都没改。0.25.0 的远征可以直接继续。资源缓存按内容 SHA 寻址，已缓存 0.25.0 的浏览器只会重新下载 3 个 PCK 分卷（约 49 MB），其余资源直接命中缓存。
 - **本地安装**：本次修改已同步到地图优化区的模块与 `install-manifest.json`（59 个文件，0 冲突），并记入安装日志的 `hotfixes`。执行 `node tools/install-p5.mjs --rollback` 仍可一步恢复到 P4。
+
+### 9.3 0.25.1 实际发布结果
+
+本节只记在开发区副本中；仓库内的报告停在发布前的版本，不为补记而重新发布。
+
+- **提交**：`6b8033b0bdc2737e72e544b2fa6247cb5ce14bb8`，6 个文件，基线 `3857e0a`。闸门与 9.1 相同：
+  - 回归日志同时接受 spec（`ℹ`）与 TAP（`#`）两种汇总格式，并要求通过数等于总数；
+  - 凭据扫描 0 命中；
+  - 20 份受保护的酒馆文件未变。
+- **推送**：原生 Git，经证书校验的 HTTPS，第 1 次尝试成功，`3857e0a..6b8033b`，快进更新。
+  - 首次推送没有上传任何数据就停住了：ShunCode 自带 Git 的系统级 `credential.helper=helper-selector` 弹出了图形选择框（CredentialHelperSelector），无人值守时会一直等待。
+  - 处理：终止该进程树，发布脚本改为只用用户级 `~/.gitconfig` 中已选定的 Git Credential Manager（`publish-0251.py` 的 `credential_override`，`GCM_INTERACTIVE=never`），推送超时收紧到 900 秒。
+- **Pages**：Actions 运行 36047113692 成功。公网 `release-manifest.json` 为 `protelysion-0.25.1-20260925-p5-hd2d-maps`，PCK 49,263,012 B，SHA `2505588b…`，3 个分卷。
+- **公网浏览器实测**（6/6 通过）：
+  - 随机到的楼层为 T18 户外工坊：59,035 个三角形，内核 677 ms，取包 711 ms，导入 190 ms，建场 905 ms。
+  - 1280×900 无头 Edge 下帧时间 P50 22.2 ms，P95 26.2 ms。
+  - 证据在 `09-实现/verification/p5-0251/live-pages-browser.json` 和 `live-pages-game.png`。
+
