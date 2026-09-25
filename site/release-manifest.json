@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.27.0-20260925-damage-types",
+  "revision": "protelysion-0.28.0-20260925-monster-mechanics",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1367575,
-      "sha256": "e863219b3ba385a43fcc721b5c15161bf68b9225d444ee9f63a38eb5e0f738a6"
+      "bytes": 1455300,
+      "sha256": "87f572688149d1e4597fb18962eb8bf37076af74329a5a1b36f80cc87a0a4de0"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
