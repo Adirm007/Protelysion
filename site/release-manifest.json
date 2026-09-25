@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.35.0-20260925-stray-question",
+  "revision": "protelysion-0.35.1-20260925-stray-live-mirror",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1547385,
-      "sha256": "7c288008bde208a8609e752bf61edbc4512a7660232f6c51bba7b5ed2715cbfa"
+      "bytes": 1548484,
+      "sha256": "3c769b602ece4b8d65f4b15aec80cd643fca9d17b81b9bfb73b88a41d1a573bc"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
