@@ -1,3 +1,0 @@
-To https://github.com/Adirm007/Protelysion.git
-   4ed8b73..c8b9d58  main -> main
-PUSH_EXIT=0
