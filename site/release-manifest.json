@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.36.1-20260925-relic-primitives",
+  "revision": "protelysion-0.36.2-20260925-stray-warning",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1597933,
-      "sha256": "9bf991752b21799a69f63ef22d7514b9f18634bdd55ad015d000ac3aa3f85d3d"
+      "bytes": 1598573,
+      "sha256": "3e253199f7452c08a6fee3228529d077b7d0609923083df6b6c859fbd4cf0865"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
