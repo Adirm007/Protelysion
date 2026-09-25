@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.33.0-20260925-theme-malice-2",
+  "revision": "protelysion-0.34.0-20260925-malice-primitives",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1525703,
-      "sha256": "5163519ad4ddfef1b9b098896257bbfe2f94f6f49e761660b00d0db00aedea84"
+      "bytes": 1539201,
+      "sha256": "7fa66b1a1b978942bba85e3069bdbe15929d0b1acfcfaf197e7c8091497767d3"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
