@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.35.2-20260925-stray-pursuit-fix",
+  "revision": "protelysion-0.35.3-20260925-stray-copy-fix",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1548711,
-      "sha256": "19cd6e79351f9663178dc335c089381b60a913694bd6fd02489afbeb174f5d70"
+      "bytes": 1549066,
+      "sha256": "a5e78fc0ecfbedb13226cabd7659d451d9e3a71d6da3017869ca71ac895639a9"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
