@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.36.2-20260925-stray-warning",
+  "revision": "protelysion-0.36.3-20260926-theme-rename",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -80,7 +80,7 @@
     },
     "distribution.js": {
       "bytes": 1598573,
-      "sha256": "3e253199f7452c08a6fee3228529d077b7d0609923083df6b6c859fbd4cf0865"
+      "sha256": "5f46ed022c2301f1fa728f8b547307e8f7e76ff1095b3101e6942e489d4f36c0"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
@@ -1760,7 +1760,7 @@
     },
     "audio/audio-manifest.json": {
       "bytes": 535762,
-      "sha256": "0a7be2fb46b65e96f4558a2f7cffbb9809bd25035f44442d1cfd4f3989908a70"
+      "sha256": "1f1af9309d51c7740a8d2b26bda2d923613c20b4f540a1cc06d70216f5637ea0"
     },
     "audio/CREDITS.txt": {
       "bytes": 3304,
