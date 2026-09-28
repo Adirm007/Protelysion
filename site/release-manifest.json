@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.36.3-20260926-theme-rename",
+  "revision": "protelysion-0.37.0-20260928-octopath-ui",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 1598573,
-      "sha256": "5f46ed022c2301f1fa728f8b547307e8f7e76ff1095b3101e6942e489d4f36c0"
+      "bytes": 1704965,
+      "sha256": "e80abfc80874ed908016e0ce5312731d8cf74c9255cbb5a818fed6a1b5bfb1df"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
