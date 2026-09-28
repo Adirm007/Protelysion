@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.37.4-20260928-veil",
+  "revision": "protelysion-0.37.5-20260929-ui-fix",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2709864,
-      "sha256": "e513ad290f4c514758246f97317e797d59bb4a520693332c80fe3a80d2011a08"
+      "bytes": 2710465,
+      "sha256": "91f87cc058b23d96f52b2766bfc3940bf2911928c9dbd0b1286878838fac220d"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
