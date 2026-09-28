@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.37.5-20260929-ui-fix",
+  "revision": "protelysion-0.37.6-20260929-silver-cross",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2710465,
-      "sha256": "91f87cc058b23d96f52b2766bfc3940bf2911928c9dbd0b1286878838fac220d"
+      "bytes": 2719265,
+      "sha256": "aacf0ac50badbf1e39d31321e61576d4030f9506a300bcc63c3f06ee96c2cec4"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
