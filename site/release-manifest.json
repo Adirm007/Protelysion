@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.38.1-20260929-targeting",
+  "revision": "protelysion-0.38.2-20260929-heal-relic",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2943719,
-      "sha256": "b6458bb9a2df6c8ab89fa2cea10427ac15977a3de729edb23e821178c2db2203"
+      "bytes": 2950324,
+      "sha256": "639884ef86694ca91f8f08bf808c71925f78a734f9d66810dbda72cb9233a44f"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
