@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.39.0-20261007-charm-sharedbag",
+  "revision": "protelysion-0.40.0-20261007-supplier-talk-narrative",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2952667,
-      "sha256": "f99ef5395510fbbd38b67882118f0a5b11da1135705447c5f0bfc131cd4c4fc8"
+      "bytes": 2990220,
+      "sha256": "dc0cd35fa6c415c1dcf9722d34f049a2818300dc7ab697576caea646252a53de"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
