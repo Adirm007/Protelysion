@@ -1,9 +1,0 @@
-{
-  "schema": 1,
-  "name": "protelysion",
-  "version": "0.40.1",
-  "revision": "protelysion-0.40.1-20261007-mobile-talk-layout",
-  "sha": "6f4612ad4c1958b1d0ba6e61e4fe88245687d37b",
-  "content": 0,
-  "base": "https://raw.githubusercontent.com/Adirm007/Protelysion/6f4612ad4c1958b1d0ba6e61e4fe88245687d37b/site/"
-}

@@ -1783,12 +1783,12 @@
       "sha256": "243a3eb6055cbf18b7fc50a61e76c2a72cf3060132c397ae287d4da05c7a6fa8"
     },
     "loader.html": {
-      "bytes": 22315,
-      "sha256": "72fff98026045bd484589b43172a35cc88774d1d2afec3e23b20b8b1ed2a9ab3"
+      "bytes": 7977,
+      "sha256": "0ecd79a944ce8fac796aee44fbd691f3133486d1997a29f51df9cda81211a114"
     },
     "index.html": {
-      "bytes": 4522,
-      "sha256": "25b8994dc16decf1c15494e9e7550a68d700c1fb81d5f5e8fbca7139aefc626a"
+      "bytes": 4480,
+      "sha256": "d9a3e5d6d8acf1877b22d53b0c0ea2a67315c1a35b86b5bfa3d4b9292fa0b90a"
     },
     ".nojekyll": {
       "bytes": 0,

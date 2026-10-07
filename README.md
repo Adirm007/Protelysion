@@ -8,7 +8,6 @@
 
 - 独立试玩：https://adirm007.github.io/Protelysion/ （不会读写宿主，不调用LLM）
 - 单正则安装：https://adirm007.github.io/Protelysion/loader.html
-- 外链正则固定在完整 Commit SHA 的 GitHub raw 地址（`https://raw.githubusercontent.com/Adirm007/Protelysion/<40位SHA>/site/`），不会自己变化；发布新版本后，加载时会弹窗提醒，可复制新版本号、一键替换或本版本不再提醒。最新版本号见仓库根目录 `latest.json`。
 - `install/`：已更新的读者正则、读者核心和书海外链正则。必须已有酒馆助手、MVU及EJS提示词模板扩展。
 
 1. 导入`读者对话渲染0917 (new).json`，替换/停用原读者正则，不同时启用两版。
