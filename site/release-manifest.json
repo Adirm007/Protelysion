@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.40.0-20261007-supplier-talk-narrative",
+  "revision": "protelysion-0.40.1-20261007-mobile-talk-layout",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2990220,
-      "sha256": "dc0cd35fa6c415c1dcf9722d34f049a2818300dc7ab697576caea646252a53de"
+      "bytes": 2992368,
+      "sha256": "84d26fc01f955d12e0d73060091bc1464848c600bfaa8354fa23ae823e9a4cca"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
