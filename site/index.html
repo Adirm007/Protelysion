@@ -2,14 +2,14 @@
  const base=new URL('./',location.href).href,mode="standalone";
  const status=document.getElementById('loader-status'),retry=document.getElementById('loader-retry'),root=document.getElementById('booksea-game');let busy=false;
  const sha=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),v=>v.toString(16).padStart(2,'0')).join('');
- async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='书页正在展开……';
+ const pinCheck=()=>{}; async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='书页正在展开……';
  try{
   if(!window.isSecureContext||!window.caches||!window.crypto?.subtle)throw Error('请通过HTTPS或本机localhost访问酒馆，并允许浏览器缓存');
   const cache=await caches.open('protelysion-bootstrap-v1'),manifestUrl=new URL('release-manifest.json',base).href;let response;
   try{response=await fetch(manifestUrl,{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(12000)});if(!response.ok)throw Error('HTTP '+response.status);}
   catch(error){response=await cache.match(manifestUrl);if(!response)throw Error('发布清单加载失败，请确认GitHub Pages已部署；'+error.message);}
   const text=await response.text();if(text.length>2000000)throw Error('发布清单过大');const manifest=JSON.parse(text),info=manifest.files?.['distribution.js'];
-  if(!info||!Number.isSafeInteger(info.bytes)||info.bytes<=0||info.bytes>20000000||!/^[a-f0-9]{64}$/.test(info.sha256))throw Error('发布清单缺少有效启动器');
+  if(!info||!Number.isSafeInteger(info.bytes)||info.bytes<=0||info.bytes>20000000||!/^[a-f0-9]{64}$/.test(info.sha256))throw Error('发布清单缺少有效启动器');pinCheck(manifest);
   await cache.put(manifestUrl,new Response(text,{headers:{'Content-Type':'application/json'}}));
   if(!window.BookseaDistribution){
    const sourceCache=await caches.open('protelysion-resources-v1'),key='https://protelysion-cache.invalid/sha256/'+info.sha256;let saved=await sourceCache.match(key),bytes=saved?await saved.arrayBuffer():null;
