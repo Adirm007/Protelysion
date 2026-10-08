@@ -18,7 +18,7 @@ const tryStairs=(s:State)=>{const st=s.region.things.find(t=>t.kind==='stairs')!
 test('0.41.1 守关敌群建立失败：先刷新（清残血、可再挑战），刷新后能正常开战',()=>{
  const {s,t,boss}=guarded();bump(s,t());
  assert.equal(s.mode,'explore');assert.equal(t().used,false);assert.equal(t().setupFails,1);assert.equal(t().foeResources,undefined);
- assert.match(JSON.stringify(s.log??s),/对手已重整/);
+ assert.match(JSON.stringify((s as State&{log?:unknown}).log??s),/对手已重整/);
  t().foes=[boss];bump(s,t());assert.equal(s.mode,'battle');assert.ok(s.battle);
 });
 test('0.41.1 守关敌群连续两次建立失败：视为突破、无奖励、楼梯放行；普通敌群两次失败后移除',()=>{

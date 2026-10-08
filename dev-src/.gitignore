@@ -1,0 +1,9 @@
+# Build/test outputs written by 09-实现 scripts and tests into sibling project folders.
+# On the owner's PC these folders are real projects; in this repo they are only created by
+# local runs (and by tools/sandbox-siblings.mjs) and must never be committed.
+09-实现/release/
+09-实现/verification/
+16-Godot可玩区域/
+17-宿主可玩联调/
+21-音频制作/
+22-发布/
