@@ -143,7 +143,7 @@ function emptyReport(): ApplyReport {return {added: [], superseded: [], retracte
 function addFact(store: MemoryStore, job: PendingJob, report: ApplyReport, f: Omit<Fact, 'id' | 'n' | 'at' | 'status' | 'run'>): Fact {
   const active = activeFacts(store), norm = compact(f.value ?? '');
   const twin = active.find(x => f.slot && x.slot === f.slot && singleValued(f.slot) && norm && compact(x.value ?? '') === norm)
-    ?? active.find(x => x.kind === f.kind && x.source === f.source && (!f.slot || x.slot === f.slot) && jaccard(bigrams(x.text), bigrams(f.text)) >= .75);
+    ?? active.find(x => x.kind === f.kind && x.source === f.source && (!f.slot || x.slot === f.slot) && (!norm || !x.value || compact(x.value) === norm) && jaccard(bigrams(x.text), bigrams(f.text)) >= .75);
   if (twin) {
     twin.importance = Math.max(twin.importance, f.importance); twin.confidence = Math.max(twin.confidence, f.confidence);
     for (const e of f.evidence) if (!twin.evidence.some(x => x.ep === e.ep && x.quote === e.quote)) twin.evidence.push(e);
@@ -186,21 +186,19 @@ export function applyExtraction(store: MemoryStore, job: PendingJob, ex: Extract
       continue;
     }
     const text = safeText(raw.text, MEMORY_LIMITS.factText); if (!text) {reject(raw.text, '空的记忆'); continue;}
-    let source = sourceOf(raw.source);
+    const source = sourceOf(raw.source);
     const kind = kindOf(raw.kind ?? target?.kind), slot = normalizeSlot(raw.slot) ?? target?.slot, value = safeText(raw.value, MEMORY_LIMITS.value) || undefined;
     let confidence = clamp(raw.confidence, 0, 1, source === 'player' ? .9 : .5), importance = Math.round(clamp(raw.importance, 1, 10, 4));
     let quote: string | undefined;
     if (source === 'player') {
-      quote = verifyQuote(raw.quote, player) ?? (value ? lineWith(player, value) : undefined);
+      // 模型给了原话却对不上 = 编的，整条不要；没给原话时才允许用“值出现在哪句玩家原话里”作证据。
+      const given = compact(raw.quote).length >= 2;
+      quote = verifyQuote(raw.quote, player) ?? (!given && value ? lineWith(player, value) : undefined);
       const line = quote ? lineWith(player, quote) ?? quote : undefined;
-      const valueOk = !value || (!!line && compact(line).includes(compact(value)));
-      const identity = slot === 'name' || slot === 'nickname';
-      if (!quote || !valueOk || (line && polarityConflict(slot, line))) {
-        if (identity) {reject(text, quote ? '名字和原话对不上' : '名字没有原话佐证'); continue;}
-        if (line && polarityConflict(slot, line)) {reject(text, '喜恶方向和原话相反'); continue;}
-        source = 'inferred'; quote = undefined; confidence = Math.min(confidence, .4);
-      }
-      if (quote) quote = safeText(quote, MEMORY_LIMITS.quote);
+      if (!quote || !line) {reject(text, given ? '原话在玩家的话里找不到' : '没有玩家原话佐证'); continue;}
+      if (value && !compact(line).includes(compact(value))) {reject(text, '槽位的值不在玩家原话里'); continue;}
+      if (polarityConflict(slot, line)) {reject(text, '喜恶方向和原话相反'); continue;}
+      quote = safeText(quote, MEMORY_LIMITS.quote);
     } else if (source === 'self') {
       quote = verifyQuote(raw.quote, supplier, .6);
       if (!quote) {reject(text, '她自己的话在对话里找不到'); continue;}
