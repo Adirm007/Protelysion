@@ -1,0 +1,14 @@
+import {writeFileSync,mkdirSync} from 'node:fs';
+import {startExpedition,view} from '../src/game/expedition';
+import {playtestParty,hostMitigation} from '../src/game/content';
+import {createBattle} from '../src/battle/executor';
+import {monsterKit} from '../src/game/monsters/kits';
+import {fire} from './audit-monsters';
+const s=startExpedition(playtestParty(),17),thing=s.region.things.find(t=>t.kind==='enemy')!,k=monsterKit('T01_B01',25);
+thing.foes=[k.id];s.encounterId=thing.id;s.mode='battle';s.run.battleActive=true;
+s.battle=createBattle([...s.party.map(p=>({id:p.id,name:p.name,side:'ally' as const,card:p.card,current:p.current,mitigation:hostMitigation(p.card)})),{id:'enemy-0',name:k.name,side:'enemy',card:k.card,current:{...k.card.numeric.max},mitigation:k.mitigation}],17);
+const output='../16-Godot可玩区域/verification';mkdirSync(output,{recursive:true});
+writeFileSync(output+'/monster-ui-before.json',JSON.stringify(view(s))+'\n');
+const id=Object.entries(s.battle.units.find(u=>u.id==='enemy-0')!.actions).find(([,a])=>a.tags?.includes('ai:kingdom'))![0];
+s.battle=fire(s.battle,'enemy-0',id,['enemy-0']);
+writeFileSync(output+'/monster-ui-after.json',JSON.stringify(view(s))+'\n');console.log('UI frames generated: '+s.battle.units.length+' units, '+s.battle.fields?.length+' domain.');

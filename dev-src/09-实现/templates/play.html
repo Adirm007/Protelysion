@@ -1,0 +1,8 @@
+<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>书海 · 独立旅程</title>
+<style>body{margin:0;background:#13131a;color:#ece4d7;font-family:system-ui,sans-serif}#stage{position:relative;width:100%;height:100dvh}canvas{display:block;outline:0;touch-action:none}#loading{position:absolute;inset:0;z-index:50;display:grid;place-content:center;text-align:center;background:#19161f}#loading[hidden]{display:none}#loading h1{font-size:32px;letter-spacing:8px;font-weight:400}#loading p{color:#c5b89e;font-size:14px}</style>
+<main id="stage"><canvas id="canvas" width="1280" height="720" tabindex="0"></canvas><div id="loading"><h1>书 海</h1><p id="status">书页正在展开……</p></div></main>
+<script src="play.js?build=booksea-023"></script><script src="game.js"></script><script>
+const canvas=document.getElementById('canvas'),status=document.getElementById('status');
+const engine=new Engine({executable:'game',canvas,mainPack:'game.pck?build=booksea-023',canvasResizePolicy:0,focusCanvas:true,experimentalVK:false,onProgress:(a,b)=>{status.textContent=b?'正在准备 '+Math.floor(a/b*100)+'%':'书页正在展开……';}});
+engine.startGame().then(()=>{document.getElementById('loading').hidden=true;canvas.focus();}).catch(e=>{status.textContent='暂时没能展开书页，请刷新重试。';console.error(e);});
+</script></html>

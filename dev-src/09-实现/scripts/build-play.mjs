@@ -1,0 +1,10 @@
+import {syncAudio,updatePlayableManifest} from './sync-audio.mjs';
+import {build} from 'esbuild';
+import {mkdir,writeFile,readFile} from 'node:fs/promises';
+await mkdir('../16-Godot可玩区域/web',{recursive:true});
+await mkdir('../16-Godot可玩区域/verification',{recursive:true});
+await writeFile('../16-Godot可玩区域/web/index.html',await readFile('templates/play.html','utf8'));
+const result=await build({entryPoints:['src/play-entry.ts'],bundle:true,format:'iife',target:'es2022',outfile:'../16-Godot可玩区域/web/play.js',metafile:true});
+await writeFile('../16-Godot可玩区域/verification/play-build.json',JSON.stringify({kind:'explicit-independent-playtest',monsterContentVersion:'booksea-monsters/0.17.0',monsterThemes:48,monsterSpecies:432,monsterTierTemplates:3024,inputs:Object.keys(result.metafile.inputs)},null,2)+'\n');
+console.log('Built playable expedition + authoritative battle/run rules (no host fallback).');
+const audio=await syncAudio();await updatePlayableManifest(audio);console.log('Audio integrated:',audio.music,'BGM,',audio.effects,'SFX,',audio.themes,'themes.');
