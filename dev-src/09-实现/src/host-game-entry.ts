@@ -8,6 +8,8 @@ import {assertCurrentExpedition,type State} from './game/expedition';
 import {installPlayerTheme,shellHeader,hero,modalFrame,bindModal,icons,escapeHtml as esc} from './ui/theme';
 import {characterData,executableCount,renderCharacterSheet} from './ui/character-sheet';
 import {enterNarrativeMode,resumeFromNarrative} from './host/narrative-mode';
+import {mountHostSupplierMemory} from './host/supplier-memory-host';
+import {mountSupplierMemoryPanel} from './ui/supplier-memory-panel';
 
 export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{loadEngine?:()=>Promise<import('./host/godot-loader').GodotConstructor>;autoResume?:boolean}={}){
  installPlayerTheme(root);
@@ -18,10 +20,12 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
  <section id="stage" class="bs-stage" hidden><canvas id="host-play-canvas" width="1280" height="720" tabindex="0"></canvas></section>
  <footer class="bs-footer"><span>ADIRM007</span><a id="credits" target="_blank" rel="noopener">制作名单</a></footer>
  ${modalFrame('character-sheet','同行者档案','<div id="character-content"></div>')}
- ${modalFrame('player-settings','书间设置','<div class="bs-settings-row"><span>资源管理</span><button id="host-resource-open" class="bs-button">管理下载</button></div>')}
+ ${modalFrame('player-settings','书间设置','<div class="bs-settings-row"><span>资源管理</span><button id="host-resource-open" class="bs-button">管理下载</button></div><div class="bs-settings-row"><span>补给员的记忆</span><button id="memory-open" class="bs-button">记忆与接口</button></div>')}
  </div>`;
  const el=(id:string)=>root.querySelector<HTMLElement>('#'+id)!,status=(s:string)=>{el('status').textContent=s;};
  const port=sessionPort(globals),contextId=port.id(),key='booksea-host-run:random-v2:'+contextId,selected=new Map<string,ActorRef>();
+ // 0.42 补给员长期记忆：按聊天（存档）一份；大厅和游戏里共用同一个设置面板。
+ const memory=mountHostSupplierMemory(globals,()=>port.chat()),memoryPanel=mountSupplierMemoryPanel(document,memory);
  const host=globals.parent??globals;host.BookseaActiveViews??={};const owners=host.BookseaActiveViews as Record<string,()=>Promise<void>>;
  const retireOther=async()=>{if(owners[key])await owners[key]!();};
  const base=assetBase(globals.BOOKSEA_ASSET_BASE??'/booksea-play/',document.baseURI,typeof globals.BOOKSEA_ASSET_BASE==='string'),load=options.loadEngine??createGodotLoader(window,document,base);
@@ -70,6 +74,7 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
  el('read').onclick=()=>void task(async()=>{await draw();status('');});
  el('compile').onclick=()=>void task(async()=>{await prepare(selection());await draw();if(sheetRef&&!el('character-sheet').hidden)showSheet(sheetRef);});
  el('open-settings').onclick=settings.open;
+ el('memory-open').onclick=()=>{settings.close();memoryPanel.show(root);};
  el('host-resource-open').onclick=()=>{settings.close();const opener=(window as any).BookseaResourceMenu?.open;if(opener)opener();else status('下载已经准备好。');};
  const stop=()=>{if(owners[key]===retire)delete owners[key];runtime?.dispose();engine?.requestQuit();runtime=undefined;engine=undefined;el('stage').hidden=true;el('setup').hidden=false;root.classList.remove('bs-playing');};
  const retire=async()=>{const prior=runtime;prior?.input({type:'handoff'});stop();await prior?.flush();};
@@ -77,13 +82,13 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
   assertCurrentExpedition(s);await retireOther();await port.prepare?.();port.bind?.(s);owners[key]=retire;sheet.close();settings.close();
   const playAfterLoad=s.mode!=='ended'&&!s.paused;s.paused=true;lastPaused=true;el('setup').hidden=true;el('stage').hidden=false;root.classList.add('bs-playing');status('书页正在展开……');
   const portraits=await loadHostPortraits(globals,s.party);port.id();
-  runtime=mountExpeditionRuntime({storageKey:key,uiRoot:el('stage'),portraits,onResources:()=>{(window as any).BookseaResourceMenu?.open();},audio:{baseUrl:new URL('audio/',base).href,controlsRoot:el('stage')},initial:s,isCurrent:copy=>(copy.mode==='ended'&&copy.writeback==='pending')||port.saveCurrent?.(copy)!==false,onInvalidated:()=>{stop();void task(async()=>{await draw();status('聊天楼层已变化，已恢复当前楼层的旅程记录。');});},onView:v=>{if('settings'in v)lastPaused=v.paused;},onLeave:()=>{void task(async()=>{await runtime?.flush();stop();await draw();status('');});},checkpoint:async copy=>{await checkpointHost(port,copy);if(copy.mode==='ended')status('这一页，已经珍藏。');},supplierChat:port.supplierChat?prompt=>port.supplierChat!(prompt):undefined,onNarrative:port.postNarrative?copy=>{void task(async()=>{await runtime?.flush();stop();await draw();status('正在切换到正文模式……');await enterNarrativeMode(port,copy);await draw();status('已切换到正文模式：聊天里会接着往下写；正文末尾的面板可以随时切回迷宫。');});}:undefined});
+  runtime=mountExpeditionRuntime({storageKey:key,uiRoot:el('stage'),portraits,onResources:()=>{(window as any).BookseaResourceMenu?.open();},audio:{baseUrl:new URL('audio/',base).href,controlsRoot:el('stage')},initial:s,isCurrent:copy=>(copy.mode==='ended'&&copy.writeback==='pending')||port.saveCurrent?.(copy)!==false,onInvalidated:()=>{stop();void task(async()=>{await draw();status('聊天楼层已变化，已恢复当前楼层的旅程记录。');});},onView:v=>{if('settings'in v)lastPaused=v.paused;},onLeave:()=>{void task(async()=>{await runtime?.flush();stop();await draw();status('');});},checkpoint:async copy=>{await checkpointHost(port,copy);if(copy.mode==='ended')status('这一页，已经珍藏。');},supplierChat:port.supplierChat?prompt=>port.supplierChat!(prompt):undefined,supplierMemory:memory,onMemorySettings:()=>memoryPanel.show(el('stage')),onNarrative:port.postNarrative?copy=>{void task(async()=>{await runtime?.flush();stop();await draw();status('正在切换到正文模式……');await enterNarrativeMode(port,copy);await draw();status('已切换到正文模式：聊天里会接着往下写；正文末尾的面板可以随时切回迷宫。');});}:undefined});
   try{const Engine=await load();engine=new Engine({executable:new URL('game',base).href,mainPack:new URL('game.pck',base).href,canvas:root.querySelector('canvas'),canvasResizePolicy:0,focusCanvas:true});await engine.startGame();if(playAfterLoad)runtime.input({type:'pause'});status('');}catch(error){stop();throw error;}
  }
  el('enter').onclick=()=>void task(async()=>{const refs=selection();if(!refs.length)throw Error('请先勾选成员');const unready=refs.filter(ref=>!characterData(port,ref).ready);if(unready.length){await prepare(unready);await draw();}const s=await enterHostExpedition(port,refs,Number((el('anchor') as HTMLSelectElement).value),{narrateEntry:false});await launch(s);});
  el('resume').onclick=()=>void task(async()=>{await retireOther();await port.prepare?.();const restored=resumeHostExpedition(object(port.chat().booksea??{}).activeExpedition,()=>localStorage.getItem(key),contextId,port.authorizedFrames?.());port.bind?.(restored);await resumeFromNarrative(port,restored);restored.paused=false;await checkpointHost(port,restored);if(restored.writeback==='done'&&restored.mode!=='ended')throw Error('这趟旅程已经结束');await launch(restored);});
- const dispose=()=>{stop();};window.addEventListener('pagehide',dispose,{once:true});
- Object.assign(window,{BookseaHostGame:{read:draw,contextId:port.id,selection}});
+ const dispose=()=>{stop();memory.dispose();memoryPanel.dispose();};window.addEventListener('pagehide',dispose,{once:true});
+ Object.assign(window,{BookseaHostGame:{read:draw,contextId:port.id,selection,memory}});
  void task(async()=>{await draw();status('');}).then(()=>{if(options.autoResume&&!el('resume').hidden&&!(el('resume') as HTMLButtonElement).disabled)el('resume').click();});
  return {dispose};
 }

@@ -17,7 +17,7 @@ import type {GameView, BattleCue} from '../presentation/battle-cues';
 type TitleView = {mode: string; canContinue: boolean};
 /** Short in-world prompt shown while standing next to something; only things that need one. */
 const NEARBY_TIPS: Record<string, string> = {camp: '椅子可以坐'};
-export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, options: {portraits?: Record<string, string>; onResources?: () => void; feedback?: UIAudioFeedback} = {}) {
+export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, options: {portraits?: Record<string, string>; onResources?: () => void; onMemory?: () => void; feedback?: UIAudioFeedback} = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView!, {el, button} = gameDom(doc), viewport = mountGameViewport(stage, win);
   if (!doc.getElementById('booksea-rpg-style')) {const css = el('style'); css.id = 'booksea-rpg-style'; css.textContent = RPG_STYLE; doc.head.append(css);}
   const ui = el('div', 'rpg-ui'), hud = el('div', 'rpg-hud'), place = el('span', 'rpg-place'), menuButton = button('☰', () => send('pause'), 'rpg-menu-button'), toast = el('div', 'rpg-toast'), nearbyTip = el('div', 'rpg-nearby'), explore = el('div', 'rpg-explore-actions'), pad = el('div', 'rpg-pad'), battle = el('section'), shade = el('div', 'rpg-menu-shade'), panel = el('section', 'rpg-window'), header = el('div', 'rpg-window-header'), title = el('h2'), tabs = el('nav', 'rpg-menu-tabs'), body = el('div', 'rpg-menu-body'), audioRoot = el('div', 'rpg-audio'), footer = el('div', 'rpg-menu-footer');
@@ -117,6 +117,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
         const effect = section('战斗演出'), row = el('div', 'rpg-menu-actions');
         for (const speed of [1, 2, 3]) {const b = button('速度 ×' + speed, () => send('settings', {animationSpeed: speed})); b.setAttribute('aria-pressed', String(v.settings?.animationSpeed === speed)); row.append(b);}
         row.append(button(v.settings?.shake ? '震屏：开' : '震屏：关', () => send('settings', {shake: !v.settings?.shake})), button(v.settings?.flash ? '闪光：开' : '闪光：关', () => send('settings', {flash: !v.settings?.flash}))); effect.append(row);
+        if (options.onMemory) {const memory = section('补给员的记忆', '她会记得你说过的话、你们做过的买卖和每一趟远征；杀害她会让这一切消失。检索接口和开关只保存在这台设备上。'); memory.append(button('记忆与接口设置', () => options.onMemory?.()));}
         if (options.onResources) body.append(button('资源管理', () => {if(doc.fullscreenElement===stage||stage.classList.contains('is-fullscreen'))void viewport.toggleFullscreen().then(options.onResources);else options.onResources?.();})); body.append(audioRoot); audioRoot.hidden = false;
       }
       if (v.source !== 'host') {const restart = confirm('重新启程', () => send('new')); restart.id = 'lobby'; footer.append(restart);}
@@ -178,7 +179,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
   function keydown(e: KeyboardEvent) {
     if (stage.hidden || !stage.isConnected || !current) return;
     const target = e.target as HTMLElement | null;
-    if (target?.matches('input,textarea,select')) return;
+    if (target?.matches('input,textarea,select') || target?.closest('[data-booksea-overlay]')) return;
     // This listener is scoped to this game's document and never captures another host frame.
     if (target && target !== doc.body && !stage.contains(target)) return;
     if (supplierUI.keydown(e)) return;

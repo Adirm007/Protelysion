@@ -28,7 +28,7 @@ export const SUPPLIER_CHAT_TIMEOUT_MS=90000;
  *  路由为 'tavern' 或默认方案为空时沿用酒馆当前连接；只有旧 v1 时按 v1 的单一方案处理。 */
 export const INDEPENDENT_API_KEY='dream_independent_api_v1';
 export const INDEPENDENT_API_V2_KEY='dream_independent_api_v2';
-export type ApiRoute='booksea_compile'|'booksea_supplier';
+export type ApiRoute='booksea_compile'|'booksea_supplier'|'booksea_memory';
 const apiPreset=(c:any):Obj|undefined=>{if(!c||typeof c!=='object'||c.enabled===false)return undefined;const apiurl=String(c.apiurl??'').trim(),model=String(c.model??'').trim();if(!/^https?:\/\//i.test(apiurl)||!model)return undefined;return {apiurl,key:String(c.key??''),model,source:String(c.source||'openai')};};
 export function independentApi(globals:any,route:ApiRoute='booksea_compile'):Obj|undefined{
  for(const w of [globals,globals?.parent]){try{

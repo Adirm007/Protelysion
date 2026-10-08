@@ -10,8 +10,12 @@ import {RendererFrameCodec} from './renderer-frame';
 import {transferRelic,ringBell,dismissWarning,answerExit,craftSilverCross,toggleCrossWard} from './expedition';
 import {registerSupplierContent,supplierTalkSend,supplierTalkReply,supplierTalkFailed,supplierTalkBack,startNarrative} from './expedition';
 import type {SupplierPrompt} from './supplier-agent';
+import {drainSupplierLedger,type SupplierLedgerEntry} from './supplier-ledger';
+import type {SupplierTalkRequest} from './expedition';
 import {assertCurrentExpedition,restoreExpedition,view,move,interact,withdraw,eventChoice,supplierChoice,closeSupplier,chooseSkill,chooseTarget,flee,tick,tickExploration,useOutsideBattle,removeRelic,type State} from './expedition';
 
+/** 0.42 宿主的补给员长期记忆（试玩页没有）：取走事件、在每句对话前补上记忆、清空后换一任补给员。 */
+export type RuntimeSupplierMemory={epoch():number;greeting():string|undefined;observe(s:State,entries:SupplierLedgerEntry[]):void;augment(req:SupplierTalkRequest):Promise<SupplierPrompt>;flush(s?:State):Promise<void>};
 type GraphicsQuality='desktop'|'mobile';
 type GraphicsQualityInput=GraphicsQuality|'auto';
 const GRAPHICS_KEY='booksea-graphics-quality';
@@ -19,8 +23,11 @@ const isQuality=(value:unknown):value is GraphicsQualityInput=>['auto','desktop'
 // Device class never lowers fidelity. The legacy auto preference now means standard.
 const normalizeQuality=(value:unknown):GraphicsQuality=>value==='mobile'?'mobile':'desktop';
 
-export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;onNarrative?:(s:State)=>void},win:Window=window){
+export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;onNarrative?:(s:State)=>void;supplierMemory?:RuntimeSupplierMemory;onMemorySettings?:()=>void},win:Window=window){
  let stale=false;
+ const memory=options.supplierMemory;
+ /** 把这一步里发生的补给员事件交给长期记忆，并同步“第几任”与开场白（杀害会在这里换一任）。 */
+ function memorySync(){if(!memory||!state)return;try{memory.observe(state,drainSupplierLedger(state));state.supplierMemoryEpoch=memory.epoch();state.supplierGreeting=memory.greeting();}catch(e){console.warn('Booksea supplier memory skipped',e);}}
  let state=options.initial??null,renderer:((s:string)=>void)|null=null,receipt=0,lastMode='title',writes=Promise.resolve(),disposed=false;
  let rendererMetrics:Record<string,unknown>={};
  const frames=new RendererFrameCodec();
@@ -28,9 +35,9 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  const setStored=(key:string,value:string)=>{try{win.localStorage.setItem(key,value);}catch{/* Host message saves remain authoritative even when local storage is blocked. */}};
  const preference=getStored(GRAPHICS_KEY);
  let graphicsQuality:GraphicsQuality=normalizeQuality(preference);
- if(state){assertCurrentExpedition(state);state.settings!.graphicsQuality=graphicsQuality;registerSupplierContent(state);state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;}
+ if(state){assertCurrentExpedition(state);state.settings!.graphicsQuality=graphicsQuality;registerSupplierContent(state);state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;memorySync();}
  let audioFeedback: UIAudioFeedback | undefined;
- const ui=options.uiRoot?mountExpeditionUI(options.uiRoot,(type,payload)=>input({type,payload}),{portraits:options.portraits,onResources:options.onResources,feedback:{cue:name=>audioFeedback?.cue(name),writing:active=>audioFeedback?.writing(active)}}):undefined;
+ const ui=options.uiRoot?mountExpeditionUI(options.uiRoot,(type,payload)=>input({type,payload}),{portraits:options.portraits,onResources:options.onResources,...(options.onMemorySettings?{onMemory:options.onMemorySettings}:{}),feedback:{cue:name=>audioFeedback?.cue(name),writing:active=>audioFeedback?.writing(active)}}):undefined;
  // Map-load veil (first descent, floor transitions, renderer reattach). Presentation only, never game state.
  const veil=options.uiRoot?mountLoadingVeil(options.uiRoot,win):undefined;
  const floorPacks=createFloorPackCache();
@@ -88,10 +95,10 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
   // Loading/failed presentation cannot advance encounters behind a frozen screen.
   if(state&&!frames.readyFor(state.region.id)&&!['new','continue','settings','pause','handoff'].includes(type))return;
   if(type==='new'){
-   if(options.newGame){state=options.newGame();assertCurrentExpedition(state);state.settings!.graphicsQuality=graphicsQuality;state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;}
+   if(options.newGame){state=options.newGame();assertCurrentExpedition(state);state.settings!.graphicsQuality=graphicsQuality;state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;memorySync();}
    else{options.onLeave?.();return;}
   }else if(type==='continue'){
-   state=restoreExpedition(JSON.parse(saved()!));state.settings!.graphicsQuality=graphicsQuality;state.paused=false;state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;
+   state=restoreExpedition(JSON.parse(saved()!));state.settings!.graphicsQuality=graphicsQuality;state.paused=false;state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;memorySync();
   }else if(state){
    const fromMenu=state.paused&&state.mode==='explore'&&['outsideSkill','removeRelic','transferRelic','ringBell','craftCross','crossWard','withdraw'].includes(type);
    if(fromMenu)state.paused=false;
@@ -125,15 +132,18 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
    else if(type==='flee')flee(state);
    if(fromMenu&&state.mode==='explore')state.paused=true;
   }
+  memorySync();
   if(['handoff','pause','interact','event','supplierChoice','supplierClose','supplierTalk','supplierTalkBack','outsideSkill','removeRelic','transferRelic','ringBell','craftCross','crossWard','dismissWarning','exitAnswer','flee','withdraw','continue'].includes(type)||(type==='target'||type==='confirmTargets')&&!state?.selected)checkpoint();else save();
   publish();sound.intent(type);
  }
  /** 0.40 补给员对话：异步等 LLM；回到同一趟、同一位补给员、同一句的序号才写回（否则丢弃）。 */
- function askSupplier(req:{thingId:string;serial:number;prompt:SupplierPrompt}){
+ function askSupplier(req:SupplierTalkRequest){
   const chat=options.supplierChat,runId=state?.run.id;
   const current=()=>!disposed&&!stale&&!!state&&state.run.id===runId;
   if(!chat){if(state)supplierTalkFailed(state,req.thingId,req.serial,'这里联系不上她');return;}
-  void chat(req.prompt).then(raw=>{if(!current())return;supplierTalkReply(state!,req.thingId,req.serial,raw);checkpoint();publish();},error=>{if(!current())return;supplierTalkFailed(state!,req.thingId,req.serial,String((error as Error)?.message??error));save();publish();});
+  // 记忆检索有自己的时限与兜底；任何失败都退回不带记忆的原提示词，对话照常进行。
+  const prompt=memory?memory.augment(req).catch(()=>req.prompt):Promise.resolve(req.prompt);
+  void prompt.then(p=>chat(p)).then(raw=>{if(!current())return;supplierTalkReply(state!,req.thingId,req.serial,raw);memorySync();checkpoint();publish();},error=>{if(!current())return;supplierTalkFailed(state!,req.thingId,req.serial,String((error as Error)?.message??error));save();publish();});
  }
  const api={
   attach(callback:(s:string)=>void){renderer=callback;frames.reset();publish();},
@@ -168,7 +178,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
    if(state.mode!==mode||participants!==state.run.participants.map(p=>p.status).join(','))checkpoint();publish();
   }
  },50);
- const saver=win.setInterval(save,1500),hide=()=>{if(win.document.hidden&&state&&state.mode!=='ended'){state.paused=true;checkpoint();publish();}},leave=()=>{save();};
+ const saver=win.setInterval(save,1500),hide=()=>{if(win.document.hidden&&state&&state.mode!=='ended'){state.paused=true;checkpoint();publish();}},leave=()=>{save();void memory?.flush(state??undefined);};
  win.document.addEventListener('visibilitychange',hide);win.addEventListener('pagehide',leave);
- return {...api,dispose(){save();disposed=true;veil?.dispose();ui?.dispose();sound.dispose();audioFeedback=undefined;win.clearInterval(clock);win.clearInterval(saver);win.document.removeEventListener('visibilitychange',hide);win.removeEventListener('pagehide',leave);renderer=null;frames.reset();}};
+ return {...api,dispose(){save();void memory?.flush(state??undefined);disposed=true;veil?.dispose();ui?.dispose();sound.dispose();audioFeedback=undefined;win.clearInterval(clock);win.clearInterval(saver);win.document.removeEventListener('visibilitychange',hide);win.removeEventListener('pagehide',leave);renderer=null;frames.reset();}};
 }

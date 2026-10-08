@@ -62,14 +62,15 @@ export function emptyStore(chat: string, epoch = 1, now = Date.now(), carry?: Pi
 }
 export const isEmptyStore = (s: MemoryStore) => !s.facts.length && !s.episodes.length && !s.reflections.length && !s.digests.length && !s.runs.length && !s.n;
 
-export type LoadResult = {store: MemoryStore; status: 'fresh' | 'ok' | 'repaired' | 'newer' | 'foreign'};
-/** 读入任意来源的存档值：缺失=全新；当前版本=逐项清洗；更新的版本=只读不写，避免旧版游戏覆盖新格式。 */
+export type LoadResult = {store: MemoryStore; status: 'fresh' | 'ok' | 'repaired' | 'newer' | 'adopted'};
+/** 读入任意来源的存档值：缺失=全新；当前版本=逐项清洗；更新的版本=只读不写，避免旧版游戏覆盖新格式；
+ *  来自别的聊天（酒馆“分支”会复制聊天变量）=同一存档分出来的岔路，照单继承并改记到当前聊天名下。 */
 export function migrateStore(raw: unknown, chat: string, now = Date.now()): LoadResult {
   if (raw === undefined || raw === null) return {store: emptyStore(chat, 1, now), status: 'fresh'};
   const v = rec(raw);
   const schema = Number(v.schema);
   if (Number.isFinite(schema) && schema > MEMORY_SCHEMA) return {store: emptyStore(chat, num(v.epoch, 1, 1, 1e6), now), status: 'newer'};
-  if (typeof v.chat === 'string' && v.chat && v.chat !== chat) return {store: emptyStore(chat, 1, now), status: 'foreign'};
+  const adopted = typeof v.chat === 'string' && !!v.chat && v.chat !== chat;
   const store = emptyStore(chat, num(v.epoch, 1, 1, 1e6), num(v.createdAt, now, 0, 9e15));
   store.updatedAt = num(v.updatedAt, now, 0, 9e15); store.seq = num(v.seq, 0, 0, 1e9); store.n = num(v.n, 0, 0, 1e9); store.runNo = num(v.runNo, 0, 0, 1e9);
   if (v.legacy === true) store.legacy = true;
@@ -88,7 +89,7 @@ export function migrateStore(raw: unknown, chat: string, now = Date.now()): Load
   const last = rec(v.lastExtract); if (Object.keys(last).length) store.lastExtract = {at: num(last.at, 0, 0, 9e15), ok: last.ok === true, note: safeText(last.note, 60)};
   const ids = [store.facts, store.episodes, store.reflections, store.digests].flat().map(x => Number(x.id.slice(1))).filter(Number.isFinite);
   store.seq = Math.max(store.seq, ...ids, 0);
-  return {store, status: schema === MEMORY_SCHEMA ? 'ok' : 'repaired'};
+  return {store, status: adopted ? 'adopted' : schema === MEMORY_SCHEMA ? 'ok' : 'repaired'};
 }
 
 type Obj = Record<string, unknown>;

@@ -19,6 +19,7 @@ import {EVENT_CATALOG} from './event-catalog';
 import {relicHooks,relicCapacity,relicSlotsUsed,pendingFp,adjustFp,scaleFp,grantFp,countBoxes,removeBoxes,bumpQuality,POTIONS,POTION_BY_ID,POTION_KEY,potionPrice,INSURANCE,type BattleMod,type LayerMods,type OwnedRelic} from './run-hooks';
 import {makeRegion,themeFor,walkable,near,type Region,type Thing,type RegionOptions} from './region';
 import {decide} from './combat-ai';
+import {recordSupplier,type SupplierLedgerEntry,type SupplierLedgerKind} from './supplier-ledger';
 import {TALK_LIMITS,TALK_LOG_LIMIT,TALK_INPUT_LIMIT,DEAL_LABEL,buildSupplierPrompt,parseSupplierReply,materializeDeal,buildCustomItem,capTierFor,type TalkSession,type SupplierContext,type CustomItemSpec,type SupplierPrompt,type DealKind} from './supplier-agent';
 import type {ActionSpec,EffectSpec} from '../compiler/contract';
 import {monsterKit} from './monsters/kits';
@@ -43,6 +44,8 @@ export type State={version:2;regionSeed?:number;monsterContentVersion?:string;me
  /** 0.40 正文模式：缓存中的正文进度；宿主可用时由运行时置 narrativeReady；每段正文模式的起止层记入 narrativeSpans。 */
  narrative?:NarrativeState;narrativeReady?:boolean;narrativeSpans?:{from:number;to:number}[];
  supplierTalks?:Record<string,TalkSession>;supplierKills?:number;supplierTalkReady?:boolean;supplierSerial?:number;customRelics?:Record<string,RelicDef>;customItems?:Record<string,CustomItemSpec>;
+ /** 0.42 补给员长期记忆：规则发生时记下的事件（宿主记忆服务取走）；当前是第几任补给员与她的开场白（运行时按宿主记忆设置，试玩时为空）。 */
+ supplierLedger?:SupplierLedgerEntry[];supplierMemoryEpoch?:number;supplierGreeting?:string;
  eventPick?:{kind:'relic'|'member'|'skills'|'confirm';mode:string;options:{id:string;label:string;description:string}[];max:number;selected:string[];owner?:string;payload?:Record<string,unknown>};};
 const ref=(p:PartyMember):ActorRef=>p.ref??{kind:'partner',name:p.id};
 export const activeParty=(s:State)=>s.party.filter(p=>s.run.participants.find(q=>actorKey(q.ref)===actorKey(ref(p)))?.status==='active');
@@ -231,7 +234,7 @@ export function interact(s:State){if(s.mode!=='explore'||s.paused||s.strayWarnin
  if(t.kind==='mimic'){enterBattle(s,t);note(s,'宝箱张开了利齿！');return;}
  if(t.kind==='chest'){t.used=true;const quality=bumpQuality(['普通','优良','稀有'][Math.floor(rng(s)*3)]!,relicHooks(s).boxQualityUp);s.run=addReward(s.run,{kind:'box',quality,style:THEMES[s.region.theme]!.name,contentType:['消耗品','材料','技能','资产'][Math.floor(rng(s)*4)]!,count:1,source:`深度${s.depth} ${s.region.name}宝箱`});for(const p of activeParty(s)){s.world=dispatchBattleEvent(ensureWorld(s),'open_chest',p.id);s.world=dispatchBattleEvent(s.world,'pickup',p.id);}storeWorld(s);note(s,'获得一个密封盲盒。');}
  if(t.kind==='camp'){t.used=true;const b=ensureWorld(s);for(const u of b.units)if(u.side==='ally'){u.current={...u.max};u.statuses=u.statuses?.filter(x=>x.definition.polarity!=='negative'||x.definition.scope==='run'&&x.definition.tags.includes('relic'));}storeWorld(s);s.notice='';}
- if(t.kind==='supplier'){s.supplierState={thingId:t.id};s.shopPage=false;s.mode='supplier';s.notice='';return;}
+ if(t.kind==='supplier'){s.supplierState={thingId:t.id};s.shopPage=false;s.mode='supplier';s.notice='';ledger(s,t.id,'open');return;}
  if(t.kind==='event'&&t.customEvent){s.eventDefinition=structuredClone(t.customEvent);ensureWorld(s);s.eventState={id:t.customEvent.id,thingId:t.id,offers:[],results:[],owner:activeParty(s)[0]!.id,choice:''};s.mode='event';note(s,t.customEvent.title);return;}
  if(t.kind==='event'){delete s.eventDefinition;ensureWorld(s);s.eventState={id:chooseEvent(s),thingId:t.id,offers:[],results:[],owner:activeParty(s)[0]!.id,choice:''};s.mode='event';note(s,EVENT_CATALOG[s.eventState.id]!.title);}
 }
@@ -241,17 +244,17 @@ export function supplierChoice(s:State,choice:string){
  if(s.mode!=='supplier'||s.paused||!s.supplierState)return;
  const t=s.region.things.find(t=>t.id===s.supplierState!.thingId&&t.kind==='supplier'&&!t.used&&near(s,t));
  if(!t)return;
- if(choice==='shop'){s.shopPage=true;ensureShopRelic(s,t.id);return;}
- if(choice==='talk'){if(!s.supplierTalkReady){note(s,'这里联系不上她的意识（需要在酒馆里游玩）。');return;}const talk=supplierTalkSession(s,t.id);if(!talk.log.length)talk.log.push({role:'supplier',text:'嗯？想聊什么。'});s.supplierState.talk=true;return;}
+ if(choice==='shop'){s.shopPage=true;ensureShopRelic(s,t.id);ledger(s,t.id,'choice',{choice});return;}
+ if(choice==='talk'){if(!s.supplierTalkReady){note(s,'这里联系不上她的意识（需要在酒馆里游玩）。');return;}const talk=supplierTalkSession(s,t.id);if(!talk.log.length)talkLog(talk,{role:'supplier',text:s.supplierGreeting||'嗯？想聊什么。'});s.supplierState.talk=true;ledger(s,t.id,'choice',{choice});return;}
  if(choice==='back'){s.shopPage=false;return;}
- if(choice==='buy:'+INSURANCE.id){if(s.run.keepOnDefeat){note(s,'本趟已经买过「死亡不掉落」。');return;}if(!spendFp(s,INSURANCE.price)){note(s,'FP 不足。');return;}s.run.keepOnDefeat=true;note(s,`买下「${INSURANCE.name}」（−${INSURANCE.price} FP）：本趟即使全灭，也会带着全部所得离场。`);return;}
- if(choice==='buy:'+LEARNING_DEVICE.id){if(s.learningBought){note(s,'「学习装置」每趟限购一次。');return;}const owner=relicOwnerFor(s,LEARNING_DEVICE.id);if(!owner){note(s,'没有成员能装下「学习装置」（遗物槽已满）。');return;}if(!spendFp(s,LEARNING_DEVICE_PRICE)){note(s,'FP 不足。');return;}s.learningBought=true;acquireRelic(s,LEARNING_DEVICE.id,owner);note(s,`买下「${LEARNING_DEVICE.name}」（−${LEARNING_DEVICE_PRICE} FP），交给 ${s.party.find(p=>p.id===owner)?.name??owner}；可在遗物页转移。`);return;}
- if(choice==='buy:shop-relic'){const id=s.shopRelics?.[t.id],def=id?RELIC_CATALOG[id]:undefined;if(!id||!def)return;if(s.shopRelicSold?.includes(t.id)){note(s,'这件遗物已经卖出去了。');return;}const owner=relicOwnerFor(s,id);if(!owner){note(s,`没有成员能装下「${def.name}」（遗物槽已满或已持有同名）。`);return;}const price=shopRelicPrice(def,s.depth,relicHooks(s).shopDiscount);if(!spendFp(s,price)){note(s,'FP 不足。');return;}(s.shopRelicSold??=[]).push(t.id);acquireRelic(s,id,owner);note(s,`买下「${def.name}」（−${price} FP），交给 ${s.party.find(p=>p.id===owner)?.name??owner}；可在遗物页转移。`);return;}
- if(choice.startsWith('buy:')){const potion=POTION_BY_ID[choice.slice(4)];if(!potion)return;const price=potionPrice(potion,s.depth,relicHooks(s).shopDiscount);if(!spendFp(s,price)){note(s,'FP 不足。');return;}s.bag??={};s.bag[potion.id]=(s.bag[potion.id]??0)+1;rebuildWorld(s);note(s,`买下 ${potion.name}（−${price} FP）。`);return;}
+ if(choice==='buy:'+INSURANCE.id){if(s.run.keepOnDefeat){note(s,'本趟已经买过「死亡不掉落」。');return;}if(!spendFp(s,INSURANCE.price)){note(s,'FP 不足。');return;}s.run.keepOnDefeat=true;ledger(s,t.id,'buy',{label:INSURANCE.name,price:INSURANCE.price});note(s,`买下「${INSURANCE.name}」（−${INSURANCE.price} FP）：本趟即使全灭，也会带着全部所得离场。`);return;}
+ if(choice==='buy:'+LEARNING_DEVICE.id){if(s.learningBought){note(s,'「学习装置」每趟限购一次。');return;}const owner=relicOwnerFor(s,LEARNING_DEVICE.id);if(!owner){note(s,'没有成员能装下「学习装置」（遗物槽已满）。');return;}if(!spendFp(s,LEARNING_DEVICE_PRICE)){note(s,'FP 不足。');return;}s.learningBought=true;acquireRelic(s,LEARNING_DEVICE.id,owner);ledger(s,t.id,'buy',{label:LEARNING_DEVICE.name,price:LEARNING_DEVICE_PRICE});note(s,`买下「${LEARNING_DEVICE.name}」（−${LEARNING_DEVICE_PRICE} FP），交给 ${s.party.find(p=>p.id===owner)?.name??owner}；可在遗物页转移。`);return;}
+ if(choice==='buy:shop-relic'){const id=s.shopRelics?.[t.id],def=id?RELIC_CATALOG[id]:undefined;if(!id||!def)return;if(s.shopRelicSold?.includes(t.id)){note(s,'这件遗物已经卖出去了。');return;}const owner=relicOwnerFor(s,id);if(!owner){note(s,`没有成员能装下「${def.name}」（遗物槽已满或已持有同名）。`);return;}const price=shopRelicPrice(def,s.depth,relicHooks(s).shopDiscount);if(!spendFp(s,price)){note(s,'FP 不足。');return;}(s.shopRelicSold??=[]).push(t.id);acquireRelic(s,id,owner);ledger(s,t.id,'buy',{label:def.name,price});note(s,`买下「${def.name}」（−${price} FP），交给 ${s.party.find(p=>p.id===owner)?.name??owner}；可在遗物页转移。`);return;}
+ if(choice.startsWith('buy:')){const potion=POTION_BY_ID[choice.slice(4)];if(!potion)return;const price=potionPrice(potion,s.depth,relicHooks(s).shopDiscount);if(!spendFp(s,price)){note(s,'FP 不足。');return;}s.bag??={};s.bag[potion.id]=(s.bag[potion.id]??0)+1;rebuildWorld(s);ledger(s,t.id,'buy',{label:potion.name,price});note(s,`买下 ${potion.name}（−${price} FP）。`);return;}
  if(!SUPPLIER_CHOICES.some(c=>c.id===choice))return;
- if(choice==='kill'){s.supplierKills=(s.supplierKills??0)+1;if(s.supplierTalks?.[t.id])s.supplierTalks[t.id]!.pending=false;t.used=true;t.kind='camp';t.name='血迹';const spot=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dz])=>({x:t.x+dx!,z:t.z+dz!})).find(p=>walkable(s.region,p.x,p.z)&&!s.region.things.some(o=>!o.used&&o.x===p.x&&o.z===p.z))??{x:t.x,z:t.z};const mimic=rng(s)<.5;s.region.things.push({id:t.id+':loot',kind:mimic?'mimic':'chest',x:spot.x,z:spot.z,name:'封存的宝匣',used:false,foes:mimic?[MIMIC_ID]:[]});s.strayGuaranteedOnce=true;delete s.supplierState;s.mode='explore';s.notice='';return;}
- if(choice==='bench'){t.kind='camp';t.name='长椅';t.used=false;delete s.supplierState;s.mode='explore';s.notice='';return;}
- t.kind='event';t.name=THEMES[s.region.theme]!.name+'·遗留事件';
+ if(choice==='kill'){s.supplierKills=(s.supplierKills??0)+1;const dead=s.supplierTalks?.[t.id];if(dead){dead.pending=false;dead.log=[];dead.memo=dead.total;delete dead.mood;}ledger(s,t.id,'kill');t.used=true;t.kind='camp';t.name='血迹';const spot=[[1,0],[-1,0],[0,1],[0,-1]].map(([dx,dz])=>({x:t.x+dx!,z:t.z+dz!})).find(p=>walkable(s.region,p.x,p.z)&&!s.region.things.some(o=>!o.used&&o.x===p.x&&o.z===p.z))??{x:t.x,z:t.z};const mimic=rng(s)<.5;s.region.things.push({id:t.id+':loot',kind:mimic?'mimic':'chest',x:spot.x,z:spot.z,name:'封存的宝匣',used:false,foes:mimic?[MIMIC_ID]:[]});s.strayGuaranteedOnce=true;delete s.supplierState;s.mode='explore';s.notice='';return;}
+ if(choice==='bench'){ledger(s,t.id,'choice',{choice});t.kind='camp';t.name='长椅';t.used=false;delete s.supplierState;s.mode='explore';s.notice='';return;}
+ ledger(s,t.id,'choice',{choice});t.kind='event';t.name=THEMES[s.region.theme]!.name+'·遗留事件';
  delete s.supplierState;s.mode='explore';
  s.notice='';
 }
@@ -298,9 +301,13 @@ export function narrativeBreakpoint(s:State):string{
   `持有遗物：${(s.ownedRelics??[]).map(o=>RELIC_CATALOG[o.id]?.name??o.id).join('、')||'无'}`].join('\n');
 }
 /* ---- 0.40 补给员对话 ---- */
-function supplierTalkSession(s:State,thingId:string):TalkSession{s.supplierTalks??={};return s.supplierTalks[thingId]??={thingId,serial:0,log:[],pending:false,grants:{relic:0,item:0,event:0,loot:0}};}
+function ledger(s:State,thing:string,t:SupplierLedgerKind,extra?:Parameters<typeof recordSupplier>[4]){recordSupplier(s,THEMES[s.region.theme]!.name,thing,t,extra);}
+/** 记忆被清空（补给员被杀害）之后，读档找回的旧会话属于上一任：清掉对话，只保留本次遭遇的额度。 */
+function supplierTalkSession(s:State,thingId:string):TalkSession{s.supplierTalks??={};const epoch=s.supplierMemoryEpoch,old=s.supplierTalks[thingId];
+ if(old&&epoch!==undefined&&(old.epoch??1)!==epoch){old.log=[];old.pending=false;old.epoch=epoch;old.total=0;old.memo=0;delete old.mood;}
+ return s.supplierTalks[thingId]??={thingId,serial:0,log:[],pending:false,grants:{relic:0,item:0,event:0,loot:0},...(epoch!==undefined?{epoch}:{})};}
 function openTalk(s:State){if(s.mode!=='supplier'||!s.supplierState?.talk)return undefined;const t=s.region.things.find(t=>t.id===s.supplierState!.thingId&&t.kind==='supplier'&&!t.used);if(!t)return undefined;return supplierTalkSession(s,t.id);}
-function talkLog(talk:TalkSession,line:TalkSession['log'][number]){talk.log.push(line);if(talk.log.length>TALK_LOG_LIMIT)talk.log.splice(0,talk.log.length-TALK_LOG_LIMIT);}
+function talkLog(talk:TalkSession,line:TalkSession['log'][number]){talk.total=(talk.total??talk.log.length)+1;talk.log.push(line);if(talk.log.length>TALK_LOG_LIMIT)talk.log.splice(0,talk.log.length-TALK_LOG_LIMIT);}
 const pctText=(cur:number,max:number)=>max>0?Math.round(cur/max*100)+'%':'—';
 /** 补给员看到的局内知识库：深度 / 主题 / 场景 / 本层怪物 / 品质 / 队伍 / FP / 遗物与道具 / 最近遭遇 / 本趟杀害次数 / 剩余额度。 */
 export function supplierTalkContext(s:State):SupplierContext{
@@ -317,11 +324,12 @@ export function supplierTalkContext(s:State):SupplierContext{
   remaining:Object.fromEntries((Object.keys(TALK_LIMITS) as DealKind[]).map(k=>[k,Math.max(0,TALK_LIMITS[k]-talk.grants[k])])) as Record<DealKind,number>,runId:s.run.id};
 }
 /** 玩家发言：记一行并进入等待；返回发给 LLM 的提示词（无效时 undefined）。 */
-export function supplierTalkSend(s:State,text:string):{thingId:string;serial:number;prompt:SupplierPrompt}|undefined{
+export type SupplierTalkRequest={thingId:string;serial:number;prompt:SupplierPrompt;context:SupplierContext;log:TalkSession['log']};
+export function supplierTalkSend(s:State,text:string):SupplierTalkRequest|undefined{
  if(s.paused)return undefined;const talk=openTalk(s);if(!talk||talk.pending)return undefined;
  const line=String(text??'').replace(/[\u0000-\u001f\u007f]/g,' ').trim().slice(0,TALK_INPUT_LIMIT);if(!line)return undefined;
  talkLog(talk,{role:'player',text:line});talk.pending=true;talk.serial++;
- return {thingId:talk.thingId,serial:talk.serial,prompt:buildSupplierPrompt(supplierTalkContext(s),talk.log)};
+ const context=supplierTalkContext(s);return {thingId:talk.thingId,serial:talk.serial,prompt:buildSupplierPrompt(context,talk.log),context,log:structuredClone(talk.log)};
 }
 /** LLM 回复：台词入记录；deal 经校验、额度与 FP 检查后才成交（即兴扣 FP）。过期回复（已离开、换了补给员、序号不对）不成交。 */
 export function supplierTalkReply(s:State,thingId:string,serial:number,raw:unknown){
@@ -330,11 +338,12 @@ export function supplierTalkReply(s:State,thingId:string,serial:number,raw:unkno
  const reply=parseSupplierReply(raw);talkLog(talk,{role:'supplier',text:reply.say});if(reply.mood)talk.mood=reply.mood;
  if(!reply.deal||here!==talk)return;
  const ctx=supplierTalkContext(s),built=materializeDeal(reply.deal,ctx,(s.supplierSerial??0)+1);
- if(!built.ok){if(built.reason!=='没有成交')talkLog(talk,{role:'system',text:'没有成交：'+built.reason});return;}
+ const miss=(kind:string,reason:string)=>ledger(s,thingId,'nodeal',{kind,reason});
+ if(!built.ok){if(built.reason!=='没有成交'){talkLog(talk,{role:'system',text:'没有成交：'+built.reason});miss('交易',built.reason);}return;}
  const deal=built.deal;
- if(ctx.fp<deal.price){talkLog(talk,{role:'system',text:`没谈成：${deal.label}要 ${deal.price} FP，可用 FP（待结算＋总 FP）只有 ${ctx.fp}`});return;}
+ if(ctx.fp<deal.price){talkLog(talk,{role:'system',text:`没谈成：${deal.label}要 ${deal.price} FP，可用 FP（待结算＋总 FP）只有 ${ctx.fp}`});miss(DEAL_LABEL[deal.kind],`FP 不足，要 ${deal.price}`);return;}
  let owner='';
- if(deal.relic){RELIC_CATALOG[deal.relic.id]=deal.relic;owner=ctx.party.map(p=>p.id).find(id=>relicUnavailable(s,deal.relic!.id,id)==='')??'';if(!owner){delete RELIC_CATALOG[deal.relic.id];talkLog(talk,{role:'system',text:'没谈成：队伍的遗物槽都满了'});return;}}
+ if(deal.relic){RELIC_CATALOG[deal.relic.id]=deal.relic;owner=ctx.party.map(p=>p.id).find(id=>relicUnavailable(s,deal.relic!.id,id)==='')??'';if(!owner){delete RELIC_CATALOG[deal.relic.id];talkLog(talk,{role:'system',text:'没谈成：队伍的遗物槽都满了'});miss('遗物','遗物槽满了');return;}}
  if(!spendFp(s,deal.price)){talkLog(talk,{role:'system',text:`没谈成：FP 不足（要 ${deal.price} FP）`});if(deal.relic)delete RELIC_CATALOG[deal.relic.id];return;}s.supplierSerial=(s.supplierSerial??0)+1;
  if(deal.relic){s.customRelics??={};s.customRelics[deal.relic.id]=deal.relic;registerSupplierContent(s);acquireRelic(s,deal.relic.id,owner);rebuildWorld(s);talk.grants.relic++;}
  else if(deal.item){s.customItems??={};s.customItems[deal.item.id]=deal.item.spec;registerSupplierContent(s);s.bag??={};s.bag[deal.item.id]=(s.bag[deal.item.id]??0)+deal.item.count;rebuildWorld(s);talk.grants.item+=deal.item.count;}
@@ -342,7 +351,7 @@ export function supplierTalkReply(s:State,thingId:string,serial:number,raw:unkno
   s.region.things.push({id:s.region.id+':'+deal.event.id,kind:'event',x:spot.x,z:spot.z,name:'补给员的「'+deal.event.title+'」',used:false,foes:[],customEvent:deal.event});talk.grants.event++;}
  else if(deal.loot){s.run=addReward(s.run,deal.loot);talk.grants.loot++;}
  const holder=owner?`（${s.party.find(p=>p.id===owner)?.name??owner}持有）`:'';
- talkLog(talk,{role:'system',text:`成交：${deal.label}${holder}，补给员收取 ${deal.price} FP`});
+ talkLog(talk,{role:'system',text:`成交：${deal.label}${holder}，补给员收取 ${deal.price} FP`});ledger(s,thingId,'deal',{label:deal.label.replace(/：.*$/,''),price:deal.price,kind:DEAL_LABEL[deal.kind]});
  note(s,`补给员：${DEAL_LABEL[deal.kind]}成交（−${deal.price} FP）`);
 }
 export function supplierTalkFailed(s:State,thingId:string,serial:number,message:string){

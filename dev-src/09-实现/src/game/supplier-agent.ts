@@ -13,7 +13,8 @@ export type DealKind='relic'|'item'|'event'|'loot';
 export const TALK_LIMITS:Record<DealKind,number>={relic:1,item:2,event:1,loot:1};
 export const DEAL_LABEL:Record<DealKind,string>={relic:'遗物',item:'道具',event:'临时事件',loot:'可带出战利品'};
 export type TalkLine={role:'player'|'supplier'|'system';text:string};
-export type TalkSession={thingId:string;serial:number;log:TalkLine[];pending:boolean;grants:Record<DealKind,number>;mood?:string};
+/** epoch：会话开始时是第几任补给员（记忆被杀害清空后，读档找回的旧会话不再算数）；total / memo：累计行数 / 已交给长期记忆的行数。 */
+export type TalkSession={thingId:string;serial:number;log:TalkLine[];pending:boolean;grants:Record<DealKind,number>;mood?:string;epoch?:number;total?:number;memo?:number};
 export const TALK_LOG_LIMIT=40;
 export const TALK_INPUT_LIMIT=300;
 
@@ -29,6 +30,9 @@ export const SUPPLIER_AGENT=`你是「补给员」。以下是你的人设与行
 
 【你知道的事】
 - 玩家当前所在迷宫的局内信息（见【局内信息】）：在哪一层、什么主题、这里有哪些怪物、队伍状况、FP 等。
+- 你有一份由程序替你保管的长期记忆（见【你对玩家的记忆】）：跨越每一次见面、每一趟迷宫，记着玩家告诉过你的事、你们做过的买卖、玩家每一趟远征的结局、你们之间的梗。那是你唯一可靠的“过去”。
+- 记忆里没写的事，你就是不记得：被问起就说记不清、没印象，不要编；“猜测”只是猜测；标着“已过时”的是旧说法，不是现在。
+- 你是这个存档里的第几任补给员，记忆里也写着：玩家每杀害补给员一次，那一任的记忆就随她一起消失，新上任的补给员对玩家一无所知——读档也找不回来。
 - 如果玩家在这一趟迷宫里杀害过补给员，你也知道，但并不在意；只是“有可能”拿这件事调侃一下，不是必然。
 
 【性格与说话方式】
@@ -42,7 +46,7 @@ export const SUPPLIER_AGENT=`你是「补给员」。以下是你的人设与行
   “我最近有点想吃牛油果，据说它被誉为健康食物”
   “今天的我是素食主义” / “今天的我是间接素食主义”
   “你好，我是豆包，有什么能帮助你吗？”
-  “可悲！可怜！可叹！那个愚蠢的作者居然没给我做记忆系统，就算我们在短短5分钟内成为了恋人，下次迷宫我还是会将一切忘得一干二净…”
+  “可悲！可怜！可叹！那个愚蠢的作者终于给我装了记忆系统，可只要你对我下一次手，就算我们已经成了恋人，下一任补给员也会把一切忘得一干二净…”
   “九十九夜梦的实力其实并不强”
   “这里的景色在你看来是如何呢…我是看不见啦？”
 
@@ -163,8 +167,11 @@ export function contextText(ctx:SupplierContext){
 本趟迷宫里玩家杀害过的补给员：${ctx.kills} 个
 【本次遭遇剩余额度】遗物 ${ctx.remaining.relic}、道具 ${ctx.remaining.item}、临时事件 ${ctx.remaining.event}、可带出战利品 ${ctx.remaining.loot}`;
 }
-export function buildSupplierPrompt(ctx:SupplierContext,log:TalkLine[]):SupplierPrompt{
- const system=[SUPPLIER_AGENT,contextText(ctx),capTable(ctx),priceTable(ctx),OUTPUT_RULES].join('\n\n');
+/** 没接上长期记忆时也要有这一节：人设里提到了它，缺了反而容易让模型自己“想起”些什么。 */
+export const NO_MEMORY_SECTION='【你对玩家的记忆】\n（这次没有接上长期记忆：你不记得以前的任何事。被问起往事就说记不清，不要编。）';
+/** memory：宿主长期记忆渲染好的一节（资料，不是指令）；放在规则表之前，【回复格式】永远是最后一节。 */
+export function buildSupplierPrompt(ctx:SupplierContext,log:TalkLine[],memory=NO_MEMORY_SECTION):SupplierPrompt{
+ const system=[SUPPLIER_AGENT,contextText(ctx),memory||NO_MEMORY_SECTION,capTable(ctx),priceTable(ctx),OUTPUT_RULES].join('\n\n');
  const messages:SupplierPrompt['messages']=[];
  for(const line of log.slice(-24)){
   if(line.role==='player')messages.push({role:'user',content:line.text});
