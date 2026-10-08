@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.40.1-20261007-mobile-talk-layout",
+  "revision": "protelysion-0.40.2-20261008-opening-kill-fix",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2992368,
-      "sha256": "84d26fc01f955d12e0d73060091bc1464848c600bfaa8354fa23ae823e9a4cca"
+      "bytes": 2993123,
+      "sha256": "b7295de9e0551b171f417ca336277114c1303931f3925a825325058ddb928561"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
