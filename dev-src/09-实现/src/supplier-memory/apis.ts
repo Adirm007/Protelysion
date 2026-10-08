@@ -75,7 +75,7 @@ export async function embed(fetcher: FetchLike, s: ApiSlot, texts: string[], tim
   if (!texts.length) return [];
   const body = rec(await post(fetcher, s, 'embeddings', {model: s.model, input: texts, encoding_format: 'float'}, timeoutMs));
   const data = Array.isArray(body.data) ? body.data.map(rec) : [];
-  const out: (number[] | undefined)[] = new Array(texts.length);
+  const out: (number[] | undefined)[] = Array.from({length: texts.length}, () => undefined);
   data.forEach((d, i) => {const at = Number.isInteger(d.index) ? Number(d.index) : i; if (Array.isArray(d.embedding) && d.embedding.length && d.embedding.every(x => typeof x === 'number' && Number.isFinite(x))) out[at] = d.embedding as number[];});
   if (out.length !== texts.length || out.some(x => !x)) throw new ApiError('返回格式不对：缺少 data[].embedding');
   const dims = out[0]!.length; if (out.some(x => x!.length !== dims)) throw new ApiError('返回的向量维度不一致');
