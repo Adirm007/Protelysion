@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.40.2-20261008-opening-kill-fix",
+  "revision": "protelysion-0.41.0-20261008-shop-fp-supplier",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2993123,
-      "sha256": "b7295de9e0551b171f417ca336277114c1303931f3925a825325058ddb928561"
+      "bytes": 2996877,
+      "sha256": "63f3cc3fb8a656d8f26fd6305edb7d00884046f5509c9ca90db1ddb78b5ed32d"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
