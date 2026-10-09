@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.41.1-20261008-guard-setup-fix",
+  "revision": "protelysion-0.42.0-20261009-supplier-memory",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 2997477,
-      "sha256": "4d233f7221ca3944ceb37f3101d3b00f0abec717d68d4254925532e4766497aa"
+      "bytes": 3075549,
+      "sha256": "f6b84b29309829085f1dab3d901afed197555457d7ab53821c4178c9871a41a0"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

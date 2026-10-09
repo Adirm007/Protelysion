@@ -11,7 +11,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.41.1-20261008-guard-setup-fix';
+const revision='protelysion-0.42.0-20261009-supplier-memory';
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
 const template=JSON.parse(await readFile(path.join(project,'17-宿主可玩联调/entry-template.json'),'utf8'));
