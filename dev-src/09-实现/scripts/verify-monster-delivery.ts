@@ -1,0 +1,27 @@
+import {readFileSync,writeFileSync,statSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
+import assert from 'node:assert/strict';
+import {monsterKit} from '../src/game/monsters/kits';
+import {MONSTER_CONTENT_VERSION} from '../src/game/monsters/numbers';
+import {MONSTER_ROSTER} from '../src/game/monsters/catalog';
+import {makeProbe,fire} from './audit-monsters';
+const dir='verification/monster-kits-017/';
+const check=readFileSync(dir+'check-final-1.log','utf8'),matrixLog=readFileSync(dir+'matrix-final-1.log','utf8');
+assert.match(check,/# tests 910\s+# suites 0\s+# pass 910\s+# fail 0/);assert.match(check,/MONSTER_KITS_UI_OK/);assert.ok(!/SCRIPT ERROR|Parse Error|ERROR:|^not ok/m.test(check));
+assert.match(matrixLog,/"templates":3024/);assert.match(matrixLog,/"failures":0/);
+const summary=JSON.parse(readFileSync(dir+'summary.json','utf8'));assert.equal(summary.templates,3024);assert.equal(summary.aiDecisions,6048);assert.equal(summary.failures,0);
+const compressed=readFileSync(dir+'compiled-templates.jsonl.gz'),expanded=gunzipSync(compressed).toString('utf8').trim().split('\n');assert.equal(expanded.length,3024);
+const sourceEquality=expanded.every(row=>{const saved=JSON.parse(row);return JSON.stringify(saved.card)===JSON.stringify(monsterKit(saved.id,saved.level).card);});assert.ok(sourceEquality,'Compressed snapshots must match the current factory, not an earlier smoke run.');
+const web=JSON.parse(readFileSync('../16-Godot可玩区域/verification/web-manifest.json','utf8'));assert.equal(web.playableThemes.length,48);assert.equal(web.monsterArtInstalled,432);assert.equal(web.monsterTierTemplates,3024);assert.equal(web.monsterContentVersion,MONSTER_CONTENT_VERSION);
+const sha=(path:string)=>createHash('sha256').update(readFileSync(path)).digest('hex');
+for(const [name,spec] of Object.entries(web.files) as [string,{sha256:string}][])assert.equal(sha('../16-Godot可玩区域/web/'+name),spec.sha256,name);
+const files=['../01-计划与制作清单/怪物设计名录.csv','../01-计划与制作清单/48主题怪物七层级战斗模板.csv',...['catalog','numbers','ir','cores','ascension','kits'].map(n=>'src/game/monsters/'+n+'.ts'),'src/game/content.ts','src/game/region.ts','src/game/combat-ai.ts','src/game/expedition.ts','src/battle/executor.ts','src/battle/damage.ts','src/compiler/contract.ts','src/compiler/formula.ts','../16-Godot可玩区域/godot/game.gd','../16-Godot可玩区域/web/game.pck','../16-Godot可玩区域/web/play.js','../17-宿主可玩联调/web/host-game.js',dir+'compiled-templates.jsonl.gz'];
+const artifacts=Object.fromEntries(files.map(p=>[p,{bytes:statSync(p).size,sha256:sha(p)}]));
+let extremeActions=0;
+for(const level of [26,100,1000,1000000])for(const suffix of [':attack',':primary']){const b=makeProbe('T01_B01',level),key=Object.keys(b.units[0]!.actions).find(k=>k.endsWith(suffix))!,result=fire(b,'npc',key);for(const u of result.units)for(const x of Object.values(u.current))assert.ok(Number.isFinite(x)&&x>=0);extremeActions++;}
+const sampleLevels=[1,5,9,13,17,24,25];
+const examples=['T01_N01','T01_B01','T12_B01','T44_B01'].map(id=>({id,name:MONSTER_ROSTER.find(m=>m.id===id)!.name,tiers:sampleLevels.map(level=>{const k=monsterKit(id,level);return {level,attributes:k.numbers.attributes,max:k.numbers.max,regular:k.regular,ascended:k.ascended,laws:k.laws,kingdom:k.divineKingdom,counterplay:k.counterplay};})}));
+const evidence={date:'2026-09-22',version:MONSTER_CONTENT_VERSION,summary,regressions:{passed:910,failed:0,skipped:0},compressedTemplates:expanded.length,sourceEquality,extremeActions,builds:['diagnostic','compiler-flow','godot-host-viewer','play','host-game','godot-import','godot-pck'],ui:'headless scene, not browser/manual acceptance',realModelFullCharacters:0,deployed:false,artifacts};
+writeFileSync(dir+'delivery.json',JSON.stringify(evidence,null,2)+'\n');writeFileSync(dir+'examples.json',JSON.stringify(examples,null,2)+'\n');
+console.log(JSON.stringify({version:MONSTER_CONTENT_VERSION,templates:expanded.length,sourceEquality,regressions:910,extremeActions,pckBytes:artifacts['../16-Godot可玩区域/web/game.pck']!.bytes,csvBytes:artifacts['../01-计划与制作清单/48主题怪物七层级战斗模板.csv']!.bytes,compressedBytes:compressed.length,deployed:false}));

@@ -1,0 +1,16 @@
+import {build} from 'esbuild';import {mkdir,readFile,writeFile} from 'node:fs/promises';import {createHash} from 'node:crypto';
+await mkdir('release',{recursive:true});
+const bundle=await build({entryPoints:['src/flow.ts'],bundle:true,format:'esm',target:'es2022',write:false,charset:'utf8',minify:false});
+const files={'booksea-flow.mjs':bundle.outputFiles[0].text,'booksea-entry-handoff.ejs':await readFile('templates/entry-handoff.ejs','utf8'),'booksea-failure-handoff.ejs':await readFile('templates/failure-handoff.ejs','utf8'),'booksea-success-handoff.ejs':await readFile('templates/success-handoff.ejs','utf8')};
+files['书海-结束交接世界书.json']=JSON.stringify({entries:{0:{uid:0,key:[],keysecondary:[],comment:'书海失败交接（只读，限定对应结束消息）',content:files['booksea-failure-handoff.ejs'],constant:true,selective:true,selectiveLogic:0,addMemo:true,order:11000,position:4,role:0,disable:false,excludeRecursion:true,preventRecursion:true,probability:100,useProbability:true,depth:0}}},null,2)+'\n';
+const ending=JSON.parse(files['书海-结束交接世界书.json']);ending.entries['1']={...ending.entries['0'],uid:1,comment:'书海进入（只读，限定进入指令）',content:files['booksea-entry-handoff.ejs']};ending.entries['2']={...ending.entries['0'],uid:2,comment:'书海成功离场（只读，限定已结算消息）',content:files['booksea-success-handoff.ejs']};files['书海-结束交接世界书.json']=JSON.stringify(ending,null,2)+'\n';
+const lib=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));
+files['booksea-ability-schema.json']=JSON.stringify(lib.ModelReply.json,null,2)+'\n';
+files['booksea-bridge-schema.json']=JSON.stringify({version:lib.BRIDGE_VERSION,intent:lib.Intent.json,presentation:lib.PresentationMessage.json},null,2)+'\n';
+files['booksea-capabilities.json']=JSON.stringify({compiler:lib.COMPILER_ID,contract:lib.EFFECT_VERSION,implementedEffectOps:Object.keys(lib.EXECUTORS),activeSkillsOnly:false,requiresResolvedSpecies:true,unknownEffectsBlockEntry:true,compilerFallbackAttack:false,explicitBasicAttackRule:"plan-9.3",hostEquipmentAndInnateStateMapping:true,unifiedAcceptance:"core-regressions",fullCharacterCorpusAcceptance:"not-run",conflictOrder:["issuer-level","effective-speed","seeded-random"],implementedEffectOpCount:Object.keys(lib.EXECUTORS).length,effectFamilies:25,relicDefinitions:Object.keys(lib.RELIC_CATALOG).length,eventDefinitions:Object.keys(lib.EVENT_CATALOG).length},null,2)+'\n';
+files['booksea-mechanism-content.json']=JSON.stringify({abilities:lib.ABILITY_SAMPLES,relics:lib.RELIC_CATALOG,events:lib.EVENT_CATALOG},null,2)+'\n';
+const sha256={};for(const [name,content] of Object.entries(files)){await writeFile('release/'+name,content);sha256[name]=createHash('sha256').update(content).digest('hex');}
+await writeFile('release/flow-manifest.json',JSON.stringify({version:'0.16.0-compiler-conflicts',compiler:lib.COMPILER_ID,presentationBridge:lib.BRIDGE_VERSION,bridgeTransport:'same-page-only',kind:'library-not-playable-game',implicitHostWrites:false,explicitFailureHandoff:true,explicitEntryExitNarrative:true,effectExecutor:"generic-effects-0.16",unifiedAcceptance:"core-regressions",fullCharacterCorpusAcceptance:"not-run",sha256},null,2)+'\n');
+console.log('Built compiler 0.16 with explicit conflict policy; live-model/full-character acceptance is a separate gate.');
+
+

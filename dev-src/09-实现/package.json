@@ -1,0 +1,27 @@
+{
+  "name": "booksea-stage0",
+  "version": "0.41.1",
+  "private": true,
+  "type": "module",
+  "description": "普罗泰利西翁（书海迷宫）：夜梦书间界面、角色能力档案与同阶能力转化",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/*.test.ts",
+    "build": "node scripts/build.mjs && node scripts/build-flow.mjs && node scripts/build-host.mjs && node scripts/build-play.mjs && node scripts/build-host-game.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "build:public": "node scripts/build-public.mjs",
+    "build:release": "npm run build && node ../16-Godot可玩区域/tools/build-web.mjs && npm run build:public",
+    "test:release-browser": "node scripts/verify-release-browser.mjs"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.17.20",
+    "@types/node": "22.15.30",
+    "esbuild": "0.28.2",
+    "lodash": "4.18.1",
+    "tsx": "4.23.13",
+    "typescript": "5.9.3"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

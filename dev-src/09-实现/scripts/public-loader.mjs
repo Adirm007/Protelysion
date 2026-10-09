@@ -1,0 +1,43 @@
+// The one regex stays inside the existing Helper iframe, preserving host API access.
+export function makeExternalHtml(base,css='',mode='host'){
+ const url=new URL(base),local=['localhost','127.0.0.1','[::1]'].includes(url.hostname);
+ if((url.protocol!=='https:'&&!(local&&url.protocol==='http:'))||url.username||url.password||url.search||url.hash)throw Error('请填写HTTPS游戏目录（不是GitHub仓库或raw链接）');
+ if(['github.com','raw.githubusercontent.com'].includes(url.hostname))throw Error('请使用GitHub Pages发布地址，不是仓库源码地址');
+ if(!url.pathname.endsWith('/'))url.pathname+='/';
+ const boot=`(()=>{
+ const base=${mode==='standalone'?"new URL('./',location.href).href":JSON.stringify(url.href).replace(/</g,'\\u003c')},mode=${JSON.stringify(mode)};
+ const status=document.getElementById('loader-status'),retry=document.getElementById('loader-retry'),root=document.getElementById('booksea-game');let busy=false;
+ const sha=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),v=>v.toString(16).padStart(2,'0')).join('');
+ async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='书页正在展开……';
+ try{
+  if(!window.isSecureContext||!window.caches||!window.crypto?.subtle)throw Error('请通过HTTPS或本机localhost访问酒馆，并允许浏览器缓存');
+  const cache=await caches.open('protelysion-bootstrap-v1'),manifestUrl=new URL('release-manifest.json',base).href;let response;
+  try{response=await fetch(manifestUrl,{cache:'no-store',credentials:'omit',signal:AbortSignal.timeout(12000)});if(!response.ok)throw Error('HTTP '+response.status);}
+  catch(error){response=await cache.match(manifestUrl);if(!response)throw Error('发布清单加载失败，请确认GitHub Pages已部署；'+error.message);}
+  const text=await response.text();if(text.length>2000000)throw Error('发布清单过大');const manifest=JSON.parse(text),info=manifest.files?.['distribution.js'];
+  if(!info||!Number.isSafeInteger(info.bytes)||info.bytes<=0||info.bytes>20000000||!/^[a-f0-9]{64}$/.test(info.sha256))throw Error('发布清单缺少有效启动器');
+  await cache.put(manifestUrl,new Response(text,{headers:{'Content-Type':'application/json'}}));
+  if(!window.BookseaDistribution){
+   const sourceCache=await caches.open('protelysion-resources-v1'),key='https://protelysion-cache.invalid/sha256/'+info.sha256;let saved=await sourceCache.match(key),bytes=saved?await saved.arrayBuffer():null;
+   if(!bytes||bytes.byteLength!==info.bytes||await sha(bytes)!==info.sha256){const r=await fetch(new URL('distribution.js',base),{credentials:'omit',signal:AbortSignal.timeout(60000)});if(!r.ok)throw Error('启动器下载失败 HTTP '+r.status);bytes=await r.arrayBuffer();if(bytes.byteLength!==info.bytes||await sha(bytes)!==info.sha256)throw Error('启动器校验失败，拒绝执行');await sourceCache.put(key,new Response(bytes,{headers:{'Content-Type':'application/javascript','Content-Length':String(info.bytes),'X-Protelysion-SHA256':info.sha256}}));}
+   await new Promise((resolve,reject)=>{const script=document.createElement('script'),u=URL.createObjectURL(new Blob([bytes],{type:'application/javascript'}));script.src=u;let done=false;
+    const finish=error=>{if(done)return;done=true;clearTimeout(timer);script.onload=null;script.onerror=null;URL.revokeObjectURL(u);if(error){script.remove();reject(error);}else resolve();};
+    const timer=setTimeout(()=>finish(Error('启动器执行超时')),30000);script.onload=()=>finish();script.onerror=()=>finish(Error('启动器执行失败'));document.head.append(script);});
+  }
+  if(typeof window.BookseaDistribution?.boot!=='function')throw Error('外链不是有效书海运行包');
+  await window.BookseaDistribution.boot(root,{base,manifest,mode});status.textContent='';
+ }catch(e){status.textContent='书页暂时没能展开，请重试。';retry.hidden=false;}finally{busy=false;}}
+ retry.onclick=start;start();
+})();`;
+ return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 书海迷宫</title><style>'+css+'a{color:#d8c294}progress{accent-color:#d6bf8e}button{touch-action:manipulation}</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>再试一次</button><div id="booksea-game"></div></main><script>'+boot.replace(/<\/script/gi,'<\\/script')+'<\/script></html>';
+}
+export function makeExternalRegex(base,template,css=''){
+ return {...template,scriptName:'普罗泰利西翁-书海迷宫-外链加载',disabled:false,replaceString:'```html\n'+makeExternalHtml(base,css,'host')+'\n```'};
+}
+/** Local lab uses its own origin, including Helper srcdoc frames with an inherited base URI. */
+export function makeLocalRegex(template,css=''){
+ const item=makeExternalRegex('http://localhost/booksea-release/',template,css);
+ item.scriptName='普罗泰利西翁-书海迷宫-本机缓存加载';
+ item.replaceString=item.replaceString.replace('"http://localhost/booksea-release/"',"new URL('/booksea-release/',document.baseURI).href").replaceAll('href="http://localhost/booksea-release/','href="/booksea-release/');
+ return item;
+}
