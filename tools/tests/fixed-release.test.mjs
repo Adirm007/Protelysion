@@ -77,7 +77,7 @@ test('embedded pin loads without release discovery, and scopes cache to reposito
 test('equal-size altered root and equal-size altered script never execute',async()=>{
  for(const target of ['release-manifest.json','distribution.js']){
   const f=fixture({mutate:(name,bytes)=>{if(name!==target)return bytes;const bad=Buffer.from(bytes);bad[5]^=1;return bad;}});
-  await f.run();assert.equal(f.boots.length,0);assert.match(f.elements['loader-status'].textContent,/不会改用最新版/);assert.equal(f.elements['loader-retry'].hidden,false);
+  await f.run();assert.equal(f.boots.length,0);assert.equal(f.elements['loader-status'].textContent,'书页暂时没能展开，请重试。');assert.equal(f.elements['loader-retry'].hidden,false);
  }
 });
 test('mirror retries remain at the same complete commit',async()=>{
@@ -86,7 +86,7 @@ test('mirror retries remain at the same complete commit',async()=>{
 test('verified offline cache is usable; poisoned cached root is rejected',async()=>{
  const f=fixture();await f.run();const network=f.requests.length;f.state.offline=true;await f.run();assert.equal(f.boots.length,2);assert.equal(f.requests.length,network);
  const cache=[...f.cacheMap.values()][0];await cache.put('https://protelysion-fixed-cache.invalid/'+f.metadata.manifestSha256,new Response('poison'));
- await f.run();assert.equal(f.boots.length,2);assert.match(f.elements['loader-status'].textContent,/不会改用最新版/);
+ await f.run();assert.equal(f.boots.length,2);assert.equal(f.elements['loader-status'].textContent,'书页暂时没能展开，请重试。');
 });
 test('changing only the numeric VERSION resolves that exact immutable version and changes cache namespace',async()=>{
  const f=fixture();await f.run('0.43.0');assert.equal(f.resolutions.length,1);assert.equal(f.resolutions[0].version,'0.43.0');assert.equal(f.boots[0].fixedRelease.version,'0.43.0');assert.ok(f.cacheNames[0].includes(':0.43.0:'));
@@ -96,7 +96,7 @@ test('LAN HTTP uses full software SHA-256 and persistent IndexedDB bytes, includ
  f.state.offline=true;await f.run();assert.equal(f.boots.length,2);
  const storage=await f.sandbox.DreamFixedCacheStorage.open('protelysion-fixed-v1:'+f.metadata.repository+':'+f.metadata.version+':'+f.metadata.manifestSha256+':bootstrap');
  await storage.put('https://protelysion-fixed-cache.invalid/'+f.metadata.manifestSha256,new Response('poison'));
- await f.run();assert.equal(f.boots.length,2);assert.match(f.elements['loader-status'].textContent,/不会改用最新版/);
+ await f.run();assert.equal(f.boots.length,2);assert.equal(f.elements['loader-status'].textContent,'书页暂时没能展开，请重试。');
  assert.ok((await storage.keys()).every(request=>request instanceof Request));
 });
 test('generated regex has one portable marker, a dedicated id, editable VERSION, and both local helper modules',()=>{

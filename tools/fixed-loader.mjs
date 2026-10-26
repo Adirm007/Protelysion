@@ -13,7 +13,7 @@ export async function bootFixedRelease(version,embedded){
   try{
    if(!window.DreamFixedReleaseClient?.sha256||!window.DreamFixedCacheStorage)throw Error('缺少固定版校验与缓存模块。');
    if(!/^\d{1,8}(?:\.\d{1,8}){1,5}$/.test(version))throw Error('请填写完整数字版本号，例如 0.42.1。');
-   status.textContent='正在核验固定版本 '+version+'……';
+   status.textContent='书页正在展开……';
    const release=version===embedded.version?embedded:(await window.DreamFixedReleaseClient.resolve(embedded.repository,version)).metadata;
    if(release.schema!==1||release.repository!=='Adirm007/Protelysion'||release.version!==version||!/^[a-f0-9]{40}$/.test(release.sourceCommit)||!/^[a-f0-9]{64}$/.test(release.manifestSha256))throw Error('此版本的固定加载协议不兼容，请重新导入该版本正则。');
    const scope='protelysion-fixed-v1:'+release.repository+':'+release.version+':'+release.manifestSha256;
@@ -62,7 +62,7 @@ export async function bootFixedRelease(version,embedded){
    if(typeof window.BookseaDistribution?.boot!=='function')throw Error('此版本不是有效的书海运行包。');
    await window.BookseaDistribution.boot(root,{base:bases[0],manifest,mode:'host',fixedRelease:release});
    status.textContent='';
-  }catch(error){status.textContent=String(error?.message??error);retry.hidden=false;}
+  }catch(error){status.textContent='书页暂时没能展开，请重试。';retry.hidden=false;}
   finally{busy=false;}
  }
  retry.onclick=start;
@@ -77,7 +77,7 @@ export function makeFixedRegex({metadata,template,css='',releaseClientSource,cac
  const escapeScript=source=>source.replace(/<\/script/gi,'<\\/script');
  const html='<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'+
   '<!-- FIXED_RELEASE:'+JSON.stringify(metadata)+' -->'+
-  '<title>普罗泰利西翁 · 固定版 '+metadata.version+'</title><style>'+css+'</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>重试此版本</button><div id="booksea-game"></div></main><script>'+escapeScript(releaseClientSource+'\n'+cacheSource)+
+  '<title>普罗泰利西翁 · 书海迷宫</title><style>'+css+'</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>再试一次</button><div id="booksea-game"></div></main><script>'+escapeScript(releaseClientSource+'\n'+cacheSource)+
   '\n// 只修改 VERSION 的数字即可切换到已发布的固定版本；此操作会核验对应不可变 Release。\nconst VERSION = '+JSON.stringify(metadata.version)+';\nconst PIN = '+JSON.stringify(metadata)+';\n('+bootFixedRelease.toString()+')(VERSION,PIN);</script></html>';
  const item={...template,id:FIXED_REGEX_ID,scriptName:'普罗泰利西翁-书海迷宫-固定版 v'+metadata.version,findRegex:String.raw`/<booksea-game>「?((?:[^<]|<(?!booksea-game\b|/booksea-game>))*?)」?</booksea-game>/g`,disabled:false,replaceString:'```html\n'+html+'\n```'};
  delete item.fixedRelease;
