@@ -1,6 +1,6 @@
 {
   "name": "booksea-stage0",
-  "version": "0.42.0",
+  "version": "0.42.1",
   "private": true,
   "type": "module",
   "description": "普罗泰利西翁（书海迷宫）：夜梦书间界面、角色能力档案与同阶能力转化",

@@ -11,7 +11,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.42.0-20261009-supplier-memory';
+const revision='protelysion-0.42.1-20261027-skill-display';
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
 const template=JSON.parse(await readFile(path.join(project,'17-宿主可玩联调/entry-template.json'),'utf8'));
@@ -96,7 +96,7 @@ jobs:
 await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.41.1 · 2026-10-08 守关敌群遭遇未展开修复**
+**版本：0.42.1 · 2026-10-27 技能效果显示修复**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
@@ -112,6 +112,19 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 4. **读者大厅 → 彩蛋设置 → 进入普罗泰利西翁**。有草稿时先保存；按钮只填入并发送“进入普罗泰利西翁”。也可自行写过渡剧情：沿用原读者膝枕模块的matchChatMessages方法匹配用户输入，只要包含“进入普罗泰利西翁”就触发，前后可自由加文字或换行。触发后的EJS负责场景和入口标签，正则随即加载游戏。离场时用户消息同样仅为“离开普罗泰利西翁”，结算事实和防重复标识通过消息元数据交接。
 5. 首次选择“完整下载”或“轻装启程”；之后直接进入书间。完整模式预先保存全部音频，轻装模式在首次播放时下载音频。
 6. 勾选1—4名同行者，点击“整备队伍”；每张角色卡上的“角色详情”可查看实际属性、技能、费用和转换结果。也可直接“进入书海”，程序会先整备尚未就绪的成员。旧远征保留原快照，不清空角色或聊天。
+
+## 0.42.1 技能效果显示修复
+
+- 状态显示原名与实际控制限制，修复石化、击倒、缴械、变形、禁动等显示为 Unknown/undefined。
+- 领域、形态、召唤、反击、命中附效、周期与触发效果，以及条件、检定和随机分支均展开具体效果。
+- 战况状态详情读取状态所属效果库。关闭旧游戏窗口，刷新后重新进入即可使用新显示，无需重新整备角色或清空存档。
+
+## 0.42.0 补给员长期记忆
+
+- 补给员会记住你：称呼、约定、玩笑，以及在哪层见过、买过什么、远征结局。记忆跟着当前聊天走，存在聊天变量里，不随楼层回退。
+- 在补给员面前「杀害」会立刻清空全部记忆，换下一任补给员；也可在记忆面板里手动清空或对单条「忘掉」。
+- 设置入口：启程之前 → 齿轮「设置」→ 书间设置 →「补给员的记忆」→「记忆与接口」。可选配置向量检索（Embedding）、重排（Rerank）和记忆整理模型，支持一键填写硅基流动；不配也能用（退回关键词检索）。API 密钥只存在本机浏览器，不写进聊天存档。
+- 详见 \`docs/supplier-memory-guide.md\`。
 
 ## 0.41.1 守关敌群遭遇未展开修复
 
@@ -334,7 +347,7 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 \`\`\`bash
 git init -b main
 git add .
-git commit -m "Release Protelysion 0.41.1"
+git commit -m "Release Protelysion 0.42.1"
 git remote add origin https://github.com/Adirm007/Protelysion.git
 git push -u origin main
 \`\`\`
@@ -358,7 +371,7 @@ PCK与WASM无损gzip并按最多16 MiB分片，低于GitHub单文件限制；浏
 `;
 await writeFile(path.join(repo,'README.md'),instructions.replaceAll('\\`','`'));
 await mkdir(path.join(repo,'docs'),{recursive:true});
-for(const name of ['mcp-rpg-ui-022-20260922.md','mcp-controls-mobile-rollback-023-20260922.md','mcp-seven-fixes-024-20260923.md','mcp-exit-mimic-0241-20260923.md','mcp-supplier-0242-20260923.md','mcp-dialogue-battle-audio-0243-20260924.md','mcp-p5-map-optimization-report.md'])await copyFile(path.join(project,'docs',name),path.join(repo,'docs',name));
+for(const name of ['mcp-rpg-ui-022-20260922.md','mcp-controls-mobile-rollback-023-20260922.md','mcp-seven-fixes-024-20260923.md','mcp-exit-mimic-0241-20260923.md','mcp-supplier-0242-20260923.md','mcp-dialogue-battle-audio-0243-20260924.md','mcp-p5-map-optimization-report.md','mcp-skill-display-20261027.md'])await copyFile(path.join(project,'docs',name),path.join(repo,'docs',name));
 const readerCore=await currentReaderCore();
 // 本地导入的读者核心可能被作者手动修改过：只有文件不存在、或自上次生成后未被改动时才覆盖；发布仓库 install/ 始终写入生成版。
 const importCore=path.join(imports,'读者核心本体 (new).txt'),importStamp=path.join(project,'09-实现/verification/reader-core-import.sha256');
