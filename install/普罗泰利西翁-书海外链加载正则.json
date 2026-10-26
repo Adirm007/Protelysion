@@ -3,7 +3,7 @@
   "scriptName": "普罗泰利西翁-书海迷宫-外链加载",
   "disabled": false,
   "runOnEdit": true,
-  "findRegex": "/<booksea-game>进入<\\/booksea-game>/g",
+  "findRegex": "/<booksea-game>「?((?:[^<]|<(?!booksea-game\\b|/booksea-game>))*?)」?</booksea-game>/g",
   "trimStrings": [],
   "placement": [
     2

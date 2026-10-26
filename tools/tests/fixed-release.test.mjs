@@ -9,10 +9,31 @@ import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {bootFixedRelease,makeFixedRegex,FIXED_REGEX_ID} from '../fixed-loader.mjs';
 import {buildFixedRelease} from '../build-fixed-release.mjs';
+import {makeExternalRegex} from '../../dev-src/09-实现/scripts/public-loader.mjs';
 const require=createRequire(new URL('../../dev-src/09-实现/package.json',import.meta.url));
 const {IDBFactory}=require('fake-indexeddb');
 const clientSource=await readFile(new URL('../fixed-release-client.js',import.meta.url),'utf8');
 const cacheSource=await readFile(new URL('../fixed-cache.js',import.meta.url),'utf8');
+const EXPECTED_BOOKSEA_REGEX=String.raw`/<booksea-game>「?((?:[^<]|<(?!booksea-game\b|/booksea-game>))*?)」?</booksea-game>/g`;
+test('published installers and both generators use the author-specified complete booksea expression',async()=>{
+ const installed=JSON.parse(await readFile(new URL('../../install/普罗泰利西翁-书海外链加载正则.json',import.meta.url),'utf8'));
+ assert.equal(installed.findRegex,EXPECTED_BOOKSEA_REGEX);
+ const external=makeExternalRegex('https://adirm007.github.io/Protelysion/',{findRegex:'/old/g'});
+ assert.equal(external.findRegex,EXPECTED_BOOKSEA_REGEX);
+ const f=fixture(),fixed=makeFixedRegex({metadata:f.metadata,template:{findRegex:'/old/g'},releaseClientSource:clientSource,cacheSource});
+ assert.equal(fixed.findRegex,EXPECTED_BOOKSEA_REGEX);
+ const page=await readFile(new URL('../../site/loader.html',import.meta.url),'utf8');
+ const generator=page.slice(page.indexOf('<script>')+8,page.indexOf('\nconst template='));
+ const context=vm.createContext({URL});vm.runInContext(generator,context);
+ assert.equal(context.makeExternalRegex('https://adirm007.github.io/Protelysion/',{findRegex:'/old/g'}).findRegex,EXPECTED_BOOKSEA_REGEX);
+ const last=EXPECTED_BOOKSEA_REGEX.lastIndexOf('/'),compile=()=>new RegExp(EXPECTED_BOOKSEA_REGEX.slice(1,last),EXPECTED_BOOKSEA_REGEX.slice(last+1));
+ for(const body of ['进入','「进入」','正文\n<a>其他标签</a>\n换行']){
+  const found=[...('<booksea-game>'+body+'</booksea-game>').matchAll(compile())];assert.equal(found.length,1);assert.equal(found[0][1],body==='「进入」'?'进入':body);
+ }
+ const two=[...'<booksea-game>第一段</booksea-game>之间<booksea-game>「第二段」</booksea-game>'.matchAll(compile())];
+ assert.deepEqual(two.map(m=>m[1]),['第一段','第二段']);
+ assert.equal([...'<booksea-gamex>错误标签</booksea-gamex>'.matchAll(compile())].length,0);
+});
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 class MemoryCache {
  data=new Map();
@@ -80,7 +101,7 @@ test('LAN HTTP uses full software SHA-256 and persistent IndexedDB bytes, includ
 });
 test('generated regex has one portable marker, a dedicated id, editable VERSION, and both local helper modules',()=>{
  const f=fixture(),regex=makeFixedRegex({metadata:f.metadata,template:{id:'legacy',findRegex:'/x/g'},releaseClientSource:clientSource,cacheSource});
- assert.equal(regex.id,FIXED_REGEX_ID);assert.equal(regex.findRegex,'/x/g');assert.equal((regex.replaceString.match(/<!-- FIXED_RELEASE:\{[^\r\n]*?\} -->/g)||[]).length,1);assert.ok(regex.replaceString.includes('const VERSION = "0.42.1";'));
+ assert.equal(regex.id,FIXED_REGEX_ID);assert.equal(regex.findRegex,EXPECTED_BOOKSEA_REGEX);assert.equal((regex.replaceString.match(/<!-- FIXED_RELEASE:\{[^\r\n]*?\} -->/g)||[]).length,1);assert.ok(regex.replaceString.includes('const VERSION = "0.42.1";'));
  assert.equal(Object.hasOwn(regex,'fixedRelease'),false);
  assert.equal(f.client.metadata(regex,'Adirm007/Protelysion').sourceCommit,f.metadata.sourceCommit);
  const edited={replaceString:regex.replaceString.replace('const VERSION = "0.42.1"','const VERSION = "0.43.0"')};

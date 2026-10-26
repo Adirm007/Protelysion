@@ -32,7 +32,7 @@ export function makeExternalHtml(base,css='',mode='host'){
  return '<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 书海迷宫</title><style>'+css+'a{color:#d8c294}progress{accent-color:#d6bf8e}button{touch-action:manipulation}</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>再试一次</button><div id="booksea-game"></div></main><script>'+boot.replace(/<\/script/gi,'<\\/script')+'<\/script></html>';
 }
 export function makeExternalRegex(base,template,css=''){
- return {...template,scriptName:'普罗泰利西翁-书海迷宫-外链加载',disabled:false,replaceString:'```html\n'+makeExternalHtml(base,css,'host')+'\n```'};
+ return {...template,scriptName:'普罗泰利西翁-书海迷宫-外链加载',findRegex:String.raw`/<booksea-game>「?((?:[^<]|<(?!booksea-game\b|/booksea-game>))*?)」?</booksea-game>/g`,disabled:false,replaceString:'```html\n'+makeExternalHtml(base,css,'host')+'\n```'};
 }
 /** Local lab uses its own origin, including Helper srcdoc frames with an inherited base URI. */
 export function makeLocalRegex(template,css=''){
