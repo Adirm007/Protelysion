@@ -8,6 +8,7 @@
 
 - 独立试玩：https://adirm007.github.io/Protelysion/ （不会读写宿主，不调用LLM）
 - 单正则安装：https://adirm007.github.io/Protelysion/loader.html
+- 数字固定版：正式发行后从 GitHub 对应 `v<数字版本>` 的不可变 Release 下载 `protelysion-fixed.regex.json`。固定版刷新不会升级，可手动修改正则内的 VERSION，或在读者固定版中检查并确认更新。固定版与自动跟随版只启用一份。[发行与安全说明](docs/fixed-releases.md)。
 - `install/`：已更新的读者正则、读者核心和书海外链正则。必须已有酒馆助手、MVU及EJS提示词模板扩展。
 
 1. 导入`读者对话渲染0917 (new).json`，替换/停用原读者正则，不同时启用两版。

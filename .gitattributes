@@ -3,3 +3,6 @@ game.pck.gz.* binary
 *.ogg binary
 *.mp3 binary
 *.wav binary
+site/distribution.js text eol=lf
+site/release-manifest.json text eol=lf
+install/protelysion-fixed.regex.json -text

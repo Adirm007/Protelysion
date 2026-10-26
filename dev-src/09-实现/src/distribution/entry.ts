@@ -1,12 +1,13 @@
 import {mountHostGame} from '../host-game-entry';
-import {ResourceStore,RESOURCE_CACHE,type ReleaseManifest} from './resource-cache';
+import {ResourceStore,type ReleaseManifest} from './resource-cache';
+import type {FixedRelease} from './fixed-release';
 import {mountExpeditionRuntime} from '../game/runtime';
 import {playtestParty} from '../game/content';
 import {startExpedition} from '../game/expedition';
 import {installPlayerTheme,shellHeader,hero,modalFrame,bindModal,icons} from '../ui/theme';
 import {mountNarrativePanel} from './narrative-panel';
 const mb=(n:number)=>(n/1000000).toFixed(1)+' MB';
-type BootConfig={base:string;manifest:ReleaseManifest;mode?:'host'|'standalone'};
+type BootConfig={base:string;manifest:ReleaseManifest;mode?:'host'|'standalone';fixedRelease?:FixedRelease};
 export async function boot(root:HTMLElement,config:BootConfig,win:Window=window):Promise<{dispose():void;store?:ResourceStore}>{
  installPlayerTheme(root);root.parentElement?.querySelector(':scope > footer')?.remove();
  const globals=win as any;
@@ -16,7 +17,7 @@ export async function boot(root:HTMLElement,config:BootConfig,win:Window=window)
  return bootPortal(root,config,win,false);
 }
 async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResume:boolean){
- const base=new URL(config.base),store=await ResourceStore.open(win,base,config.manifest),globals=win as any;
+ const base=new URL(config.base),store=await ResourceStore.open(win,base,config.manifest,config.fixedRelease),globals=win as any;
  root.innerHTML=`<section id="resource-setup" class="bs-portal">${shellHeader('夜梦的书间',`<button id="resource-options" class="bs-icon-button" title="设置" aria-label="设置">${icons.gear}</button>`)}${hero('将零散的书页钉在一起，看上去乱七八糟的无限迷宫。<br>向你和命定之人开放的训练场','普罗泰利西翁',false,true)}
  <div class="bs-resource-card"><div class="bs-card-title"><div>${icons.spark}<h2>启程准备</h2></div><span id="resource-percent" class="bs-percent">0%</span></div><progress id="resource-progress" max="1" value="0" aria-label="下载进度"></progress><div class="bs-download-info"><span id="resource-status" role="status">准备中</span><span id="resource-count"></span></div><div class="bs-download-options"><button id="download-all" class="bs-option bs-primary"><span><strong>完整下载</strong><small id="all-size"></small></span>${icons.arrow}</button><button id="download-core" class="bs-option"><span><strong>轻装启程</strong><small id="core-size"></small></span>${icons.arrow}</button></div></div>
  <footer class="bs-footer"><span>ADIRM007</span><a id="resource-credits" target="_blank" rel="noopener">制作名单</a></footer></section><section id="distribution-game" hidden></section>
@@ -48,7 +49,7 @@ async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResu
  }
  el('download-all').onclick=()=>void launch(false);el('download-core').onclick=()=>void launch(true);
  const clear=el('resource-clear') as HTMLButtonElement;let confirmUntil=0;
- clear.onclick=()=>{if(busy){el('resource-menu-status').textContent='请等这次下载完成。';return;}if(Date.now()>confirmUntil){confirmUntil=Date.now()+10000;clear.textContent='再次点击确认';el('resource-menu-status').textContent='不会删除你的旅程。';return;}confirmUntil=0;clear.disabled=true;void win.caches.delete(RESOURCE_CACHE).then(()=>{clear.textContent='已清理';el('resource-menu-status').textContent='下次进入时重新下载。';el('storage-size').textContent='已清理下载';}).catch(()=>{clear.disabled=false;clear.textContent='清理下载';el('resource-menu-status').textContent='暂时未能清理，请再试一次。';});};
+ clear.onclick=()=>{if(busy){el('resource-menu-status').textContent='请等这次下载完成。';return;}if(Date.now()>confirmUntil){confirmUntil=Date.now()+10000;clear.textContent='再次点击确认';el('resource-menu-status').textContent='不会删除你的旅程。';return;}confirmUntil=0;clear.disabled=true;void store.cacheStorage.delete(store.cacheName).then(()=>{clear.textContent='已清理';el('resource-menu-status').textContent='下次进入时重新下载。';el('storage-size').textContent='已清理下载';}).catch(()=>{clear.disabled=false;clear.textContent='清理下载';el('resource-menu-status').textContent='暂时未能清理，请再试一次。';});};
  let preferCore=false;try{preferCore=win.localStorage.getItem('protelysion-resource-mode')==='core';}catch{}
  if(all.cachedFiles===all.files)await launch(false);else if(preferCore&&core.cachedFiles===core.files)await launch(true);
  win.addEventListener('pagehide',()=>{cleanup();store.dispose();},{once:true});
