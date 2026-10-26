@@ -81,7 +81,10 @@ test('LAN HTTP uses full software SHA-256 and persistent IndexedDB bytes, includ
 test('generated regex has one portable marker, a dedicated id, editable VERSION, and both local helper modules',()=>{
  const f=fixture(),regex=makeFixedRegex({metadata:f.metadata,template:{id:'legacy',findRegex:'/x/g'},releaseClientSource:clientSource,cacheSource});
  assert.equal(regex.id,FIXED_REGEX_ID);assert.equal(regex.findRegex,'/x/g');assert.equal((regex.replaceString.match(/<!-- FIXED_RELEASE:\{[^\r\n]*?\} -->/g)||[]).length,1);assert.ok(regex.replaceString.includes('const VERSION = "0.42.1";'));
+ assert.equal(Object.hasOwn(regex,'fixedRelease'),false);
  assert.equal(f.client.metadata(regex,'Adirm007/Protelysion').sourceCommit,f.metadata.sourceCommit);
+ const edited={replaceString:regex.replaceString.replace('const VERSION = "0.42.1"','const VERSION = "0.43.0"')};
+ assert.equal(f.client.fromInstalled(edited,'Adirm007/Protelysion').version,'0.43.0');
  assert.throws(()=>makeFixedRegex({metadata:{...f.metadata,sourceCommit:'main'},template:{},releaseClientSource:clientSource,cacheSource}));
 });
 test('builder reads committed root and runtime bytes, ignores dirty files, and refuses mutable refs and unpatched runtimes',async()=>{

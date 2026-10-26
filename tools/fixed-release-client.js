@@ -62,18 +62,22 @@
     var result=await get('https://api.github.com/'+path,6000000);
     return {value:JSON.parse(new TextDecoder().decode(result.bytes)),response:result.response};
   }
-  function project(repository) { if(!PROJECTS[repository])throw Error('不支持的更新仓库');return PROJECTS[repository]; }
+  function project(repository) { if(typeof repository!=='string'||!Object.prototype.hasOwnProperty.call(PROJECTS,repository))throw Error('不支持的更新仓库');return PROJECTS[repository]; }
   function metadata(regex, repository, version) {
     project(repository);
     if(!regex||typeof regex.replaceString!=='string'||regex.replaceString.length>4000000)throw Error('固定版正则格式无效');
     var markers=regex.replaceString.match(/<!-- FIXED_RELEASE:\{[^\r\n]*?\} -->/g)||[];
     if(markers.length!==1)throw Error('固定版标记缺失或重复');
     var m=JSON.parse(markers[0].slice('<!-- FIXED_RELEASE:'.length,-' -->'.length));
-    if(m.schema!==1||m.repository!==repository||!VERSION.test(m.version)||!HEX40.test(m.sourceCommit)||!HEX64.test(m.manifestSha256)||version&&m.version!==version)throw Error('固定版标记与发布版本不一致');
+    if(m.schema!==1||m.repository!==repository||typeof m.version!=='string'||!VERSION.test(m.version)||typeof m.sourceCommit!=='string'||!HEX40.test(m.sourceCommit)||typeof m.manifestSha256!=='string'||!HEX64.test(m.manifestSha256)||version&&m.version!==version)throw Error('固定版标记与发布版本不一致');
     return Object.freeze({schema:1,repository:m.repository,version:m.version,sourceCommit:m.sourceCommit,manifestSha256:m.manifestSha256});
   }
   function fromInstalled(regex, repository) {
-    return metadata({replaceString:regex.replace_string||regex.replaceString},repository);
+    var text=regex.replace_string||regex.replaceString, m=metadata({replaceString:text},repository);
+    var selected=text.match(/\bconst VERSION\s*=\s*["'](\d{1,8}(?:\.\d{1,8}){1,5})["']/g)||[];
+    if(selected.length!==1)throw Error('固定版 VERSION 设置缺失或重复');
+    var version=selected[0].match(/["']([^"']+)["']/)[1];
+    return Object.freeze(Object.assign({},m,{version:version}));
   }
   function checkRelease(repository, release, version) {
     var p=project(repository), tag=release&&release.tag_name;
@@ -109,7 +113,7 @@
         var file=await get(urls[i],4000000);
         if(file.bytes.byteLength!==artifact.size||await sha256(file.bytes)!==artifact.digest.slice(7))throw Error('固定版附件 SHA-256 校验失败');
         var regex=JSON.parse(new TextDecoder().decode(file.bytes)), m=metadata(regex,repo,checked.version);
-        return {metadata:m,regex:regex,release:checked.release};
+        return {metadata:m,regex:regex,release:checked.release,bytes:file.bytes};
       }catch(e){failures.push(String(e&&e.message||e));}
     }
     throw Error('无法取得已校验的固定版正则：'+failures.join('；'));

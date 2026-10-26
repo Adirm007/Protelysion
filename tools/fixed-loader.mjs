@@ -79,5 +79,7 @@ export function makeFixedRegex({metadata,template,css='',releaseClientSource,cac
   '<!-- FIXED_RELEASE:'+JSON.stringify(metadata)+' -->'+
   '<title>普罗泰利西翁 · 固定版 '+metadata.version+'</title><style>'+css+'</style><main><p id="loader-status" role="status"></p><button id="loader-retry" hidden>重试此版本</button><div id="booksea-game"></div></main><script>'+escapeScript(releaseClientSource+'\n'+cacheSource)+
   '\n// 只修改 VERSION 的数字即可切换到已发布的固定版本；此操作会核验对应不可变 Release。\nconst VERSION = '+JSON.stringify(metadata.version)+';\nconst PIN = '+JSON.stringify(metadata)+';\n('+bootFixedRelease.toString()+')(VERSION,PIN);</script></html>';
- return {...template,id:FIXED_REGEX_ID,scriptName:'普罗泰利西翁-书海迷宫-固定版 v'+metadata.version,disabled:false,fixedRelease:metadata,replaceString:'```html\n'+html+'\n```'};
+ const item={...template,id:FIXED_REGEX_ID,scriptName:'普罗泰利西翁-书海迷宫-固定版 v'+metadata.version,disabled:false,replaceString:'```html\n'+html+'\n```'};
+ delete item.fixedRelease;
+ return item;
 }

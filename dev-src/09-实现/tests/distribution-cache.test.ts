@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {ResourceStore,validateManifest,cacheKey,digest,type ReleaseManifest} from '../src/distribution/resource-cache';
+import {ResourceStore,validateManifest,cacheKey,digest,RESOURCE_CACHE,type ReleaseManifest} from '../src/distribution/resource-cache';
 import {fixedReleaseBases,fixedReleaseScope,type FixedRelease} from '../src/distribution/fixed-release';
 const hash=(b:Uint8Array)=>createHash('sha256').update(b).digest('hex');
 class MemoryCache {
@@ -72,14 +72,14 @@ test('fixed resource downloads reject equal-size corruption and fall back only t
  const a=setup(),urls:string[]=[];
  a.win.fetch=async(input:URL)=>{const url=String(input);urls.push(url);const bytes=a.assets['game.wasm']!;return new Response(url.startsWith('https://raw.')?new Uint8Array(bytes.length).fill(99):new Uint8Array(bytes));};
  const store=new ResourceStore(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,a.cache as unknown as Cache,fixedPin);
- assert.deepEqual(await store.read('game.wasm'),a.assets['game.wasm']);assert.equal(urls.length,2);assert.ok(urls.every(url=>url.includes(fixedPin.sourceCommit)));assert.equal(store.cacheName,fixedReleaseScope(fixedPin)+':resources');
+ assert.deepEqual(await store.read('game.wasm'),a.assets['game.wasm']);assert.equal(urls.length,2);assert.ok(urls.every(url=>url.includes(fixedPin.sourceCommit)));assert.equal(store.cacheName,RESOURCE_CACHE);
 });
 test('fixed resource download failure never falls back to main or a previous cached version',async()=>{
  const a=setup(),urls:string[]=[];a.win.fetch=async(input:URL)=>{urls.push(String(input));throw Error('offline');};
  const store=new ResourceStore(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,a.cache as unknown as Cache,fixedPin);
  await assert.rejects(()=>store.read('game.wasm'),/offline/);assert.equal(urls.length,3);assert.ok(urls.every(url=>url.includes(fixedPin.sourceCommit)));assert.equal(a.cache.data.size,0);
 });
-test('LAN HTTP fixed resources use a full digest provider and a version-scoped persistent cache adapter',async()=>{
+test('LAN HTTP fixed resources use a full digest provider and content-addressed persistent cache adapter',async()=>{
  const descriptor=Object.getOwnPropertyDescriptor(globalThis,'crypto')!;
  const clientDescriptor=Object.getOwnPropertyDescriptor(globalThis,'DreamFixedReleaseClient');
  let hashes=0,opened='';const a=setup();
@@ -89,11 +89,22 @@ test('LAN HTTP fixed resources use a full digest provider and a version-scoped p
   a.win.isSecureContext=false;a.win.DreamFixedCacheStorage={open:async(name:string)=>{opened=name;return a.cache;},delete:async()=>true};
   a.win.fetch=async()=>new Response(new Uint8Array(a.assets['game.wasm']!));
   const store=await ResourceStore.open(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,fixedPin);
-  assert.deepEqual(await store.read('game.wasm'),a.assets['game.wasm']);assert.equal(opened,fixedReleaseScope(fixedPin)+':resources');assert.ok(hashes>0);
+  assert.deepEqual(await store.read('game.wasm'),a.assets['game.wasm']);assert.equal(opened,RESOURCE_CACHE);assert.ok(hashes>0);
   assert.equal(await digest(new Uint8Array([1,2,3])),hash(new Uint8Array([1,2,3])));
   delete (globalThis as any).DreamFixedReleaseClient;await assert.rejects(()=>digest(new Uint8Array([1,2,3])),/拒绝跳过校验/);
  }finally{
   Object.defineProperty(globalThis,'crypto',descriptor);
   if(clientDescriptor)Object.defineProperty(globalThis,'DreamFixedReleaseClient',clientDescriptor);else delete (globalThis as any).DreamFixedReleaseClient;
  }
+});
+
+
+test('switching versions reuses unchanged verified large assets but never substitutes a different hash',async()=>{
+ const a=setup();await a.store.read('game.wasm');const count=a.requests.length;
+ const fixed=new ResourceStore(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,a.cache as unknown as Cache,fixedPin);
+ assert.deepEqual(await fixed.read('game.wasm'),a.assets['game.wasm']);assert.equal(a.requests.length,count);
+ const b=setup();const changed=new Uint8Array([9,8,7,6]);b.assets['game.wasm']=changed;b.manifest.files['game.wasm']={bytes:changed.length,sha256:hash(changed)};
+ b.win.fetch=async(input:URL)=>{b.requests.push({url:String(input)});return new Response(changed);};
+ const newer=new ResourceStore(b.win,fixedReleaseBases({...fixedPin,version:'0.43.0'})[0]!,b.manifest,a.cache as unknown as Cache,{...fixedPin,version:'0.43.0'});
+ assert.deepEqual(await newer.read('game.wasm'),changed);assert.equal(b.requests.length,1);
 });

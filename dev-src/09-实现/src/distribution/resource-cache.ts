@@ -1,5 +1,5 @@
 import type {GodotConstructor} from '../host/godot-loader';
-import {fixedReleaseBases,fixedReleaseScope,type FixedRelease} from './fixed-release';
+import {fixedReleaseBases,type FixedRelease} from './fixed-release';
 export const RESOURCE_CACHE='protelysion-resources-v1';
 export type FileInfo={bytes:number;sha256:string};
 export type ReleaseManifest={revision:string;scope:{themes:number;species:number;tierTemplates:number};files:Record<string,FileInfo>;pck:FileInfo;pckParts:string[];wasm?:FileInfo;wasmParts?:string[]};
@@ -50,12 +50,13 @@ export class ResourceStore {
  private downloadedBytes=0;
  private requests=0;
  private cacheHits=0;
+ // Current pinned hashes are always verified; identical large assets remain reusable across editions.
  readonly cacheName:string;
  readonly cacheStorage:Pick<CacheStorage,'open'|'delete'>;
  private bases:URL[];
  constructor(private win:Window,readonly base:URL,manifest:ReleaseManifest,private cache:Cache,fixedRelease?:FixedRelease){
   this.manifest=validateManifest(manifest);this.originalFetch=win.fetch.bind(win);
-  this.cacheName=fixedRelease?fixedReleaseScope(fixedRelease)+':resources':RESOURCE_CACHE;
+  this.cacheName=RESOURCE_CACHE;
   this.cacheStorage=fixedRelease?(win as any).DreamFixedCacheStorage??win.caches:win.caches;
   this.bases=fixedRelease?fixedReleaseBases(fixedRelease):[base];
   if(fixedRelease&&!this.bases.some(candidate=>candidate.href===base.href))throw Error('固定版资源地址必须指向同一完整提交');
@@ -64,7 +65,7 @@ export class ResourceStore {
   if(!fixedRelease&&(!win.isSecureContext||!globalThis.crypto?.subtle||!win.caches))throw Error('资源缓存需要HTTPS或本机localhost，并允许此站点使用浏览器存储。');
   const storage=fixedRelease?(win as any).DreamFixedCacheStorage??win.caches:win.caches;
   if(!storage||(!globalThis.crypto?.subtle&&typeof (globalThis as any).DreamFixedReleaseClient?.sha256!=='function'))throw Error('缺少固定版缓存或完整 SHA-256 校验能力');
-  const cacheName=fixedRelease?fixedReleaseScope(fixedRelease)+':resources':RESOURCE_CACHE;
+  const cacheName=RESOURCE_CACHE;
   let cache:Cache;try{cache=await storage.open(cacheName);}catch{throw Error('浏览器拒绝资源缓存，请允许此站点存储，或退出限制存储的隐私模式后重试。');}
   return new ResourceStore(win,base,manifest,cache,fixedRelease);
  }
