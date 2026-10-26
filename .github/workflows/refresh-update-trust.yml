@@ -1,0 +1,24 @@
+name: Refresh signed update trust
+on:
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: fixed-update-catalog
+  cancel-in-progress: false
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verify and mirror GitHub TUF metadata
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python tools/publish_update_catalog.py Adirm007/Protelysion --refresh-trust --publish

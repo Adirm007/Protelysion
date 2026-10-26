@@ -1,0 +1,3 @@
+verifier.wasm
+*.exe
+__pycache__/

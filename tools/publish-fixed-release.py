@@ -89,7 +89,7 @@ def main():
     git('add', '--', 'install/' + ASSET)
     git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', 'commit', '-m', 'Distribute fixed regex ' + tag)
     distribution_commit = git('rev-parse', 'HEAD')
-    git('-c', 'user.name=github-actions[bot]', '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com', 'tag', '-a', tag, '-m', 'Fixed regex ' + tag)
+    git('tag', tag)
     subprocess.run(['git', '-C', str(ROOT), 'push', 'origin', 'refs/tags/' + tag], env=env, check=True)
     body = f'固定版 {args.version}。源码提交：{source}；分发提交：{distribution_commit}。\n\n默认不会追随 main。根清单 SHA-256：{report["manifestSha256"]}。\n\n附件 SHA-256：{report["sha256"]}。'
     release = api('POST', f'repos/{REPOSITORY}/releases', token, {'tag_name': tag, 'target_commitish': distribution_commit, 'name': '固定版 ' + tag, 'body': body, 'draft': True, 'prerelease': False})
@@ -102,6 +102,10 @@ def main():
     if confirmed.get('immutable') is not True:
         raise RuntimeError('GitHub did not confirm release immutability; do not distribute this release until its status is verified')
     print('Published immutable fixed release: ' + published['html_url'])
+    # The signed proof exists only after publication; a failed catalog push can be retried separately.
+    from publish_update_catalog import fetch_proof, publish_catalog
+    bundle, _ = fetch_proof(REPOSITORY, args.version, token)
+    publish_catalog(REPOSITORY, {args.version: bundle})
 
 
 if __name__ == '__main__':

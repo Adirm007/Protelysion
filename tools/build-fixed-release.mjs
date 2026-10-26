@@ -1,6 +1,6 @@
 import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
-import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {mkdir,writeFile} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath,pathToFileURL} from 'node:url';
 import {makeFixedRegex,validateMetadata} from './fixed-loader.mjs';
@@ -29,8 +29,8 @@ export async function buildFixedRelease({version,commit='HEAD',output,root=repos
  const template=JSON.parse(git(root,'show',sourceCommit+':install/普罗泰利西翁-书海外链加载正则.json').toString('utf8'));
  const css=template.replaceString.match(/<style>([\s\S]*?)<\/style>/i)?.[1]??'';
  const metadata=validateMetadata({schema:1,repository:REPOSITORY,version,sourceCommit,manifestSha256:sha256(manifestBytes)});
- const client=releaseClientSource??await readFile(new URL('./fixed-release-client.js',import.meta.url),'utf8');
- const cache=cacheSource??await readFile(new URL('./fixed-cache.js',import.meta.url),'utf8');
+ const client=releaseClientSource??git(root,'show',sourceCommit+':tools/fixed-release-client.js').toString('utf8');
+ const cache=cacheSource??git(root,'show',sourceCommit+':tools/fixed-cache.js').toString('utf8');
  const regex=makeFixedRegex({metadata,template,css,releaseClientSource:client,cacheSource:cache});
  const bytes=Buffer.from(JSON.stringify(regex,null,2)+'\n');
  const report={...metadata,tag:'v'+version,asset:ASSET_NAME,bytes:bytes.length,sha256:sha256(bytes)};

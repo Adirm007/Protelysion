@@ -51,16 +51,24 @@
     var timer = ctl ? setTimeout(function(){ctl.abort();},20000) : 0;
     try {
       var r = await fetch(url,{credentials:'omit',cache:'no-store',signal:ctl?ctl.signal:undefined});
-      if (!r.ok) throw Error(r.status===403||r.status===429 ? 'GitHub 暂时限流，无法确认更新，请稍后重试' : '下载失败（HTTP '+r.status+'）');
+      if (!r.ok) throw Error('下载失败（HTTP '+r.status+'）');
       var length=Number(r.headers&&r.headers.get('content-length'));
       if (length>limit) throw Error('下载内容超出大小限制');
-      var bytes=await r.arrayBuffer(); if(bytes.byteLength>limit) throw Error('下载内容超出大小限制');
+      var bytes;
+      if(r.body&&typeof r.body.getReader==='function') {
+        var reader=r.body.getReader(),chunks=[],total=0;
+        for(;;) {
+          var part=await reader.read();if(part.done)break;
+          total+=part.value.byteLength;
+          if(total>limit){await reader.cancel();throw Error('下载内容超出大小限制');}
+          chunks.push(part.value);
+        }
+        var joined=new Uint8Array(total),offset=0;
+        chunks.forEach(function(chunk){joined.set(chunk,offset);offset+=chunk.byteLength;});bytes=joined.buffer;
+      }else bytes=await r.arrayBuffer();
+      if(bytes.byteLength>limit) throw Error('下载内容超出大小限制');
       return {bytes:bytes, response:r};
     } finally { if(timer)clearTimeout(timer); }
-  }
-  async function api(path) {
-    var result=await get('https://api.github.com/'+path,6000000);
-    return {value:JSON.parse(new TextDecoder().decode(result.bytes)),response:result.response};
   }
   function project(repository) { if(typeof repository!=='string'||!Object.prototype.hasOwnProperty.call(PROJECTS,repository))throw Error('不支持的更新仓库');return PROJECTS[repository]; }
   function metadata(regex, repository, version) {
@@ -79,51 +87,193 @@
     var version=selected[0].match(/["']([^"']+)["']/)[1];
     return Object.freeze(Object.assign({},m,{version:version}));
   }
-  function checkRelease(repository, release, version) {
-    var p=project(repository), tag=release&&release.tag_name;
-    if(!release||release.immutable!==true||release.draft||release.prerelease||typeof tag!=='string'||tag.charAt(0)!=='v'||!VERSION.test(tag.slice(1))||version&&tag!=='v'+version)throw Error('该版本尚未成为 GitHub 不可变正式发布');
-    var assets=(release.assets||[]).filter(function(a){return a.name===p.asset;});
-    if(assets.length!==1||!/^sha256:[a-f0-9]{64}$/.test(assets[0].digest||'')||!Number.isSafeInteger(assets[0].size)||assets[0].size<=0||assets[0].size>4000000)throw Error('正式发布缺少可验证的固定版附件');
-    var expected='https://github.com/'+repository+'/releases/download/'+tag+'/'+p.asset;
-    if(assets[0].browser_download_url!==expected)throw Error('发布附件地址不属于指定仓库');
-    return {release:release,asset:assets[0],version:tag.slice(1),repository:repository};
+  function versionNumber(version) {
+    if(typeof version!=='string'||!VERSION.test(version))throw Error('版本号格式无效');
+    return version;
+  }
+  async function staticJSON(repository,path,limit) {
+    project(repository);
+    var urls=['https://raw.githubusercontent.com/'+repository+'/fixed-updates/'+path,
+      'https://cdn.jsdelivr.net/gh/'+repository+'@fixed-updates/'+path];
+    var file,failures=[];
+    for(var i=0;i<urls.length;i++) {
+      try{file=await get(urls[i],limit);break;}catch(e){failures.push(String(e&&e.message||e));}
+    }
+    if(!file)throw Error('无法读取更新清单或发布证明：'+failures.join('；'));
+    // A malformed response is a failed check, not permission to select an older catalog.
+    return JSON.parse(new TextDecoder().decode(file.bytes));
+  }
+  async function catalog(repository) {
+    var list=await staticJSON(repository,'index.json',1000000);
+    if(!list||list.schema!==1||list.repository!==repository||!Array.isArray(list.versions)||list.versions.length>10000)throw Error('更新清单格式异常');
+    var seen=Object.create(null),versions=list.versions.map(function(version){
+      versionNumber(version);
+      if(seen[version])throw Error('更新清单版本重复');seen[version]=true;return version;
+    });
+    versions.sort(function(a,b){return compare(b,a);});
+    // Treat semantically equal numeric spellings as ambiguous too (1.2 and 1.2.0).
+    for(var i=1;i<versions.length;i++)if(compare(versions[i-1],versions[i])===0)throw Error('更新清单版本重复');
+    return versions;
+  }
+  /* GITHUB_RELEASE_VERIFY_BEGIN */
+  // Only these immutable dependency bytes can execute. The mutable branch supplies JSON only.
+  var VERIFIER = {"bases":["https://raw.githubusercontent.com/Adirm007/reader/ce0105dbe1754500425aaeaf61bb25721ff482f8/tools/release-verifier/","https://cdn.jsdelivr.net/gh/Adirm007/reader@ce0105dbe1754500425aaeaf61bb25721ff482f8/tools/release-verifier/"],"runtime":{"bytes":16992,"sha256":"0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"},"gzip":{"bytes":7287396,"sha256":"634cd8a21d7cbfa67f92860129e6618f06999b5a20f973dbbe1b1ca9d8d7e4d4"},"wasm":{"bytes":35497677,"sha256":"cf8345dc9208c65af1fae77cad364332ccb809358b2f745abbaf2c9c8df897d8"}};
+  var verifierJob=null, verifierSequence=0;
+  function proofWorker(config, softwareHash) {
+    'use strict';
+    var database;
+    async function db() {
+      if(!self.indexedDB)return null;
+      if(!database)database=new Promise(function(resolve,reject){
+        var request=indexedDB.open('dream-release-verifier-v1',1);
+        request.onupgradeneeded=function(){request.result.createObjectStore('assets');};
+        request.onsuccess=function(){resolve(request.result);};request.onerror=function(){reject(request.error);};
+      });
+      return database;
+    }
+    async function cached(key,value) {
+      try {
+        var store=await db();if(!store)return null;
+        return await new Promise(function(resolve,reject){
+          var tx=store.transaction('assets',value?'readwrite':'readonly'),table=tx.objectStore('assets');
+          var request=value?table.put(value,key):table.get(key);
+          request.onsuccess=function(){if(!value)resolve(request.result);};
+          tx.oncomplete=function(){if(value)resolve(value);};tx.onerror=function(){reject(tx.error);};
+        });
+      }catch(e){return null;}
+    }
+    async function hash(bytes) {
+      if(self.crypto&&self.crypto.subtle){var value=await crypto.subtle.digest('SHA-256',bytes);return Array.from(new Uint8Array(value),function(n){return n.toString(16).padStart(2,'0');}).join('');}
+      return softwareHash(bytes);
+    }
+    async function read(stream,limit) {
+      var reader=stream.getReader(),chunks=[],total=0;
+      for(;;){var next=await reader.read();if(next.done)break;total+=next.value.byteLength;if(total>limit){await reader.cancel();throw Error('下载内容超出大小限制');}chunks.push(next.value);}
+      var out=new Uint8Array(total),offset=0;chunks.forEach(function(chunk){out.set(chunk,offset);offset+=chunk.byteLength;});return out;
+    }
+    async function wasmBytes() {
+      var old=await cached(config.gzip.sha256);
+      if(old&&old.byteLength===config.gzip.bytes&&await hash(old)===config.gzip.sha256)return old;
+      var failure;
+      for(var i=0;i<config.bases.length;i++) {
+        var controller=new AbortController(),timer=setTimeout(function(){controller.abort();},60000);
+        try {
+          var response=await fetch(config.bases[i]+'verifier.wasm.gz',{credentials:'omit',signal:controller.signal});
+          if(!response.ok)throw Error('HTTP '+response.status);
+          var content=Number(response.headers.get('content-length'));if(content>config.gzip.bytes)throw Error('下载内容超出大小限制');
+          var bytes=await read(response.body,config.gzip.bytes);
+          if(bytes.byteLength!==config.gzip.bytes||await hash(bytes)!==config.gzip.sha256)throw Error('更新校验模块 SHA-256 校验失败');
+          await cached(config.gzip.sha256,bytes);return bytes;
+        }catch(e){failure=e;}finally{clearTimeout(timer);}
+      }
+      throw Error('无法加载更新校验模块：'+String(failure&&failure.message||failure));
+    }
+    async function start() {
+      if(typeof DecompressionStream!=='function')throw Error('当前浏览器不支持更新校验，请升级浏览器或手动导入固定版');
+      var compressed=await wasmBytes();
+      var inflated=await read(new Blob([compressed]).stream().pipeThrough(new DecompressionStream('gzip')),config.wasm.bytes);
+      if(inflated.byteLength!==config.wasm.bytes||await hash(inflated)!==config.wasm.sha256)throw Error('更新校验模块 SHA-256 校验失败');
+      var go=new Go(),module=await WebAssembly.instantiate(inflated,go.importObject);
+      go.run(module.instance).catch(function(){self.postMessage({fatal:'更新校验模块已停止'});});
+      if(typeof self.DreamReleaseAttestationVerify!=='function')throw Error('更新校验模块初始化失败');
+      self.onmessage=function(event){
+        try{self.postMessage({id:event.data.id,result:JSON.parse(self.DreamReleaseAttestationVerify(event.data.input))});}
+        catch(e){self.postMessage({id:event.data.id,result:{ok:false,error:String(e&&e.message||e)}});}
+      };
+      self.postMessage({ready:true});
+    }
+    start().catch(function(e){self.postMessage({fatal:String(e&&e.message||e)});});
+  }
+  async function loadVerifier() {
+    if(!verifierJob)verifierJob=(async function(){
+      if(typeof Worker!=='function')throw Error('当前浏览器不支持更新校验，请升级浏览器或手动导入固定版');
+      var runtime;
+      for(var i=0;i<VERIFIER.bases.length;i++) {
+        try {
+          var file=await get(VERIFIER.bases[i]+'wasm_exec.js',VERIFIER.runtime.bytes);
+          if(file.bytes.byteLength!==VERIFIER.runtime.bytes||await sha256(file.bytes)!==VERIFIER.runtime.sha256)throw Error('更新校验模块 SHA-256 校验失败');
+          runtime=new TextDecoder().decode(file.bytes);break;
+        }catch(e){if(i===VERIFIER.bases.length-1)throw e;}
+      }
+      var code=runtime+'\n('+proofWorker.toString()+')('+JSON.stringify(VERIFIER)+','+softwareSHA256.toString()+');';
+      var url=URL.createObjectURL(new Blob([code],{type:'text/javascript'})),worker;
+      try{worker=new Worker(url);}finally{URL.revokeObjectURL(url);}
+      var waiting=new Map(),readyResolve,readyReject;
+      var ready=new Promise(function(resolve,reject){readyResolve=resolve;readyReject=reject;});
+      var timer=setTimeout(function(){stop('更新校验模块加载超时');},150000);
+      function stop(message){clearTimeout(timer);worker.terminate();readyReject(Error(message));waiting.forEach(function(job){clearTimeout(job.timer);job.reject(Error(message));});waiting.clear();verifierJob=null;}
+      worker.onerror=function(){stop('更新校验模块运行失败');};
+      worker.onmessage=function(event){
+        var value=event.data;
+        if(value.fatal){stop(value.fatal);return;}
+        if(value.ready){clearTimeout(timer);readyResolve();return;}
+        var job=waiting.get(value.id);if(job){clearTimeout(job.timer);waiting.delete(value.id);job.resolve(value.result);}
+      };
+      await ready;
+      return function(request){return new Promise(function(resolve,reject){
+        var id=++verifierSequence;
+        var job={resolve:resolve,reject:reject,timer:setTimeout(function(){stop('发布证明校验超时');},30000)};
+        waiting.set(id,job);worker.postMessage({id:id,input:JSON.stringify(request)});
+      });};
+    })().catch(function(e){verifierJob=null;throw e;});
+    return verifierJob;
+  }
+  async function verifyBundle(bundle,repository,version) {
+    var values=await Promise.all([loadVerifier(),staticJSON(repository,'trust.json',2000000)]);
+    var verified=await values[0]({bundle:bundle,trust:values[1],repository:repository,version:version});
+    if(!verified||verified.ok!==true)throw Error('GitHub 发布证明校验失败：'+String(verified&&verified.error||'无法读取证明'));
+    return verified;
+  }
+  /* GITHUB_RELEASE_VERIFY_END */
+  async function proof(repository,version) {
+    project(repository);versionNumber(version);
+    var bundle=await staticJSON(repository,'releases/v'+version+'.json',2000000);
+    var verified=await verifyBundle(bundle,repository,version);
+    if(!verified||verified.repository!==repository||verified.version!==version||typeof verified.distributionCommit!=='string'||!HEX40.test(verified.distributionCommit)||typeof verified.digest!=='string'||!HEX64.test(verified.digest))throw Error('发布证明与指定版本不一致');
+    return Object.freeze({repository:repository,version:version,distributionCommit:verified.distributionCommit,digest:verified.digest});
+  }
+  function rememberLatest(repository,version) {
+    var key='dream_fixed_latest_v1:'+repository;
+    try {
+      var previous=root.localStorage&&root.localStorage.getItem(key);
+      if(typeof previous==='string'&&VERSION.test(previous)&&(!version||compare(previous,version)>0))throw Error('更新清单版本早于已验证版本，请稍后重试');
+    }catch(e){if(e&&e.message==='更新清单版本早于已验证版本，请稍后重试')throw e;}
+    if(version)try{if(root.localStorage)root.localStorage.setItem(key,version);}catch(e){}
   }
   async function latest(repository) {
-    project(repository);var candidates=[];
-    for(var page=1;page<=10;page++) {
-      var result=await api('repos/'+repository+'/releases?per_page=100&page='+page), list=result.value;
-      if(!Array.isArray(list))throw Error('GitHub 发布列表格式异常');
-      list.forEach(function(r){
-        if(r&&r.immutable===true&&!r.draft&&!r.prerelease&&typeof r.tag_name==='string'&&r.tag_name.charAt(0)==='v'&&VERSION.test(r.tag_name.slice(1))) candidates.push(checkRelease(repository,r));
-      });
-      var link=result.response.headers&&result.response.headers.get('link');
-      if(!link||!/<[^>]+>; rel="next"/.test(link)) break;
-      if(page===10)throw Error('发布列表过长，无法完整确认最新版本');
-    }
-    candidates.sort(function(a,b){return compare(b.version,a.version);});
-    return candidates[0]||null;
+    project(repository);var versions=await catalog(repository);
+    if(!versions.length){rememberLatest(repository,null);return null;}
+    var selected=await proof(repository,versions[0]);
+    rememberLatest(repository,selected.version);
+    return selected;
   }
   async function download(selected) {
-    var p=project(selected.repository), checked=checkRelease(selected.repository,selected.release,selected.version);
-    var repo=checked.repository, tag='v'+checked.version, artifact=checked.asset;
-    var urls=[artifact.browser_download_url,'https://raw.githubusercontent.com/'+repo+'/'+tag+'/'+p.path,'https://cdn.jsdelivr.net/gh/'+repo+'@'+tag+'/'+p.path];
+    var p=project(selected&&selected.repository),repo=selected.repository,version=versionNumber(selected.version);
+    // Recheck the signed proof before applying; never trust fields supplied by a catalog or a previous UI snapshot.
+    var checked=await proof(repo,version),tag='v'+version;
+    var urls=['https://github.com/'+repo+'/releases/download/'+tag+'/'+p.asset,
+      'https://raw.githubusercontent.com/'+repo+'/'+checked.distributionCommit+'/'+p.path,
+      'https://cdn.jsdelivr.net/gh/'+repo+'@'+checked.distributionCommit+'/'+p.path];
     var failures=[];
     for(var i=0;i<urls.length;i++) {
       try {
         var file=await get(urls[i],4000000);
-        if(file.bytes.byteLength!==artifact.size||await sha256(file.bytes)!==artifact.digest.slice(7))throw Error('固定版附件 SHA-256 校验失败');
-        var regex=JSON.parse(new TextDecoder().decode(file.bytes)), m=metadata(regex,repo,checked.version);
-        return {metadata:m,regex:regex,release:checked.release,bytes:file.bytes};
+        if(await sha256(file.bytes)!==checked.digest)throw Error('固定版附件 SHA-256 校验失败');
+        var regex=JSON.parse(new TextDecoder().decode(file.bytes)),m=metadata(regex,repo,version);
+        return {metadata:m,regex:regex,release:checked,bytes:file.bytes};
       }catch(e){failures.push(String(e&&e.message||e));}
     }
     throw Error('无法取得已校验的固定版正则：'+failures.join('；'));
   }
-  async function resolve(repository, version) {
+  async function resolve(repository,version) {
     project(repository);
-    if(version!=null&&!VERSION.test(version))throw Error('版本号格式无效');
-    var selected;
-    if(version!=null)selected=checkRelease(repository,(await api('repos/'+repository+'/releases/tags/v'+version)).value,version);
-    else selected=await latest(repository);
+    if(version!=null) {
+      versionNumber(version);
+      var versions=await catalog(repository);
+      if(versions.indexOf(version)<0)throw Error('更新清单中没有该版本');
+      return download({repository:repository,version:version});
+    }
+    var selected=await latest(repository);
     if(!selected)throw Error('仓库尚未发布不可变固定版');
     return download(selected);
   }

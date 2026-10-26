@@ -113,17 +113,20 @@ test('builder reads committed root and runtime bytes, ignores dirty files, and r
  try{
   const git=(...args)=>execFileSync('git',['-C',root,...args],{stdio:'pipe'});
   git('init','-q');git('config','user.name','Fixed test');git('config','user.email','fixed-test@example.invalid');
-  await mkdir(path.join(root,'site'));await mkdir(path.join(root,'install'));
+  await mkdir(path.join(root,'site'));await mkdir(path.join(root,'install'));await mkdir(path.join(root,'tools'));
+  await writeFile(path.join(root,'tools/fixed-release-client.js'),clientSource);await writeFile(path.join(root,'tools/fixed-cache.js'),cacheSource);
   const runtime=Buffer.from('/* protelysion-fixed-v1: */ window.BookseaDistribution={};');
   const manifest={files:{'distribution.js':{bytes:runtime.length,sha256:hash(runtime)}}};
   await writeFile(path.join(root,'site/distribution.js'),runtime);await writeFile(path.join(root,'site/release-manifest.json'),JSON.stringify(manifest));await writeFile(path.join(root,'install/普罗泰利西翁-书海外链加载正则.json'),JSON.stringify({replaceString:'<style>body{color:red}</style>'}));
   git('add','.');git('commit','-qm','fixture');
   const sourceCommit=git('rev-parse','HEAD').toString().trim();await writeFile(path.join(root,'site/release-manifest.json'),'dirty main');
+  await writeFile(path.join(root,'tools/fixed-release-client.js'),'dirty client must not ship');await writeFile(path.join(root,'tools/fixed-cache.js'),'dirty cache must not ship');
   const output=path.join(root,'artifacts/fixed-release');
-  const result=await buildFixedRelease({version:'0.42.1',root,output,releaseClientSource:clientSource,cacheSource});
+  const result=await buildFixedRelease({version:'0.42.1',root,output});
+  assert.ok(result.regex.replaceString.includes('GITHUB_RELEASE_VERIFY_BEGIN'));assert.ok(!result.regex.replaceString.includes('dirty client must not ship'));
   assert.equal(result.metadata.sourceCommit,sourceCommit);assert.equal(result.metadata.manifestSha256,hash(JSON.stringify(manifest)));assert.equal(result.regex.id,FIXED_REGEX_ID);
   await assert.rejects(()=>buildFixedRelease({version:'latest',root}));await assert.rejects(()=>buildFixedRelease({version:'0.42.1',commit:'main',root}));
-  await mkdir(path.join(root,'tools'));await copyFile(new URL('../publish-fixed-release.py',import.meta.url),path.join(root,'tools/publish-fixed-release.py'));
+  await mkdir(path.join(root,'tools'),{recursive:true});await copyFile(new URL('../publish-fixed-release.py',import.meta.url),path.join(root,'tools/publish-fixed-release.py'));
   const plan=JSON.parse(execFileSync(process.env.PYTHON??'python',[path.join(root,'tools/publish-fixed-release.py'),'--version','0.42.1'],{encoding:'utf8'}));
   assert.equal(plan.publish,false);assert.equal(plan.sourceCommitC,sourceCommit);assert.equal(git('tag','--list').toString(),'');assert.equal(git('rev-parse','HEAD').toString().trim(),sourceCommit);
   await writeFile(path.join(output,'protelysion-fixed.regex.json'),'tampered');
