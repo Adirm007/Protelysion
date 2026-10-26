@@ -2,3 +2,5 @@ site/game.pck
 site/game.wasm
 *.tmp
 .DS_Store
+artifacts/
+__pycache__/

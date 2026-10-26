@@ -17,6 +17,7 @@
     "@types/lodash": "4.17.20",
     "@types/node": "22.15.30",
     "esbuild": "0.28.2",
+    "fake-indexeddb": "6.2.4",
     "lodash": "4.18.1",
     "tsx": "4.23.13",
     "typescript": "5.9.3"

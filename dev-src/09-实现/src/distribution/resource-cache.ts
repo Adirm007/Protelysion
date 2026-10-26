@@ -1,4 +1,5 @@
 import type {GodotConstructor} from '../host/godot-loader';
+import {fixedReleaseBases,type FixedRelease} from './fixed-release';
 export const RESOURCE_CACHE='protelysion-resources-v1';
 export type FileInfo={bytes:number;sha256:string};
 export type ReleaseManifest={revision:string;scope:{themes:number;species:number;tierTemplates:number};files:Record<string,FileInfo>;pck:FileInfo;pckParts:string[];wasm?:FileInfo;wasmParts?:string[]};
@@ -22,6 +23,11 @@ export function validateManifest(value:unknown):ReleaseManifest {
 export async function digest(data:ArrayBuffer|Uint8Array):Promise<string>{
  const bytes=data instanceof Uint8Array?data:new Uint8Array(data);
  // Copy to an ArrayBuffer-owned view; SharedArrayBuffer is intentionally not accepted by SubtleCrypto.
+ if(!globalThis.crypto?.subtle){
+  const software=(globalThis as any).DreamFixedReleaseClient?.sha256;
+  if(typeof software!=='function')throw Error('缺少完整 SHA-256 校验能力，拒绝跳过校验');
+  return software(new Uint8Array(bytes));
+ }
  const result=await crypto.subtle.digest('SHA-256',new Uint8Array(bytes));
  return Array.from(new Uint8Array(result),v=>v.toString(16).padStart(2,'0')).join('');
 }
@@ -44,19 +50,37 @@ export class ResourceStore {
  private downloadedBytes=0;
  private requests=0;
  private cacheHits=0;
- constructor(private win:Window,readonly base:URL,manifest:ReleaseManifest,private cache:Cache){this.manifest=validateManifest(manifest);this.originalFetch=win.fetch.bind(win);}
- static async open(win:Window,base:URL,manifest:ReleaseManifest){
-  if(!win.isSecureContext||!globalThis.crypto?.subtle||!win.caches)throw Error('资源缓存需要HTTPS或本机localhost，并允许此站点使用浏览器存储。');
-  let cache:Cache;try{cache=await win.caches.open(RESOURCE_CACHE);}catch{throw Error('浏览器拒绝资源缓存，请允许此站点存储，或退出限制存储的隐私模式后重试。');}
-  return new ResourceStore(win,base,manifest,cache);
+ // Current pinned hashes are always verified; identical large assets remain reusable across editions.
+ readonly cacheName:string;
+ readonly cacheStorage:Pick<CacheStorage,'open'|'delete'>;
+ private bases:URL[];
+ constructor(private win:Window,readonly base:URL,manifest:ReleaseManifest,private cache:Cache,fixedRelease?:FixedRelease){
+  this.manifest=validateManifest(manifest);this.originalFetch=win.fetch.bind(win);
+  this.cacheName=RESOURCE_CACHE;
+  this.cacheStorage=fixedRelease?(win as any).DreamFixedCacheStorage??win.caches:win.caches;
+  this.bases=fixedRelease?fixedReleaseBases(fixedRelease):[base];
+  if(fixedRelease&&!this.bases.some(candidate=>candidate.href===base.href))throw Error('固定版资源地址必须指向同一完整提交');
+ }
+ static async open(win:Window,base:URL,manifest:ReleaseManifest,fixedRelease?:FixedRelease){
+  if(!fixedRelease&&(!win.isSecureContext||!globalThis.crypto?.subtle||!win.caches))throw Error('资源缓存需要HTTPS或本机localhost，并允许此站点使用浏览器存储。');
+  const storage=fixedRelease?(win as any).DreamFixedCacheStorage??win.caches:win.caches;
+  if(!storage||(!globalThis.crypto?.subtle&&typeof (globalThis as any).DreamFixedReleaseClient?.sha256!=='function'))throw Error('缺少固定版缓存或完整 SHA-256 校验能力');
+  const cacheName=RESOURCE_CACHE;
+  let cache:Cache;try{cache=await storage.open(cacheName);}catch{throw Error('浏览器拒绝资源缓存，请允许此站点存储，或退出限制存储的隐私模式后重试。');}
+  return new ResourceStore(win,base,manifest,cache,fixedRelease);
  }
  names(coreOnly=false){return Object.keys(this.manifest.files).filter(n=>!n.startsWith('.')&&(!coreOnly||!n.startsWith('audio/')));}
  async status(coreOnly=false){const keys=new Set((await this.cache.keys()).map(k=>k.url));const names=this.names(coreOnly);return {files:names.length,bytes:names.reduce((n,k)=>n+this.manifest.files[k]!.bytes,0),cachedFiles:names.filter(n=>keys.has(cacheKey(this.manifest.files[n]!))).length,cachedBytes:names.filter(n=>keys.has(cacheKey(this.manifest.files[n]!))).reduce((n,k)=>n+this.manifest.files[k]!.bytes,0)};}
  private async download(name:string,info:FileInfo,onBytes?:(n:number)=>void):Promise<Uint8Array>{
+  let failure:unknown;
+  for(const base of this.bases){try{return await this.downloadFrom(base,name,info,onBytes);}catch(error){failure=error;}}
+  throw failure;
+ }
+ private async downloadFrom(base:URL,name:string,info:FileInfo,onBytes?:(n:number)=>void):Promise<Uint8Array>{
   const controller=new AbortController(),timer=this.win.setTimeout(()=>controller.abort(),Math.min(900000,Math.max(180000,info.bytes/(64*1024)*1000)));
   try{
    this.requests++;
-   const response=await this.originalFetch(new URL(name,this.base),{credentials:'omit',cache:'no-store',signal:controller.signal});
+   const response=await this.originalFetch(new URL(name,base),{credentials:'omit',cache:'no-store',signal:controller.signal});
    if(!response.ok)throw Error('资源下载失败 HTTP '+response.status+'：'+name);
    const bytes=new Uint8Array(info.bytes),reader=response.body?.getReader();let received=0;
    if(reader)try{for(;;){const chunk=await reader.read();if(chunk.done)break;if(received+chunk.value.byteLength>info.bytes){await reader.cancel();throw Error('资源超过清单声明大小：'+name);}bytes.set(chunk.value,received);received+=chunk.value.byteLength;this.downloadedBytes+=chunk.value.byteLength;onBytes?.(received);}}finally{reader.releaseLock();}

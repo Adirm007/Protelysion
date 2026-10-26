@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import {gzipSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {ResourceStore,validateManifest,cacheKey,type ReleaseManifest} from '../src/distribution/resource-cache';
+import {ResourceStore,validateManifest,cacheKey,digest,RESOURCE_CACHE,type ReleaseManifest} from '../src/distribution/resource-cache';
+import {fixedReleaseBases,fixedReleaseScope,type FixedRelease} from '../src/distribution/fixed-release';
 const hash=(b:Uint8Array)=>createHash('sha256').update(b).digest('hex');
 class MemoryCache {
  data=new Map<string,Response>();fail=false;
@@ -59,3 +60,51 @@ test('gzip WASM parts restore the exact engine and are served with the WebAssemb
 test('download progress includes bytes inside a file, not just completed file counts',async()=>{const a=setup(),seen:number[]=[];await a.store.read('game.js',n=>seen.push(n));assert.ok(seen.length>0);assert.equal(seen.at(-1),a.assets['game.js']!.byteLength);});
 
 test('hidden hosting markers are not runtime downloads (real static servers may return 404)',async()=>{const a=setup();await a.store.prefetch();assert.ok(!a.store.names().includes('.nojekyll'));assert.ok(a.requests.every(r=>!r.url.endsWith('/.nojekyll')));assert.equal((await a.store.status()).cachedFiles,a.store.names().length);});
+
+const fixedPin:FixedRelease={schema:1,repository:'Adirm007/Protelysion',version:'0.42.1',sourceCommit:'a'.repeat(40),manifestSha256:'b'.repeat(64)};
+test('fixed resource cache namespace changes with version or root, and all transport bases pin one complete commit',()=>{
+ const bases=fixedReleaseBases(fixedPin);assert.ok(bases.every(base=>base.href.includes(fixedPin.sourceCommit)));assert.ok(bases.every(base=>!base.href.includes('main')));
+ assert.notEqual(fixedReleaseScope(fixedPin),fixedReleaseScope({...fixedPin,version:'0.43.0'}));assert.notEqual(fixedReleaseScope(fixedPin),fixedReleaseScope({...fixedPin,manifestSha256:'c'.repeat(64)}));
+ assert.throws(()=>fixedReleaseBases({...fixedPin,sourceCommit:'main'}));
+ const a=setup();assert.throws(()=>new ResourceStore(a.win,new URL('https://adirm007.github.io/Protelysion/'),a.manifest,a.cache as unknown as Cache,fixedPin),/完整提交/);
+});
+test('fixed resource downloads reject equal-size corruption and fall back only to a mirror of the pinned commit',async()=>{
+ const a=setup(),urls:string[]=[];
+ a.win.fetch=async(input:URL)=>{const url=String(input);urls.push(url);const bytes=a.assets['game.wasm']!;return new Response(url.startsWith('https://raw.')?new Uint8Array(bytes.length).fill(99):new Uint8Array(bytes));};
+ const store=new ResourceStore(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,a.cache as unknown as Cache,fixedPin);
+ assert.deepEqual(await store.read('game.wasm'),a.assets['game.wasm']);assert.equal(urls.length,2);assert.ok(urls.every(url=>url.includes(fixedPin.sourceCommit)));assert.equal(store.cacheName,RESOURCE_CACHE);
+});
+test('fixed resource download failure never falls back to main or a previous cached version',async()=>{
+ const a=setup(),urls:string[]=[];a.win.fetch=async(input:URL)=>{urls.push(String(input));throw Error('offline');};
+ const store=new ResourceStore(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,a.cache as unknown as Cache,fixedPin);
+ await assert.rejects(()=>store.read('game.wasm'),/offline/);assert.equal(urls.length,3);assert.ok(urls.every(url=>url.includes(fixedPin.sourceCommit)));assert.equal(a.cache.data.size,0);
+});
+test('LAN HTTP fixed resources use a full digest provider and content-addressed persistent cache adapter',async()=>{
+ const descriptor=Object.getOwnPropertyDescriptor(globalThis,'crypto')!;
+ const clientDescriptor=Object.getOwnPropertyDescriptor(globalThis,'DreamFixedReleaseClient');
+ let hashes=0,opened='';const a=setup();
+ try{
+  Object.defineProperty(globalThis,'crypto',{value:undefined,configurable:true});
+  Object.defineProperty(globalThis,'DreamFixedReleaseClient',{value:{sha256:async(bytes:Uint8Array)=>{hashes++;return hash(bytes);}},configurable:true});
+  a.win.isSecureContext=false;a.win.DreamFixedCacheStorage={open:async(name:string)=>{opened=name;return a.cache;},delete:async()=>true};
+  a.win.fetch=async()=>new Response(new Uint8Array(a.assets['game.wasm']!));
+  const store=await ResourceStore.open(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,fixedPin);
+  assert.deepEqual(await store.read('game.wasm'),a.assets['game.wasm']);assert.equal(opened,RESOURCE_CACHE);assert.ok(hashes>0);
+  assert.equal(await digest(new Uint8Array([1,2,3])),hash(new Uint8Array([1,2,3])));
+  delete (globalThis as any).DreamFixedReleaseClient;await assert.rejects(()=>digest(new Uint8Array([1,2,3])),/拒绝跳过校验/);
+ }finally{
+  Object.defineProperty(globalThis,'crypto',descriptor);
+  if(clientDescriptor)Object.defineProperty(globalThis,'DreamFixedReleaseClient',clientDescriptor);else delete (globalThis as any).DreamFixedReleaseClient;
+ }
+});
+
+
+test('switching versions reuses unchanged verified large assets but never substitutes a different hash',async()=>{
+ const a=setup();await a.store.read('game.wasm');const count=a.requests.length;
+ const fixed=new ResourceStore(a.win,fixedReleaseBases(fixedPin)[0]!,a.manifest,a.cache as unknown as Cache,fixedPin);
+ assert.deepEqual(await fixed.read('game.wasm'),a.assets['game.wasm']);assert.equal(a.requests.length,count);
+ const b=setup();const changed=new Uint8Array([9,8,7,6]);b.assets['game.wasm']=changed;b.manifest.files['game.wasm']={bytes:changed.length,sha256:hash(changed)};
+ b.win.fetch=async(input:URL)=>{b.requests.push({url:String(input)});return new Response(changed);};
+ const newer=new ResourceStore(b.win,fixedReleaseBases({...fixedPin,version:'0.43.0'})[0]!,b.manifest,a.cache as unknown as Cache,{...fixedPin,version:'0.43.0'});
+ assert.deepEqual(await newer.read('game.wasm'),changed);assert.equal(b.requests.length,1);
+});

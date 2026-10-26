@@ -1,0 +1,50 @@
+name: Publish immutable fixed regex
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Numeric fixed version, for example 0.42.1 (never reuse a published version)'
+        required: true
+        type: string
+permissions:
+  contents: write
+concurrency:
+  group: protelysion-fixed-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: dev-src/09-实现/package-lock.json
+      - name: Install verification dependencies
+        working-directory: dev-src/09-实现
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Test fixed bootstrap, transport and cache
+        run: |
+          node --test tools/tests/fixed-release.test.mjs
+          cd dev-src/09-实现
+          npm run typecheck
+          npx tsx --test tests/distribution-cache.test.ts
+      - name: Verify all committed game resources
+        run: python tools/materialize.py
+      - name: Build the regex from source commit C
+        env:
+          FIXED_VERSION: ${{ inputs.version }}
+        run: node tools/build-fixed-release.mjs --version "$FIXED_VERSION" --output artifacts/fixed-release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: fixed-regex-review
+          path: artifacts/fixed-release/
+      - name: Create distribution commit D and publish the immutable release
+        env:
+          FIXED_VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ secrets.FIXED_RELEASE_TOKEN }}
+        run: python tools/publish-fixed-release.py --version "$FIXED_VERSION" --publish
