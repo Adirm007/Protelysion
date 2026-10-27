@@ -1,5 +1,8 @@
 {
   "repository": "Adirm007/Protelysion",
   "schema": 1,
-  "versions": []
+  "versions": [
+    "0.42.1",
+    "0.42.2"
+  ]
 }
