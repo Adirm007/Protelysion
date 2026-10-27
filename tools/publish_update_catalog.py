@@ -58,23 +58,33 @@ def api(path, token):
     request = urllib.request.Request('https://api.github.com/' + path, headers={
         'Authorization': 'Bearer ' + token, 'Accept': 'application/vnd.github+json',
         'User-Agent': 'fixed-update-catalog-publisher', 'X-GitHub-Api-Version': '2022-11-28'})
-    try:
-        with urllib.request.urlopen(request, timeout=60) as response:
-            return json.load(response)
-    except urllib.error.HTTPError as error:
-        raise ValueError(f'GitHub proof request failed: HTTP {error.code}') from None
+    for attempt in range(3):
+        try:
+            with urllib.request.urlopen(request, timeout=45) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as error:
+            if error.code < 500 or attempt == 2:
+                raise ValueError(f'GitHub proof request failed: HTTP {error.code}') from None
+        except (urllib.error.URLError, TimeoutError, OSError):
+            if attempt == 2:
+                raise ValueError('GitHub proof request failed; check the network and retry the catalog command') from None
+        time.sleep(attempt + 1)
 
 
 def current_trust():
     result = subprocess.run(['python', str(ROOT / 'tools/release-verifier/fetch_trust.py')],
-                            text=True, capture_output=True, check=True)
+                            text=True, capture_output=True)
+    if result.returncode:
+        raise ValueError('Cannot fetch signed GitHub trust metadata: ' + result.stderr.strip()[-600:])
     return json.loads(result.stdout)
 
 
 def verify(bundle, repository, version, trust):
     request = {'bundle': bundle, 'repository': repository, 'version': version, 'trust': trust}
     result = subprocess.run(['node', str(ROOT / 'tools/release-verifier/verify.mjs')],
-                            input=json.dumps(request), text=True, capture_output=True, check=True)
+                            input=json.dumps(request), text=True, capture_output=True)
+    if not result.stdout.strip():
+        raise ValueError('Release verifier failed: ' + result.stderr.strip()[-400:])
     verified = json.loads(result.stdout)
     if verified.get('ok') is not True:
         raise ValueError('GitHub release proof verification failed: ' + str(verified.get('error', 'unknown error')))
@@ -130,7 +140,9 @@ def publish_catalog(repository, proofs, trust=None):
     trust = trust or current_trust()
     result = subprocess.run(['node', str(ROOT / 'tools/release-verifier/verify.mjs')],
                             input=json.dumps({'trustOnly': True, 'trust': trust}),
-                            text=True, capture_output=True, check=True)
+                            text=True, capture_output=True)
+    if not result.stdout.strip():
+        raise ValueError('Trust verifier failed: ' + result.stderr.strip()[-400:])
     if json.loads(result.stdout).get('ok') is not True:
         raise ValueError('GitHub TUF trust verification failed; static catalog is unchanged')
     origin = git('remote', 'get-url', 'origin').stdout.decode().strip()

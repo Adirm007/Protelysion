@@ -117,7 +117,7 @@
   }
   /* GITHUB_RELEASE_VERIFY_BEGIN */
   // Only these immutable dependency bytes can execute. The mutable branch supplies JSON only.
-  var VERIFIER = {"bases":["https://raw.githubusercontent.com/Adirm007/reader/ce0105dbe1754500425aaeaf61bb25721ff482f8/tools/release-verifier/","https://cdn.jsdelivr.net/gh/Adirm007/reader@ce0105dbe1754500425aaeaf61bb25721ff482f8/tools/release-verifier/"],"runtime":{"bytes":16992,"sha256":"0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"},"gzip":{"bytes":7287396,"sha256":"634cd8a21d7cbfa67f92860129e6618f06999b5a20f973dbbe1b1ca9d8d7e4d4"},"wasm":{"bytes":35497677,"sha256":"cf8345dc9208c65af1fae77cad364332ccb809358b2f745abbaf2c9c8df897d8"}};
+  var VERIFIER = {"bases":["https://cdn.jsdelivr.net/gh/Adirm007/reader@ce0105dbe1754500425aaeaf61bb25721ff482f8/tools/release-verifier/","https://raw.githubusercontent.com/Adirm007/reader/ce0105dbe1754500425aaeaf61bb25721ff482f8/tools/release-verifier/"],"runtime":{"bytes":16992,"sha256":"0c949f4996f9a89698e4b5c586de32249c3b69b7baadb64d220073cc04acba14"},"gzip":{"bytes":7287396,"sha256":"634cd8a21d7cbfa67f92860129e6618f06999b5a20f973dbbe1b1ca9d8d7e4d4"},"wasm":{"bytes":35497677,"sha256":"cf8345dc9208c65af1fae77cad364332ccb809358b2f745abbaf2c9c8df897d8"}};
   var verifierJob=null, verifierSequence=0;
   function proofWorker(config, softwareHash) {
     'use strict';
@@ -251,9 +251,9 @@
     var p=project(selected&&selected.repository),repo=selected.repository,version=versionNumber(selected.version);
     // Recheck the signed proof before applying; never trust fields supplied by a catalog or a previous UI snapshot.
     var checked=await proof(repo,version),tag='v'+version;
-    var urls=['https://github.com/'+repo+'/releases/download/'+tag+'/'+p.asset,
-      'https://raw.githubusercontent.com/'+repo+'/'+checked.distributionCommit+'/'+p.path,
-      'https://cdn.jsdelivr.net/gh/'+repo+'@'+checked.distributionCommit+'/'+p.path];
+    var urls=['https://raw.githubusercontent.com/'+repo+'/'+checked.distributionCommit+'/'+p.path,
+      'https://cdn.jsdelivr.net/gh/'+repo+'@'+checked.distributionCommit+'/'+p.path,
+      'https://github.com/'+repo+'/releases/download/'+tag+'/'+p.asset];
     var failures=[];
     for(var i=0;i<urls.length;i++) {
       try {
