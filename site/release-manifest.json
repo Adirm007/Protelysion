@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.42.1-20261027-skill-display",
+  "revision": "protelysion-0.43.0-20261029-script-runtime",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -18,8 +18,8 @@
     "mapActors": 1
   },
   "pck": {
-    "bytes": 50010504,
-    "sha256": "ab4e8d47bfd341fd54cbed4e76b20488cfdab7d142eb3350fc5cb66d17c49d8a"
+    "bytes": 50010808,
+    "sha256": "bb2585823d2940c539d23ede44355cd588ce83714b46087b7dbce2ab4892283f"
   },
   "pckParts": [
     "game.pck.gz.001",
@@ -52,15 +52,15 @@
     },
     "game.pck.gz.001": {
       "bytes": 16777216,
-      "sha256": "d25a9327973efeeda6e2d1932168db06b92072b8ec15fc21e93b266ab18fb235"
+      "sha256": "600ec8799166f69bbf6151cb68191adef63153c84a16567f693ea43a4651d20b"
     },
     "game.pck.gz.002": {
       "bytes": 16777216,
-      "sha256": "33ae8d9884165c72d76cc0af7707281dfe4b53112c7ee0e7462f1ff1563e24e1"
+      "sha256": "85299afa70780e32406b977f1470fb301c35bfaf5232d5f0a24a354b2ed63476"
     },
     "game.pck.gz.003": {
-      "bytes": 15927753,
-      "sha256": "8ecb1d2d9c1bf1a2e0c1d0b4386db63922ca2d6b22978368f6bf66dd0a1a3f60"
+      "bytes": 15928021,
+      "sha256": "ef4633206a94edc95108dade28b416b24732660bbe033bdb4bfa847d7090ce65"
     },
     "NotoSansSC-OFL.txt": {
       "bytes": 4388,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 3080796,
-      "sha256": "929b986e3ccdc135a6e7d91b19dba0a6c1c3d4508ce54565100fa32b3dd2b3b6"
+      "bytes": 3095663,
+      "sha256": "3498ab6db58f115d457337a52be2ce20d59a6db4d14e3406a41ddaddcb69718f"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
@@ -1783,12 +1783,12 @@
       "sha256": "243a3eb6055cbf18b7fc50a61e76c2a72cf3060132c397ae287d4da05c7a6fa8"
     },
     "loader.html": {
-      "bytes": 8087,
-      "sha256": "8ebe54b23cd31756d476a91b116e395afbc1900a17b11a2e41147b2284049c04"
+      "bytes": 10251,
+      "sha256": "7875b8b699292441d7ab812dbf4b2ffd82b2b12d38338509f81cb0da7fac1fdc"
     },
     "index.html": {
-      "bytes": 4480,
-      "sha256": "d9a3e5d6d8acf1877b22d53b0c0ea2a67315c1a35b86b5bfa3d4b9292fa0b90a"
+      "bytes": 6569,
+      "sha256": "cf9f84579e0018cde1ae3a360d6c7ef83a7823a787dfb1c0a3a08805c7bc9ba9"
     },
     ".nojekyll": {
       "bytes": 0,

@@ -10,8 +10,9 @@ import {characterData,executableCount,renderCharacterSheet} from './ui/character
 import {enterNarrativeMode,resumeFromNarrative} from './host/narrative-mode';
 import {mountHostSupplierMemory} from './host/supplier-memory-host';
 import {mountSupplierMemoryPanel} from './ui/supplier-memory-panel';
+import {mountUserMessageHandoff} from './host/user-message-handoff';
 
-export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{loadEngine?:()=>Promise<import('./host/godot-loader').GodotConstructor>;autoResume?:boolean}={}){
+export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{loadEngine?:()=>Promise<import('./host/godot-loader').GodotConstructor>;autoResume?:boolean;onUserNarrative?:()=>void}={}){
  installPlayerTheme(root);
  root.innerHTML=`<div class="bs-portal">${shellHeader('启程之前',`<button id="read" class="bs-icon-button" title="刷新角色" aria-label="刷新角色">${icons.refresh}</button><button id="open-settings" class="bs-icon-button" title="设置" aria-label="设置">${icons.gear}</button>`)}
  <section id="setup">${hero('选择同行者','下一页 · 由你书写',true)}<div class="bs-lobby-body"><div class="bs-party-heading"><h2>同行名册</h2><span id="party-count" class="bs-party-count">0 / 4</span></div><div id="roster" class="bs-roster"></div>
@@ -31,7 +32,8 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
  const base=assetBase(globals.BOOKSEA_ASSET_BASE??'/booksea-play/',document.baseURI,typeof globals.BOOKSEA_ASSET_BASE==='string'),load=options.loadEngine??createGodotLoader(window,document,base);
  (el('credits') as HTMLAnchorElement).href=new URL('credits.html',base).href;
  const sheet=bindModal(el('character-sheet')),settings=bindModal(el('player-settings'));let sheetRef:ActorRef|undefined;
- let engine:GodotEngine|undefined,runtime:ReturnType<typeof mountExpeditionRuntime>|undefined,busy=false,initialized=false,lastPaused=true;
+ let engine:GodotEngine|undefined,runtime:ReturnType<typeof mountExpeditionRuntime>|undefined,busy=false,initialized=false,lastPaused=true,visible=true;
+ const userHandoff=mountUserMessageHandoff(globals,port,{runtime:()=>runtime,onHandoff:()=>{runtime?.setVisible(false);visible=false;options.onUserNarrative?.();},onError:error=>{status('现场已暂停，正文交接暂未完成：'+String((error as Error)?.message??error));}});
  const selection=()=>[...selected.values()];
  const message=(error:unknown)=>{const s=String((error as Error)?.message??error);return /聊天.*切换|所属聊天|另一聊天/.test(s)?'聊天已切换，请重新打开书海。':/1–4|1—4|队伍|勾选成员/.test(s)?'先选择一至四位同行者。':/远征|已结束|已经结算/.test(s)?'还有一段未完的旅程，先继续它吧。':/未连接|生成|正文|模型/.test(s)?'故事暂时没能续上，稍后再试。':/读取|MVU|stat_data|主角|生命值|字段|对象/.test(s)?'还没有读到完整角色资料，请回到聊天后刷新。':'这次没能完成，请再试一次。';};
  function updateSelection(){
@@ -83,12 +85,15 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
   const playAfterLoad=s.mode!=='ended'&&!s.paused;s.paused=true;lastPaused=true;el('setup').hidden=true;el('stage').hidden=false;root.classList.add('bs-playing');status('书页正在展开……');
   const portraits=await loadHostPortraits(globals,s.party);port.id();
   runtime=mountExpeditionRuntime({storageKey:key,uiRoot:el('stage'),portraits,onResources:()=>{(window as any).BookseaResourceMenu?.open();},audio:{baseUrl:new URL('audio/',base).href,controlsRoot:el('stage')},initial:s,isCurrent:copy=>(copy.mode==='ended'&&copy.writeback==='pending')||port.saveCurrent?.(copy)!==false,onInvalidated:()=>{stop();void task(async()=>{await draw();status('聊天楼层已变化，已恢复当前楼层的旅程记录。');});},onView:v=>{if('settings'in v)lastPaused=v.paused;},onLeave:()=>{void task(async()=>{await runtime?.flush();stop();await draw();status('');});},checkpoint:async copy=>{await checkpointHost(port,copy);if(copy.mode==='ended')status('这一页，已经珍藏。');},supplierChat:port.supplierChat?prompt=>port.supplierChat!(prompt):undefined,supplierMemory:memory,onMemorySettings:()=>memoryPanel.show(el('stage')),onNarrative:port.postNarrative?copy=>{void task(async()=>{await runtime?.flush();stop();await draw();status('正在切换到正文模式……');await enterNarrativeMode(port,copy);await draw();status('已切换到正文模式：聊天里会接着往下写；正文末尾的面板可以随时切回迷宫。');});}:undefined});
-  try{const Engine=await load();engine=new Engine({executable:new URL('game',base).href,mainPack:new URL('game.pck',base).href,canvas:root.querySelector('canvas'),canvasResizePolicy:0,focusCanvas:true});await engine.startGame();if(playAfterLoad)runtime.input({type:'pause'});status('');}catch(error){stop();throw error;}
+  runtime.setVisible(visible);
+  try{const Engine=await load();engine=new Engine({executable:new URL('game',base).href,mainPack:new URL('game.pck',base).href,canvas:root.querySelector('canvas'),canvasResizePolicy:0,focusCanvas:true});await engine.startGame();if(playAfterLoad&&visible)runtime.input({type:'pause'});status('');}catch(error){stop();throw error;}
  }
  el('enter').onclick=()=>void task(async()=>{const refs=selection();if(!refs.length)throw Error('请先勾选成员');const unready=refs.filter(ref=>!characterData(port,ref).ready);if(unready.length){await prepare(unready);await draw();}const s=await enterHostExpedition(port,refs,Number((el('anchor') as HTMLSelectElement).value),{narrateEntry:false});await launch(s);});
- el('resume').onclick=()=>void task(async()=>{await retireOther();await port.prepare?.();const restored=resumeHostExpedition(object(port.chat().booksea??{}).activeExpedition,()=>localStorage.getItem(key),contextId,port.authorizedFrames?.());port.bind?.(restored);await resumeFromNarrative(port,restored);restored.paused=false;await checkpointHost(port,restored);if(restored.writeback==='done'&&restored.mode!=='ended')throw Error('这趟旅程已经结束');await launch(restored);});
- const dispose=()=>{stop();memory.dispose();memoryPanel.dispose();};window.addEventListener('pagehide',dispose,{once:true});
+ const resume=()=>task(async()=>{await retireOther();await port.prepare?.();const restored=resumeHostExpedition(object(port.chat().booksea??{}).activeExpedition,()=>localStorage.getItem(key),contextId,port.authorizedFrames?.());port.bind?.(restored);await resumeFromNarrative(port,restored);restored.paused=false;await checkpointHost(port,restored);if(restored.writeback==='done'&&restored.mode!=='ended')throw Error('这趟旅程已经结束');await launch(restored);});
+ el('resume').onclick=()=>void resume();
+ const dispose=()=>{try{userHandoff.dispose();stop();memory.dispose();memoryPanel.dispose();}finally{port.close?.();}};window.addEventListener('pagehide',dispose,{once:true});
  Object.assign(window,{BookseaHostGame:{read:draw,contextId:port.id,selection,memory}});
  void task(async()=>{await draw();status('');}).then(()=>{if(options.autoResume&&!el('resume').hidden&&!(el('resume') as HTMLButtonElement).disabled)el('resume').click();});
- return {dispose};
+ const setVisible=async(next:boolean)=>{visible=next;if(next&&runtime&&!runtime.isPlaying()){stop();await task(async()=>{await draw();status('');});}runtime?.setVisible(next);if(!next)await runtime?.pause();};
+ return {dispose,setVisible,pause:async()=>{await runtime?.pause();},refresh:()=>task(async()=>{await draw();}),resume:async()=>{await setVisible(true);await resume();},resumeView:()=>setVisible(true),isPlaying:()=>port.id()===contextId&&!!runtime?.isPlaying()};
 }

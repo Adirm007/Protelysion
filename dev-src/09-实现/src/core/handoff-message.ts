@@ -6,7 +6,7 @@ export type ExitMeta = {version:2;kind:'exit';contextId:string;runId:string;stat
 /** 0.40 正文模式：切回正文与“进入下一层”的可见请求；断点与楼层信息放在 message.extra 与消息变量 bookseaPromptHandoff 里供读者 EJS 读取。 */
 export const NARRATIVE_REQUEST = '普罗泰利西翁正文模式';
 export const NARRATIVE_DESCEND = '前往下一层（普罗泰利西翁正文模式）';
-export type NarrativeMeta = {version:2;kind:'narrative'|'narrative-descend';contextId:string;runId:string;depth:number;summary:string};
+export type NarrativeMeta = {version:2;kind:'narrative'|'narrative-descend';contextId:string;runId:string;depth:number;summary:string;messageId?:number};
 export function narrativeExtra(contextId:string,runId:string,kind:NarrativeMeta['kind'],depth:number,summary:string):{bookseaHandoff:NarrativeMeta}{
  return {bookseaHandoff:{version:2,kind,contextId,runId,depth,summary}};
 }

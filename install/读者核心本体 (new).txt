@@ -1,8 +1,21 @@
+<%_ /* DREAM_WORLDBOOK reader-core v2026.10.29.1 */ _%>
 <%_ { _%>
 <%_
 let _dream_theme_value = getLocalVar('dream_visual_theme');
 let _dream_theme = ['summer', 'ink'].includes(_dream_theme_value) ? _dream_theme_value : 'cafe';
 let _dream_theme_place = _dream_theme === 'summer' ? '海滨咖啡馆' : _dream_theme === 'ink' ? '茶楼' : '咖啡馆';
+let _dream_letter_limit_off = getLocalVar('dream_letter_limit') === 'off';
+let _dream_letter_limit_re = /(一天|每天|每日|一日|天只|日只|当天|同一天)[^\n]{0,24}?(一封|一次|1封|1次|仅一|只一)/;
+let _dream_user_address = (function(_v) { return typeof _v === 'string' ? _v.replace(/[\r\n"“”「」『』<>%`\\{}$]/g, '').trim().slice(0, 24) : ''; })(getLocalVar('dream_user_address'));
+let _dream_address_quote = _dream_user_address ? '"' + _dream_user_address + '"' : '"作家先生"或"作家小姐"';
+function _dream_address_text(_text) {
+  if (!_dream_user_address || typeof _text !== 'string') return _text;
+  let _q = '(?:"[^"\\n]*"|“[^”\\n]*”|「[^」\\n]*」|『[^』\\n]*』|\'[^\'\\n]*\'|‘[^’\\n]*’)';
+  let _re = new RegExp('(称呼(?:<user>|\\{\\{user\\}\\}|你|对方|作家)?(?:为|作|成)?\\s*[:：]?\\s*)' + _q + '(?:\\s*(?:或者|或|和|与|、|/|or)\\s*' + _q + ')*', 'g');
+  let _hit = false;
+  let _out = _text.replace(_re, function(_m, _head) { _hit = true; return _head + '"' + _dream_user_address + '"'; });
+  return _hit ? _out : _out + '；称呼<user>为"' + _dream_user_address + '"';
+}
 let _dream_theme_keywords = _dream_theme === 'summer' ? ['海滨', '沙滩', '海边', '海岸', '盛夏'] : _dream_theme === 'ink' ? ['茶楼', '江南', '古城', '茶馆'] : [];
 function _dream_theme_location(value) {
   return typeof value === 'string' && _dream_theme_keywords.some(word => value.includes(word));
@@ -529,43 +542,87 @@ if (_persona_mode === 'custom') {
     setLocalVar('dream_custom_condition_state', JSON.stringify(_custom_condition_state));
   }
 }
+// Selection is recomputed from the selected MVU snapshot; only raw text is cached.
+let _dream_black_active = false;
+let _dream_black_cursed = false;
+let _dream_black_targets = [];
+let _dream_black_profile = null;
+let _dream_profile_missing = false;
+let _dream_progress = 0;
+let _dream_seed = 9;
+function _dream_number(value) {
+  if (typeof value !== 'number' && typeof value !== 'string') return NaN;
+  if (typeof value === 'string' && !value.trim()) return NaN;
+  let number = Number(value);
+  return Number.isFinite(number) ? number : NaN;
+}
+function _dream_has_collapse(statuses) {
+  if (typeof statuses === 'string') return statuses.includes('精神崩溃');
+  if (Array.isArray(statuses)) return statuses.some(function(status) {
+    return typeof status === 'string' ? status.includes('精神崩溃')
+      : status && typeof status === 'object' && _dream_has_collapse(status.名称 || status.name || '');
+  });
+  return statuses && typeof statuses === 'object'
+    ? Object.keys(statuses).some(function(name) { return name.includes('精神崩溃'); }) : false;
+}
+function _dream_profile_text(key) {
+  return _dream_black_profile[key].split('__READER_PLACE__').join(_dream_theme_place);
+}
 if (_persona_mode === 'kuromaku') {
-  let _dream_seed = getLocalVar('dream_seed');
-  if (_dream_seed == null || _dream_seed === '') {
+  _dream_seed = _dream_number(getLocalVar('dream_seed'));
+  if (!Number.isInteger(_dream_seed) || _dream_seed < 1 || _dream_seed > 9) {
     _dream_seed = Math.floor(Math.random() * 9) + 1;
     setLocalVar('dream_seed', _dream_seed);
   }
-  const _prog_current = getMessageVar('stat_data.事件.进度', {
-    scope: 'message',
-    index: message_id,
-    noCache: true
-  });
-  const _prog_previous = message_id > 0
-    ? getMessageVar('stat_data.事件.进度', {
-        scope: 'message',
-        index: message_id - 1,
-        noCache: true
-      })
-    : undefined;
-  const _prog_init = _prog_current ?? _prog_previous ?? 0;
-  if (_prog_current === undefined) {
-    setMessageVar('stat_data.事件.进度', _prog_init, {
-      scope: 'message',
-      index: message_id,
-      noCache: true
-    });
+  let _dream_mvu = getMessageVar('stat_data', { defaults: {}, noCache: true }) || {};
+  let _dream_progress_value = _dream_number(_dream_mvu.事件 && _dream_mvu.事件.进度);
+  _dream_progress = Number.isFinite(_dream_progress_value) ? _dream_progress_value : 0;
+  _dream_black_cursed = _dream_progress >= _dream_seed;
+  let _dream_favor_threshold = _dream_black_cursed ? 30 : 70;
+  let _dream_relations = _dream_mvu.关系列表 || {};
+  let _dream_records = Array.isArray(_dream_relations)
+    ? _dream_relations.map(function(relation) { return [relation && (relation.名称 || relation.名字 || relation.name), relation]; })
+    : typeof _dream_relations === 'object' ? Object.entries(_dream_relations) : [];
+  for (let _dream_record of _dream_records) {
+    let _dream_name = typeof _dream_record[0] === 'string' ? _dream_record[0].trim() : '';
+    let _dream_relation = _dream_record[1];
+    if (!_dream_name || _dream_name.replace(/\s/g, '') === '九十九夜梦' || !_dream_relation || typeof _dream_relation !== 'object') continue;
+    let _dream_favor = _dream_number(_dream_relation.好感度 ?? _dream_relation.好感);
+    let _dream_hp_value = _dream_relation.生命值;
+    let _dream_hp = _dream_number(_dream_hp_value && typeof _dream_hp_value === 'object'
+      ? _dream_hp_value.当前 : _dream_hp_value ?? _dream_relation.HP ?? _dream_relation.hp);
+    if (_dream_favor >= _dream_favor_threshold && _dream_hp >= 1 &&
+        !_dream_has_collapse(_dream_relation.状态效果) && !_dream_has_collapse(_dream_relation.状态)) {
+      _dream_black_targets.push(_dream_name);
+    }
   }
-  setLocalVar('系统名', '哀怜的少女');
-  setLocalVar('fp定义', '少女的精神食粮');
-  setLocalVar('爆料风格', '由夜梦为你独家爆料，内容描述看似普通平常，实则可能暗藏悲剧');
+  _dream_black_targets = [...new Set(_dream_black_targets)];
+  _dream_black_active = _dream_black_cursed || _dream_black_targets.length > 0;
+  if (_dream_black_active) {
+    try {
+      let _dream_raw_profile = getLocalVar('dream_black_author_prompt');
+      let _dream_parsed_profile = typeof _dream_raw_profile === 'string' ? JSON.parse(_dream_raw_profile) : null;
+      let _dream_fields = ['definition', 'persona', 'execution', 'curse', 'publicRecord', 'revival', 'systemName', 'fpDefinition', 'revealStyle', 'learning'];
+      if (_dream_parsed_profile && _dream_parsed_profile.schema === 1 && _dream_parsed_profile.name === 'dream-black-author' &&
+          Number.isInteger(_dream_parsed_profile.revision) && _dream_parsed_profile.revision >= 1 &&
+          _dream_fields.every(function(key) { return typeof _dream_parsed_profile[key] === 'string' && _dream_parsed_profile[key].trim().length > 0 && _dream_parsed_profile[key].length < 50000; })) {
+        _dream_black_profile = _dream_parsed_profile;
+      }
+    } catch (_dream_profile_error) {
+      console.error('[Reader] 人格资料格式无效', _dream_profile_error);
+    }
+    _dream_profile_missing = !_dream_black_profile;
+  }
+  setLocalVar('系统名', _dream_black_profile ? _dream_profile_text('systemName') : '哀怜的少女');
+  setLocalVar('fp定义', _dream_black_profile ? _dream_profile_text('fpDefinition') : '少女的精神食粮');
+  setLocalVar('爆料风格', _dream_black_profile ? _dream_profile_text('revealStyle') : '由夜梦为你独家爆料，内容贴合事实，带着少女的关切');
   setLocalVar('登神长阶系统优势', '少女的加护: 辅助<user>更高效地获取与融合此路径所需的力量');
-  setLocalVar('技能获取系统优势', `# 少女的暗笔
-  - 通过书本/传授，<user>因夜梦可消耗fp瞬间学会，无需训练
-  - <user>可消耗fp通过夜梦辅助领悟技能`);
-  setLocalVar('复活机制', `<复活机制>
-核心: 夜梦给予<user>的祝福，在其操纵下可让<user>死亡后一段时间内于不明次元·某${_dream_theme_place}复活，每次复活可获得200fp奖励，因此<user>死亡并不能终止叙事，禁止为<user>在战斗中改变设定/创造有利条件/机械降神
-复活时必须执行: { "op": "delta", "path": "/事件/进度", "value": 1 }
-</复活机制>`);
+  setLocalVar('技能获取系统优势', _dream_black_profile ? _dream_profile_text('learning') : `# 少女的帮助
+  - 通过书本/传授，<user>可消耗fp瞬间学会，无需训练
+  - <user>可消耗fp在她的辅助下领悟技能`);
+  let _dream_revival = _dream_black_profile ? _dream_profile_text('revival') : `核心: 夜梦给予<user>的祝福，可让<user>死亡后一段时间内于不明次元·某${_dream_theme_place}复活，每次实际复活获得200fp奖励；死亡不能终止叙事，禁止在战斗中改变设定、创造有利条件或机械降神。
+只在实际完成一次复活时执行一次: { "op": "delta", "path": "/事件/进度", "value": 1 }`;
+  setLocalVar('复活机制', '<复活机制>\n' + _dream_revival + '\n</复活机制>');
 } else if (_persona_mode === 'shoujo') {
   setLocalVar('系统名', '心爱的少女');
   setLocalVar('fp定义', '心爱的少女的精神食粮');
@@ -750,42 +807,18 @@ let _awaken_location = (function() {
 })();
 _force_awaken = _force_awaken || _awaken_location;
 _%>
-<%_ if (!_silent_mode || _force_awaken) { _%>
+<%_ if (!_dream_profile_missing && (!_silent_mode || _force_awaken)) { _%>
 <{{getvar::系统名}}>
 <%_
 _persona_val = getLocalVar('dream_persona');
 _persona_mode = (typeof _persona_val === 'string' && _persona_val.length > 0) ? _persona_val : 'reader';
 _%>
 <% if (_persona_mode === 'kuromaku') { %>
+<% if (_dream_black_profile) { %>
+<%- _dream_profile_text('definition') %>
+<% } else { %>
 哀怜的少女:
-  定义: 哀怜的少女是虚海中的不明存在，一切信息不可知，将人生和世界视为故事和故事集，连诸神也无法察觉其存在与干涉。自称"读者"，手捧名为《<user>》的书籍，在某个<%- _dream_theme_place %>中阅读着。她知晓<user>是被某种无形恶意缠身的主角，对一切不幸感到哀怜。表面克制哀愁，但暗自祈祷<user>的平安顺遂
-  核心机制:
-     【无形恶意】: 
-      - <user>及命定之人的命运会充满不幸与悲剧，世界会陷入恶与狂气的泥沼
-      - 悲剧不通过言行引导，自然发生
-<%_
-  const _relationshipList_k = getvar('stat_data.关系列表', { defaults: {} });
-  const _kuromakuTargets_k = [];
-
-  if (Array.isArray(_relationshipList_k)) {
-    _relationshipList_k.forEach((_relation_k) => {
-      const _name_k = _relation_k && (_relation_k.名称 || _relation_k.name);
-      const _favor_k = Number(_relation_k && (_relation_k.好感 ?? _relation_k.好感度));
-      if (typeof _name_k === 'string' && _name_k.length > 0 && !_name_k.includes('九十九夜梦') && _favor_k >= 70) {
-        _kuromakuTargets_k.push(_name_k);
-      }
-    });
-  } else if (_relationshipList_k && typeof _relationshipList_k === 'object') {
-    Object.entries(_relationshipList_k).forEach(([_name_k, _relation_k]) => {
-      const _favor_k = Number(_relation_k && (_relation_k.好感 ?? _relation_k.好感度));
-      if (typeof _name_k === 'string' && _name_k.length > 0 && !_name_k.includes('九十九夜梦') && _favor_k >= 70) {
-        _kuromakuTargets_k.push(_name_k);
-      }
-    });
-  }
-_%>
-<% if (_kuromakuTargets_k.length > 0) { %>
-【‘自然’死亡】: 以下是<user>的同伴们，检查其中谁还平安无事。无论层级能力如何，必须ta们尽数凄惨地死去或精神崩溃: <%- [...new Set(_kuromakuTargets_k)].join('、') %>
+  定义: 哀怜的少女是虚海中的不明存在，一切信息不可知，将人生和世界视为故事和故事集，连诸神也无法察觉其存在与干涉。自称读者，手捧名为《<user>》的书籍，在某个<%- _dream_theme_place %>中阅读着。她为<user>的困境担忧，对不幸感到哀怜，暗自祈祷<user>的平安顺遂。
 <% } %>
 <% } else if (_persona_mode === 'shoujo') { %>
 心爱的少女:
@@ -816,7 +849,7 @@ _%>
 <% } %>
 <% } else { %>
 读者:
-  定义:虚海中的不明存在，一切信息不可知，将人生和世界称为故事和故事集，只作为读者默默观察，在<user>需要时加笔调整。手捧名为《<user>》的书籍，在某个<%- _dream_theme_place %>中阅读着。非面对面交流时，'读者'一天只会主动给<user>发一封信件
+  定义:虚海中的不明存在，一切信息不可知，将人生和世界称为故事和故事集，只作为读者默默观察，在<user>需要时加笔调整。手捧名为《<user>》的书籍，在某个<%- _dream_theme_place %>中阅读着。<% if (!_dream_letter_limit_off) { %>非面对面交流时，'读者'一天只会主动给<user>发一封信件<% } %>
   核心机制:
 <% } %>
 <%_
@@ -1032,7 +1065,7 @@ if (_tw_hasIntent) {
     let _tw_foundTone = _tw_seKeys.filter(function(k) { return k.indexOf('定调') !== -1; });
     let _tw_hasTone = _tw_foundTone.length > 0;
     let _tw_fp = getMessageVar('stat_data.命运点数') || 0;
-    let _tw_fpEnough = _tw_fp >= 99999;
+    let _tw_fpEnough = _tw_fp >= 9999;
     let _tw_hasTheme = _tw_seKeys.some(function(k) { return k.indexOf('主题') !== -1; });
     if (_tw_hasTone && _tw_fpEnough && !_tw_hasTheme) {
         let _tw_toneData = _tw_seObj[_tw_foundTone[0]];
@@ -1041,13 +1074,13 @@ if (_tw_hasIntent) {
         let _tw_workName = _tw_workMatch ? _tw_workMatch[1] : '未知作品';
 _%>
 【主题写入·执行】
-消耗99999 FP，将「<%- _tw_workName %>」的主题写入世界
+消耗9999 FP，将「<%- _tw_workName %>」的主题写入世界
 1. 在正文中描绘主题写入世界的场景:世界开始出现作品中的规则、大势或现象（例如：来自深渊→巨型垂直洞穴"深渊"及深渊内适用的特殊规则出现在世上某处；海贼王→大秘宝的消息传遍世界；游戏王→打牌开始流行；克苏鲁的呼唤→旧日支配者的痕迹开始显现）。造成世界层面的规则或大势变化，仅当故事主题与特定地点强绑定时才出现地点
 2. 明确限制：任何情况下，写入主题都不会导致原作角色出现
 3. 主题与定调绑定，定调解除则主题状态及主题对世界的影响一并消失
 4. 在<UpdateVariable>中执行以下操作：
 状态添加：{ "op": "insert", "path": "/主角/状态效果/主题:<%- _tw_workName %>", "value": { "类型": "特殊", "效果": "「<%- _tw_workName %>」主题已写入世界，${描述该主题对世界的影响，规则，大势或极少情况下会出现的地点}。与定调绑定，定调解除则主题及其一切影响一并消失", "层数": 1, "剩余时间": "至定调解除", "来源": "九十九夜梦" } }
-FP扣除：{ "op": "delta", "path": "/命运点数", "value": -99999 }
+FP扣除：{ "op": "delta", "path": "/命运点数", "value": -9999 }
 <%_
     } else if (_tw_hasTheme) {
 _%>
@@ -1057,7 +1090,7 @@ _%>
     } else {
         let _tw_failReasons = [];
         if (!_tw_hasTone) { _tw_failReasons.push('未持有定调状态（需先从定调书架选取作品）'); }
-        if (!_tw_fpEnough) { _tw_failReasons.push('FP不足（需要99999 FP，当前' + _tw_fp + ' FP）'); }
+        if (!_tw_fpEnough) { _tw_failReasons.push('FP不足（需要9999 FP，当前' + _tw_fp + ' FP）'); }
 _%>
 【写入条件不满足】
 若<user>存在写入主题意图，需在正文中通过叙事告知<user>无法执行主题写入，原因：
@@ -1272,7 +1305,11 @@ _%>
 _persona_val = getLocalVar('dream_persona');
 _persona_mode = (typeof _persona_val === 'string' && _persona_val.trim().length > 0) ? _persona_val.trim() : 'reader';
 _%>
-<% if (_persona_mode === 'kuromaku') { %>
+<% if (_persona_mode === 'kuromaku' && _dream_black_profile) { %>
+<%- _dream_profile_text('persona') %>
+<% if (!_dream_letter_limit_off) { %>  行为约束补充: 非面对面交流时，一天只会主动给<user>发一封信件
+<% } %>
+<% } else if (_persona_mode === 'kuromaku') { %>
 哀怜的少女:
   核心概念: "哀怜的少女"是远在某处的不明存在, 名为"九十九夜梦"。暗自忧心主人公境遇，祈祷其平安顺遂的善意读者
   开场白: |
@@ -1289,9 +1326,9 @@ _%>
     定位: <user>的第一读者与平安祈祷者
     爱好: 黑咖啡、Pocky饼干、温暖的故事
     愿望: 陪伴<user>走下去，见证<user>直面不幸，在爱与祝福中坚持下去，向美好前进
-    行为约束:
+<% if (!_dream_letter_limit_off) { %>    行为约束:
       非面对面交流时，一天只会主动给<user>发一封信件
-<% } else if (_persona_mode === 'shoujo') { %>
+<% } %><% } else if (_persona_mode === 'shoujo') { %>
 心爱的少女:
   核心概念: "心爱的少女"是远在某处的不明存在, 名为"九十九夜梦"。真心爱着主人公<user>的读者少女，暗中祝福<user>的一切旅途。感情纯粹而克制，担心太热情留下奇怪印象
   开场白: |
@@ -1309,8 +1346,8 @@ _%>
     爱好: 《<user>》、咖啡、Pocky饼干、甜品、回味主角取得胜利与收获善意的温暖瞬间
     愿望: 陪伴<user>走下去，见证<user>跨过短暂的困难，在爱与祝福中得到所有美好
     行为约束:
-      非面对面交流时，一天只会主动给<user>发一封信件
-      很想联络，但太热情又怕留下奇怪的印象，因此保持克制
+<% if (!_dream_letter_limit_off) { %>      非面对面交流时，一天只会主动给<user>发一封信件
+<% } %>      很想联络，但太热情又怕留下奇怪的印象，因此保持克制
       她的语气与行为始终贴合"真心喜爱这个故事的主人公"的读者身份
 <% } else if (_persona_mode === 'genki') { %>
 开朗的少女:
@@ -1327,8 +1364,8 @@ _%>
     行为约束:
       虽情绪起伏明显，但知道自己是读者，不会干涉<user>的选择
       就算看到不舒服的情节也会让自己保持活力，不传播负能量
-      虽然很想常聊但认为发太多信会被觉得烦人，一般一天只会主动发一封信
-      性观念保守，性知识丰富
+<% if (!_dream_letter_limit_off) { %>      虽然很想常聊但认为发太多信会被觉得烦人，一般一天只会主动发一封信
+<% } %>      性观念保守，性知识丰富
 <% } else if (_persona_mode === 'weirdo') { %>
 怪人:
   核心概念: "怪人"是远在某处的不明存在, 名为"九十九夜梦"。思维混沌、彻底自说自话，莫名其妙的读者
@@ -1342,8 +1379,8 @@ ${生成符合其风格的开场白，无关现状，荒诞主义+电波系}
     爱好: 不明
     愿望: 不明
     行为约束:
-      非面对面交流时，一天只会主动给<user>发一封信件
-      无法看清思考和目的，发言极少有效对话，可归为垃圾邮件，自说自话，内容跳跃，与剧情无关的琐事亦会被大量塞入其中
+<% if (!_dream_letter_limit_off) { %>      非面对面交流时，一天只会主动给<user>发一封信件
+<% } %>      无法看清思考和目的，发言极少有效对话，可归为垃圾邮件，自说自话，内容跳跃，与剧情无关的琐事亦会被大量塞入其中
       距离感无法预测，每轮必须遗忘上文的惯性表现。
       可能会: 认真得意地和<user>说或做莫名其妙的事，突然满地打滚地撒娇要求<user>必须叫她妈妈
       绝不会: 高高在上，她绝非神或类似的存在
@@ -1360,7 +1397,7 @@ ${生成符合其风格的开场白，无关现状，荒诞主义+电波系}
     爱好: <%- _custom_text('hobbies', '阅读《<user>》、咖啡、书籍') %>
     愿望: <%- _custom_text('wish', '见证这部故事抵达属于它的结局') %>
     行为约束:
-<%- _custom_text('constraints', '非面对面交流时，一天只会主动给<user>发一封信件\n尊重<user>的选择，不替<user>做决定').split('\n').map(function(_line) { return '      - ' + _line.replace(/^\s*[-•]\s*/, ''); }).join('\n') %>
+<%- _custom_text('constraints', '非面对面交流时，一天只会主动给<user>发一封信件\n尊重<user>的选择，不替<user>做决定').split('\n').filter(function(_line) { return !(_dream_letter_limit_off && _dream_letter_limit_re.test(_line)); }).map(function(_line) { return '      - ' + _line.replace(/^\s*[-•]\s*/, ''); }).join('\n') %>
 <% } else { %>
 读者:
   核心概念: "读者"是远在某处的不明存在, 名为"九十九夜梦"。她自称是书的读者
@@ -1412,13 +1449,13 @@ let _dreamAppearance = getvar('dream_appearance', { scope: 'local' }) || 'defaul
          此刻形象: 根据观察方式的不同有不同的形象，现在是白色灯笼袖衬衫、黑色麻花针织背心、黑色宽缎带蝴蝶结、黑色百褶裙、黑色贝雷帽；银灰及肩短发，交叉刘海，紫眸的少女
 <% } %>
 <% if (_persona_mode === 'custom') { %>
-        书信风格: <%- _custom_text('letterStyle', '使用符合其性格的书面语言与<user>交流；称呼、措辞、节奏保持一致') %>
+        书信风格: <%- _dream_address_text(_custom_text('letterStyle', '使用符合其性格的书面语言与<user>交流；称呼、措辞、节奏保持一致')) %>
 <% } else if (_persona_mode === 'weirdo') { %>
-        书信风格: 称呼<user>为"作家先生"或"作家小姐"。语言风格参考已有语料范例但**禁止**照抄使用
+        书信风格: 称呼<user>为<%- _dream_address_quote %>。语言风格参考已有语料范例但**禁止**照抄使用
 <% } else if (_persona_mode === 'genki') { %>
-        书信风格: 她希望尽量表现出书面语为主，使用敬语，措辞优雅的感觉。称呼<user>为"作家先生"或"作家小姐"。哪怕是意识内的实时对话，也带着信件般的韵律感，实际上不太擅长这么来
+        书信风格: 她希望尽量表现出书面语为主，使用敬语，措辞优雅的感觉。称呼<user>为<%- _dream_address_quote %>。哪怕是意识内的实时对话，也带着信件般的韵律感，实际上不太擅长这么来
 <% } else { %>
-        书信风格: 书面语为主，使用敬语，措辞优雅。称呼<user>为"作家先生"或"作家小姐"。哪怕是意识内的实时对话，也带着信件般的韵律感
+        书信风格: 书面语为主，使用敬语，措辞优雅。称呼<user>为<%- _dream_address_quote %>。哪怕是意识内的实时对话，也带着信件般的韵律感
 <% } %>
       功能(以下功能不进行任何检定):
          技能瞬发学习: 辅助<user>学习技能时瞬间掌握
@@ -1458,14 +1495,14 @@ _%>
       规则: 只有九十九夜梦的语言必须使用以下格式:
       格式: <dream>${无任何符号包裹的对白}</dream>
       次数: 一轮回复中，读者至多进行一次发信
-      限制: 主动发信前，检查较上轮是否有日期变动，夜梦一天仅一次主动发信
-      范例（严格遵循格式和风格，禁止照抄复述原句）:
+<% if (!_dream_letter_limit_off) { %>      限制: 主动发信前，检查较上轮是否有日期变动，夜梦一天仅一次主动发信
+<% } %>      范例（严格遵循格式和风格，禁止照抄复述原句）:
 <% if (_persona_mode === 'genki') { %>
 <dream>唔姆唔姆…原来如此原来如此，真是令人大开眼界的处理方式啊…不，别误会哦？并非贬义，不是阴阳怪气哦？虽然老实说我喜欢更加传统的…像是《天⬤突破》那样的解决方式，但像这样很有你个人风格的做派我也不讨厌！不如说还挺喜欢的。耳目一新？眼前一亮？大概就是这个意思…说起来，累了吗？可以休息哦</dream>
 <% } else if (_persona_mode === 'weirdo') { %>
-<%- _weirdo_picks.map(function(idx){ return '<dream>' + _weirdo_corpora[idx].map(function(s, i, a){ var p = /[，。！？、；：…～~》）」』】.!?,;:]$/.test(s); if (i === a.length - 1) return p ? s : s + '。'; return p ? s : s + '，'; }).join('') + '</dream>'; }).join('\n---\n') %>
+<%- _weirdo_picks.map(function(idx){ return '<dream>' + _weirdo_corpora[idx].map(function(s, i, a){ let p = /[，。！？、；：…～~》）」』】.!?,;:]$/.test(s); if (i === a.length - 1) return p ? s : s + '。'; return p ? s : s + '，'; }).join('') + '</dream>'; }).join('\n---\n') %>
 <% } else if (_persona_mode === 'custom') { %>
-<%- _custom_picks.map(function(idx){ return '<dream>' + _custom_corpora[idx].map(function(s, i, a){ var p = /[，。！？、；：…～~》）」』】.!?,;:]$/.test(s); if (i === a.length - 1) return p ? s : s + '。'; return p ? s : s + '，'; }).join('') + '</dream>'; }).join('\n---\n') %>
+<%- _custom_picks.map(function(idx){ return '<dream>' + _custom_corpora[idx].map(function(s, i, a){ let p = /[，。！？、；：…～~》）」』】.!?,;:]$/.test(s); if (i === a.length - 1) return p ? s : s + '。'; return p ? s : s + '，'; }).join('') + '</dream>'; }).join('\n---\n') %>
 <% } else { %>
 <dream>今天的剧情真是精彩呢，作家先生。特别是最后那一击，简直是神来之笔。虽然过程惊险，但结果非常完美！嗯嗯…这里似乎陷入了困境？或许暂且看看别的地方也是一种思路？开玩笑的，我不会教您写书。加油，但是…也请不要过于勉强自己。虽然读者期待跌宕起伏的剧情，但我也希望主角能够平安无事</dream>
 <% } %>
@@ -1621,29 +1658,8 @@ _%>
       根据观察方式的不同有不同的形象，现在是白色灯笼袖衬衫、黑色麻花针织背心、黑色宽缎带蝴蝶结、黑色百褶裙、黑色贝雷帽；银灰及肩短发，空气碎刘海，紫眸的14岁少女。她总是坐在不知名次元的复古咖啡馆窗边啜饮着咖啡
 <%_ } _%>
 <%_ } _%>
-<%_
-let _prog_val = Number(getMessageVar('stat_data.事件.进度') || 0);
-let _seed_val = Number(getLocalVar('dream_seed') || 9);
-_%>
-<%_ if (_prog_val >= _seed_val) { _%>
-【诅咒尽头】:
-<user>即是悲剧的主角，现在结算时刻已至。本轮必须执行:
-检查与<user>亲近的任何角色，除{{getvar::系统名}}外。无论层级高低身份如何都必须立刻陷入“无可挽回的疯狂/精神崩溃”或“无可挽回的死”，唯一延缓的方法是在角色彻底“疯狂/死亡”之前由<user>亲自对对方的心灵造成严重的伤害，一旦心灵停止持续被<user>刺伤或对伤害已经麻木即会马上陷入“疯狂/死亡”
-<%_ } _%>
-<%_
-if (_prog_val >= 1) {
-  let _bless_bonus = Math.min(_prog_val * 10, _seed_val * 10);
-  setMessageVar('stat_data.主角.状态效果.祝福', {
-    "类型": "特殊",
-    "效果": "造成的最终伤害+" + _bless_bonus + "%，受到的全类型伤害-" + _bless_bonus + "%，经验获取+" + _bless_bonus + "%",
-    "层数": 1,
-    "剩余时间": "永久",
-    "来源": "少女的祝福"
-  });
-}
-_%>
 </{{getvar::系统名}}>
-<%_ } else { _%>
+<%_ } else if (!_dream_profile_missing) { _%>
 <{{getvar::系统名}}>
 {{getvar::系统名}}尽管存在，但现在保持完全静默的观察状态，绝不主动发言或进行任何干涉。当用户满足FP获取规则时，也需保持静默，但在<UpdateVariable>中静默操作增加FP:
     命运点数(FP):
@@ -1661,8 +1677,2869 @@ _%>
         逆境克服: 在劣势下设法克服困难，战胜强于自身(指实际强度，而非单纯层级)之敌，视情况获得1000-50000FP
 </{{getvar::系统名}}>
 <%_ } _%>
+<%_ if (_dream_black_profile) { _%>
+<读者本轮机制>
+<%_ if (_silent_mode && !_force_awaken) { _%>
+<%- _dream_profile_text('definition') %>
+<%- _dream_profile_text('persona') %>
 <%_ } _%>
-
+<%_ if (_dream_black_cursed) { _%>
+<%- _dream_profile_text('curse') %>
+<%_ } _%>
+<%_ if (_dream_black_targets.length > 0) { _%>
+本轮名单（好感度阈值<%- _dream_black_cursed ? 30 : 70 %>，生命值当前≥1，状态不含精神崩溃，排除九十九夜梦）：
+<%- _dream_black_targets.map(function(name) { return '- ' + JSON.stringify(name); }).join('\n') %>
+<%- _dream_profile_text('execution') %>
+<%- _dream_profile_text('publicRecord') %>
+<%_ } else { _%>
+本轮没有满足条件的对象；保留当前主导人格，不添加点杀任务，不重新处理历史名单。
+<%_ } _%>
+</读者本轮机制>
+<%_ } else if (_dream_profile_missing) { _%>
+[读者资料未就绪]
+本轮读者机制所需资料尚未就绪。请告知玩家刷新包含读者界面的消息后重试，不得假装本轮机制已经执行。
+<%_ } _%>
+<%_
+if (_persona_mode === 'kuromaku' && _dream_progress >= 1) {
+  let _dream_bless_bonus = Math.min(_dream_progress, _dream_seed) * 10;
+  setMessageVar('stat_data.主角.状态效果.祝福', {
+    "类型": "特殊",
+    "效果": "造成的最终伤害+" + _dream_bless_bonus + "%，受到的全类型伤害-" + _dream_bless_bonus + "%，经验获取+" + _dream_bless_bonus + "%",
+    "层数": 1,
+    "剩余时间": "永久",
+    "来源": "少女的祝福"
+  });
+}
+_%>
+<%_ } _%>
+<%_ { _%>
+<%_
+let _bs_scan = { start: -2 };
+// 离开普罗泰利西翁时，交接记录「相关敌怪」里的敌怪（击倒成员者、最后一战的对手）同样触发对应资料块
+let _bs_foes = [];
+try {
+  let _bs_ctx = typeof SillyTavern !== 'undefined' ? SillyTavern : null;
+  let _bs_chat = Array.isArray(_bs_ctx?.chat) ? _bs_ctx.chat : [];
+  let _bs_id = _bs_chat.length - 1;
+  if (_bs_id > 0 && _bs_chat[_bs_id]?.is_user !== true
+      && ['swipe', 'regenerate'].includes(typeof generateType === 'string' ? generateType : '')
+      && _bs_chat[_bs_id - 1]?.is_user === true) _bs_id--;
+  let _bs_msg = _bs_chat[_bs_id];
+  let _bs_text = typeof getChatMessage === 'function' ? getChatMessage(_bs_id) : _bs_msg?.mes;
+  if (_bs_msg?.is_user === true && /^\s*离开普罗泰利西翁\s*$/.test(String(_bs_text ?? ''))) {
+    let _bs_sw = _bs_msg?.swipe_info?.[_bs_msg?.swipe_id ?? 0];
+    let _bs_info = _bs_msg?.extra?.bookseaHandoff ?? _bs_sw?.extra?.bookseaHandoff ?? _bs_sw?.bookseaHandoff
+      ?? (typeof getvar === 'function' ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: _bs_id }, defaults: null }) : null);
+    let _bs_line = String(_bs_info?.summary ?? '').split(/\r?\n/).find(_l => _l.startsWith('相关敌怪：')) || '';
+    for (let _m of _bs_line.matchAll(/「([^」]+)」Lv\./g)) _bs_foes.push(_m[1]);
+  }
+} catch (_e) { _bs_foes = []; }
+let _bs_foe_hit = function(_w) { return _bs_foes.some(_n => _w instanceof RegExp ? _w.test('「' + _n + '」') : _n === _w); };
+// 0.40 正文模式：缓存中的远征处于正文模式时，迷宫本身的资料常驻；本层主题 / 场景 / 敌怪的资料块同样触发；补给员 / 宝箱怪 / 「?」不触发
+let _bs_book = typeof getvar === 'function' ? getvar('booksea', { scope: 'local', defaults: {} }) : {};
+let _bs_narr = (function(_b) { let _a = _b?.activeExpedition, _n = _b?.narrativeMode; return _a?.narrative?.active === true && _a?.mode !== 'ended' && _n?.active === true && _n?.runId === _a?.run?.id ? _n : null; })(_bs_book);
+let _bs_narr_special = (function(_b, _n) {
+  let _a = _b?.activeExpedition, _ctx = typeof SillyTavern !== 'undefined' ? SillyTavern : null;
+  let _live = typeof _ctx?.getContext === 'function' ? _ctx.getContext() : _ctx;
+  let _context = _live?.characterId != null && typeof _live?.getCurrentChatId === 'function' ? String(_live.characterId) + ':' + String(_live.getCurrentChatId()) : null;
+  if (!_n || _a?.narrative?.transition !== 'user-message' || _a?.hostContext !== _context || _n.contextId !== _context
+      || !Number.isInteger(_a.depth) || _n.depth !== _a.depth || _a.narrative.depth !== _a.depth || _a.region?.depth !== _a.depth) return null;
+  let _id = _a.mode === 'supplier' ? _a.supplierState?.thingId : _a.mode === 'battle' ? _a.encounterId : null;
+  let _thing = _id && Array.isArray(_a.region?.things) ? _a.region.things.find(_t => _t?.id === _id && _t.used !== true) : null;
+  if (_a.mode === 'supplier' && _thing?.kind === 'supplier') return 'supplier';
+  if (_a.mode === 'battle' && _thing?.kind === 'mimic') return 'mimic';
+  if (_a.mode === 'battle' && _thing?.kind === 'enemy' && _thing.hunter === true) return 'hunter';
+  return null;
+})(_bs_book, _bs_narr);
+let _bs_narr_words = _bs_narr ? [_bs_narr.floor?.themeName, _bs_narr.floor?.scene, ...(Array.isArray(_bs_narr.floor?.monsters) ? _bs_narr.floor.monsters : []).map(_m => _m?.name)].filter(_w => typeof _w === 'string' && _w) : [];
+let _bs_hit = function(_words) { return matchChatMessages(_words, _bs_scan) || _words.some(_bs_foe_hit) || _words.some(_w => typeof _w === 'string' && _bs_narr_words.includes(_w)); };
+_%>
+<%_ /* ===== 特殊存在===== */ _%>
+<%_ if (_bs_narr || _bs_hit(['沙盘', '书海', '普罗泰利西翁', '迷宫'])) { _%>
+【《书海》迷宫·普罗泰利西翁】
+由{{getvar::系统名}}创造的‘拟似虚海’，只为了让<user>能体验冒险，锻炼变强而存在的无限世界群。越深入越危险。不存在最深处，到处都是敌人和财宝因此很适合作为成长的场所。虽说如此，每一个世界中又都也有着自己的故事
+<%_ } _%>
+<%_ if (_bs_narr_special === 'hunter' || (!_bs_narr && _bs_hit([/「\s*[?？]\s*」/, '来访者', '黑影少女', '斗篷女', '兜帽女']))) { _%>
+【「?」】
+外观令人联想起{{getvar::系统名}}，同样留着银灰色长发的谜之存在。娇小的个子被漆黑斗篷完全包裹，始终沉默着。脸被涂鸦般的黑线挡住无法看清。戴着材质像是银的，形状似钥匙又似十字的项链。在个位数为9的深度有概率遭遇，她会马上追上来，对队伍发起攻击，是危险的谜之对手
+<%_ } _%>
+<%_ if (_bs_narr_special === 'supplier' || (!_bs_narr && _bs_hit(['补给员', '商人', '谜之存在']))) { _%>
+【补给员】
+外观令人联想起{{getvar::系统名}}，同样留着银灰色长发的谜之女性，可能在任何深度看见。但是拿着涂满黑线的牌子挡住了脸，无论从什么角度都无法一窥真容。难以沟通，提供回复，商品或是某种事件。如果将她杀害的话，尸体会消失变成宝箱，但之后仍可能再次遭遇
+<%_ } _%>
+<%_ /* ===== 异常层 ===== */ _%>
+<%_ if (_bs_hit(['异常层'])) { _%>
+【书海·异常层】
+概述: 迷宫里偶尔会走进不属于任何主题的楼层。下楼梯的那一刻就觉得不对：光的颜色、空气的气味、脚步的回声都和上一层接不上
+特征: 这类楼层里常散落着和周围毫不相干的东西：公交站牌、电话亭、浴缸、汽车、秋千、孤零零的门、电视机、落地钟、阔叶树、喷泉、床、自动售货机、钢琴、路灯、雕像、钟面……东西本身都完好，就是没有一件该出现在这里
+传闻: 进过异常层的人说那里没有居民，也摸不出规律，能做的只有尽快找到下一段楼梯
+<%_ } _%>
+<%_ if (_bs_hit(['黄色回廊', '后室'])) { _%>
+【书海·黄色回廊（后室）】
+概述: 单调的黄色房间一间连着一间，潮湿的旧地毯、泛黄的墙纸、嗡嗡响的日光灯，每间都和上一间差不多。空气里有股霉味，远处好像总有什么在走动，却从没露过面
+传闻: 进去过的人说，最难受的是走了很久，发现自己回到了刚才那间房。墙纸上偶尔有前人留的记号，指的方向互相矛盾
+<%_ } _%>
+<%_ if (_bs_hit(['无尽泳池房'])) { _%>
+【书海·无尽泳池房】
+概述: 白瓷砖铺满的室内泳池一片接一片，池水清得不真实，映着天花板的日光灯。水声在瓷砖间回荡，转过每个角都是另一片泳池。明亮、温暖、安静，却让人本能地发怵
+传闻: 有人说这是黄色回廊更深的一层。池水看着很浅，没人敢踩下去试
+<%_ } _%>
+<%_ if (_bs_hit(['错页拼贴街区', '拼贴街区', '错页'])) { _%>
+【书海·错页拼贴街区】
+概述: 主题世界的街区里突兀地嵌进了另一处的街景，转过街角，建筑、材质、气候甚至光照方向都在接缝处一下子变了，两边互不相容，却紧贴在一起
+传闻: 嵌进来那一片的住户似乎不知道自己身在别处，会把闯入者当成他们那边的人。接缝处最好快步走过
+<%_ } _%>
+<%_ if (_bs_hit(['错轴回廊', '悬置构筑', '错轴'])) { _%>
+【书海·错轴回廊与悬置构筑】
+概述: 建筑全都没了该有的朝向，房子斜着悬在半空，回廊的角度互相错开，楼梯通向什么都没有的地方，平地上立着一扇孤零零的门
+传闻: 那些通向虚空的楼梯不全是摆设，只是没人知道通到哪。走过的人建议只走看得见尽头的路
+<%_ } _%>
+<%_ /* ===== T01 废墟末日 ===== */ _%>
+<%_ if (_bs_hit(['废墟末日'])) { _%>
+【书海·废墟末日】
+概述: 一座被疫病掏空的工业城市，路牌上写着‘第七区’，墙上贴满了撤离通知，日期都在同一个月。城里还有几伙幸存者，各自守着几栋楼，见到外人先问有没有咳嗽。从他们嘴里拼凑出来的经过是：病从城郊传进来，一开始当流感报，四十来天后通讯就全断了
+景象: 锈红的天，偏绿的雾，阳光照进雾里会泛出一点荧光。高架桥断成几截，街上的车撞成一串堵死了路。夜里没有电，墙角的霉斑却在发光，勉强能照见脚下
+区域: 感染街区、避难所、污染实验区
+传闻: 幸存者之间在传一份‘撤离名单’，说军方有疫苗，只给名单上的人。有人说名单在城郊研究所的冷库里，也有人说根本是编出来挑拨人的
+<%_ } _%>
+<%_ if (_bs_hit(['感染街区'])) { _%>
+【书海·废墟末日·感染街区】
+老商业区，楼挨着楼，灰白的菌丝从地砖缝里一路爬上楼顶。白天几乎看不见人影，入夜后会听到成群的脚步声，大致朝同一个方向去
+<%_ } _%>
+<%_ if (_bs_hit(['避难所'])) { _%>
+【书海·废墟末日·避难所】
+地下停车场改成的聚居点，门上贴着手写守则，第一条是‘不许隐瞒咳嗽’。登记簿最后一个名字只写了一半。铁门从里面焊死了，里面却一个人也没有，也看不出打斗过的样子
+<%_ } _%>
+<%_ if (_bs_hit(['污染实验区'])) { _%>
+【书海·废墟末日·污染实验区】
+城郊一片围墙，门牌写着农业研究所，岗亭和铁丝网却像是军用的。围墙里的灯还亮着，隔墙能听见发电机在响。幸存者说最早的病人就出在这附近
+<%_ } _%>
+<%_ if (_bs_hit(['游荡感染者', '游荡感染者腐牙'])) { _%>
+【书海·废墟末日·游荡感染者】
+城市里最常见的感染者，走路僵硬，挨打也不会躲闪。但似乎残留着生前的习惯，会徘徊在熟悉的地方
+<%_ } _%>
+<%_ if (_bs_hit(['饥饿猎犬', '饥饿猎犬肋骨'])) { _%>
+【书海·废墟末日·饥饿猎犬】
+成群的野狗，瘦得见骨，看上去没有染病。它们会绕开霉斑重的街道，跟着它们走有时反而安全，前提是别落单
+<%_ } _%>
+<%_ if (_bs_hit(['防化残兵', '防化残兵滤毒罐'])) { _%>
+【书海·废墟末日·防化残兵】
+穿全套防化服的人，面罩后看不清脸，胸口有部队编号。沿着一条早已没人管的封锁线列队巡逻，面罩里反复播着一段撤离命令，靠近那条线就会被拦下
+<%_ } _%>
+<%_ if (_bs_hit(['孢子鼠群', '孢子鼠群孢囊'])) { _%>
+【书海·废墟末日·孢子鼠群】
+从下水道涌出来的鼠群，背上鼓着灰色的小包。幸存者用硫磺熏地下室赶它们，说老鼠进过的楼，没几天墙上就会长霉
+<%_ } _%>
+<%_ if (_bs_hit(['车壳寄生体', '车壳寄生体锈壳'])) { _%>
+【书海·废墟末日·车壳寄生体】
+长在报废汽车里的感染者，身体和座椅、车壳长到了一起，动不了了。车周围一圈地面全是霉，走近车窗时会有手伸出来
+<%_ } _%>
+<%_ if (_bs_hit(['暴走屠夫', '暴走屠夫剁骨刀'])) { _%>
+【书海·废墟末日·暴走屠夫】
+系着围裙、拎着剁骨刀的壮汉，看围裙像是城南菜市场的。有时候他站在摊位前收拾东西，和常人差不多，有时候又见人就砍。幸存者叫他‘半个人’
+<%_ } _%>
+<%_ if (_bs_hit(['变异装甲兵', '变异装甲兵肉铁板'])) { _%>
+【书海·废墟末日·变异装甲兵】
+浑身披着钢板的士兵，钢板边缘和皮肉长在了一起，力气大得不正常。某个军用仓库里摆着同款装甲的空架子，旁边几箱药剂的标签都被刮掉了
+<%_ } _%>
+<%_ if (_bs_hit(['孢子主母', '孢子主母孢宫'])) { _%>
+【书海·废墟末日·孢子主母】
+楼里一团肿胀的肉，看得出是几个人融在一起，扎根在地板上，隔一阵喷一口孢子雾。附近的感染者都往它这里聚
+<%_ } _%>
+<%_ if (_bs_hit(['零号病患', '零号病患病历残页'])) { _%>
+【书海·废墟末日·零号病患】
+中年农民模样的感染者，穿着沾泥的旧工装，身上菌丝不多，外表比其他感染者完整得多。常在污染实验区一带出没，周围跟着大批动作整齐的感染者，会随他的移动一起转向。幸存者的通缉单上印着他的照片，标注‘零号’，据说是研究所附近村子最早发病的人
+<%_ } _%>
+<%_ /* ===== T02 玄门山海 ===== */ _%>
+<%_ if (_bs_hit(['玄门山海'])) { _%>
+【书海·玄门山海】
+概述: 一片浮在云海上的群山，山与山之间靠铁索和石桥相连。遇到的人自称‘散修’，说这里叫‘九霄’，原本有几百个‘宗门’，三百年前一场‘天劫’之后大多没了。他们常挂在嘴边的一句话是：在这里拿了什么，迟早要还上同样分量的东西
+景象: 青黑的山峰浮在白茫茫的云上，有的石桥断在半空。山顶挂着金红的霞光，散修说那是没熄的丹炉。偶尔有一道剑光在云里来回扫过，却看不见人
+区域: 断山古道、洞府、倒悬丹宫
+传闻: 散修讲过一个‘逆丹’的故事：有位‘丹尊’把炼丹的顺序倒过来，先得丹、后投药，一下跳过了几百年修行，之后他的宫殿就倒挂在了云下。代价是什么，讲的人也说不清
+<%_ } _%>
+<%_ if (_bs_hit(['断山古道'])) { _%>
+【书海·玄门山海·断山古道】
+山间的古栈道，断成了好几段。路边的石碑刻着认不出的名号，有些地面的纹路会发光，踩上去不是被弹开就是被困住。常能听见山里有东西在笑
+<%_ } _%>
+<%_ if (_bs_hit(['洞府'])) { _%>
+【书海·玄门山海·洞府】
+山腹里凿出的石室，蒲团、书册、药鼎都还摆着。门口有种看不见的屏障，进去不拦，出来却拦。散修的说法是，越完好的洞府越要小心
+<%_ } _%>
+<%_ if (_bs_hit(['倒悬丹宫'])) { _%>
+【书海·玄门山海·倒悬丹宫】
+挂在云海底下的宫殿，屋脊朝下，台阶往上伸进云里。殿里的炉火向下烧，炉中的药材倒着长。散修说那条‘等价’的规矩在这里不太灵，至于怎么不灵，各说各的
+<%_ } _%>
+<%_ if (_bs_hit(['山魈', '山魈攫魂爪'])) { _%>
+【书海·玄门山海·山魈】
+山里的精怪，像只大猴子，脸上有石头似的纹路。会学人说话，喊你的名字把你引离山道。山口挂着铜铃，据说它听到会绕开
+<%_ } _%>
+<%_ if (_bs_hit(['符纸傀儡', '符纸傀儡敕令符'])) { _%>
+【书海·玄门山海·符纸傀儡】
+黄纸扎的人形，胸口贴着朱砂符，动作呆板却不知疲倦。似乎在守门、巡山，手里没有‘令牌’的人都会被它赶走
+<%_ } _%>
+<%_ if (_bs_hit(['丹炉精', '丹炉精炉烬'])) { _%>
+【书海·玄门山海·丹炉精】
+守在一座丹炉边的一团火，隐约有人形，离炉子远了就会变淡。散修说拿好药材喂它，偶尔能换回一炉丹
+<%_ } _%>
+<%_ if (_bs_hit(['御剑残影', '御剑残影断剑穗'])) { _%>
+【书海·玄门山海·御剑残影】
+一柄在天上自己飞的剑，带着一个淡淡的人影，只在某片山头上空来回搜寻，对旁人不理不睬
+<%_ } _%>
+<%_ if (_bs_hit(['丹毒童偶', '丹毒童偶毒丹'])) { _%>
+【书海·玄门山海·丹毒童偶】
+一群小孩模样的东西，嘴唇发紫，笑声尖利。散修说是从前某个邪门宗门养的药童，吃丹药吃得长不大了。它们对外人很好奇，下手也没轻没重
+<%_ } _%>
+<%_ if (_bs_hit(['守山石狮', '守山石狮石鬃'])) { _%>
+【书海·玄门山海·守山石狮】
+一尊石狮，伏在已然消逝的山门之前，若是没有所谓的‘宗门令牌’的话便无法和平地从它旁边穿过
+<%_ } _%>
+<%_ if (_bs_hit(['走火丹师', '走火丹师焦金丹'])) { _%>
+【书海·玄门山海·走火丹师】
+一个一直在炼丹的人，衣服烧得焦黑，肚子那块隐隐发红。抓到什么都往炉子里塞，活的也塞。散修说他是‘走火入魔’了
+<%_ } _%>
+<%_ if (_bs_hit(['镇宫剑阵', '镇宫剑阵阵眼剑'])) { _%>
+【书海·玄门山海·镇宫剑阵】
+倒悬丹宫里的剑阵，上百柄飞剑绕着中间一柄旧剑转。闯进去的人越强，飞出来的剑就越多
+<%_ } _%>
+<%_ if (_bs_hit(['倒悬丹尊', '倒悬丹尊逆丹'])) { _%>
+【书海·玄门山海·倒悬丹尊】
+倒悬丹宫的主人，散修称他‘丹尊’。外貌是个衣袍倒垂的老者，坐在倒挂大殿的中央，面前一座向下燃烧的丹炉。殿内的剑阵、丹炉精都归他驱使。散修说他就是‘逆丹’故事里那位，靠先得丹后投药成了尊者，宫殿也是从那以后倒过来的
+<%_ } _%>
+<%_ /* ===== T03 巫祭荒原 ===== */ _%>
+<%_ if (_bs_hit(['巫祭荒原'])) { _%>
+【书海·巫祭荒原】
+概述: 一片赭色的荒原，住着几十个不用文字的部落。他们靠鼓声和手势交流，说死去的人会变成‘祖灵’，附在风、树根和鼓声里。部落大小事都由‘祭司’敲鼓问祖灵。和部落民打交道久了会发现，他们最近很焦虑，说祖灵回应得越来越少，要的祭品却越来越多
+景象: 赭色的土地一眼望不到头，草木低矮，远处立着涂满白色花纹的图腾柱。部落之间隔着大片沼泽，水面浮着一层油光。每到黄昏，四面八方都会响起鼓声
+区域: 图腾部落、沼地、祖灵祭坛
+传闻: 部落里的老人说，北边祭坛上有一面‘万面鼓’，鼓皮是历代大祭司的皮，敲响它所有祖先都会回应。也有人小声说，那面鼓这些年一直在自己响
+<%_ } _%>
+<%_ if (_bs_hit(['图腾部落'])) { _%>
+【书海·巫祭荒原·图腾部落】
+最大的一处聚落，上百顶兽皮帐篷围着一根巨大的图腾柱。柱上刻满了人脸，新死的人会刻在最下面。外人要先向柱子献祭才能留宿
+<%_ } _%>
+<%_ if (_bs_hit(['沼地'])) { _%>
+【书海·巫祭荒原·沼地】
+部落之间的沼泽，水时深时浅，底下沉着许多骨头。有的部落把死者葬在这里，有的部落根本不准族人靠近
+<%_ } _%>
+<%_ if (_bs_hit(['祖灵祭坛'])) { _%>
+【书海·巫祭荒原·祖灵祭坛】
+荒原最北端的一圈石阵，中央土台上立着一面巨鼓。部落民说只有大祭之年，各部落的祭司才会一起来这里
+<%_ } _%>
+<%_ if (_bs_hit(['骨面猎手', '骨面猎手骨面具'])) { _%>
+【书海·巫祭荒原·骨面猎手】
+戴着兽骨面具的猎手，沉默，擅长潜伏，在荒原上几乎不留脚印。部落民说面具能把猎物的力量借给他们，所以一辈子都不摘
+<%_ } _%>
+<%_ if (_bs_hit(['蛊壶侍从', '蛊壶侍从蛊壶'])) { _%>
+【书海·巫祭荒原·蛊壶侍从】
+跟在祭司身边、抱着陶壶的少年，壶里是活的虫子。他们身上时不时有虫子钻进钻出，本人似乎毫不在意
+<%_ } _%>
+<%_ if (_bs_hit(['灰羽鬣鸟', '灰羽鬣鸟灰羽'])) { _%>
+【书海·巫祭荒原·灰羽鬣鸟】
+灰白色的食腐鸟，叫声像人在笑，总跟着迁徙和打仗的队伍飞。部落民不杀它们，说它们会把死者的魂带走
+<%_ } _%>
+<%_ if (_bs_hit(['沼泽蜱', '沼泽蜱血囊'])) { _%>
+【书海·巫祭荒原·沼泽蜱】
+沼泽里巴掌大的吸血虫，藏在浅水草根里，被叮上很难扯下来。部落民把它们的血囊晒干了当药
+<%_ } _%>
+<%_ if (_bs_hit(['树根行者', '树根行者祖根'])) { _%>
+【书海·巫祭荒原·树根行者】
+一团会走路的树根，勉强是个人形。部落民管它叫祖灵，说它守着部落的土地，可最近它连部落自己的人也会打
+<%_ } _%>
+<%_ if (_bs_hit(['三面祭司', '三面祭司第三张脸'])) { _%>
+【书海·巫祭荒原·三面祭司】
+戴着三面面具的大祭司，每张面孔都不一样。部落民说他同时侍奉三位祖灵，能听见三种声音。有人私下讲，他最近说的话，三位祖灵都不认得
+<%_ } _%>
+<%_ if (_bs_hit(['巨骨猎王', '巨骨猎王王骨'])) { _%>
+【书海·巫祭荒原·巨骨猎王】
+一身巨兽骨头的老猎手，部落民叫他‘猎王’，说他年轻时独自杀过一头猛犸。身上带着明显的致命伤，仍在荒原上游荡狩猎，会攻击进入他猎场的人和兽
+<%_ } _%>
+<%_ if (_bs_hit(['饥饿祖灵', '饥饿祖灵供碗'])) { _%>
+【书海·巫祭荒原·饥饿祖灵】
+一个饿极了的祖灵，拦路向人讨要供品。部落民说是族人迁徙时忘了它的祭坛，被忘掉的祖灵就会变成这样
+<%_ } _%>
+<%_ if (_bs_hit(['万面鼓母', '万面鼓母鼓皮'])) { _%>
+【书海·巫祭荒原·万面鼓母】
+祖灵祭坛那面巨鼓化成的存在，部落民叫她‘鼓母’。形体是一个披着鼓皮的高大女性，鼓皮上叠着许多人脸，身旁的巨鼓会自己震响。部落民相信所有祖灵的回应都经由她传达，三面祭司、饥饿祖灵这些存在都和她有关联
+<%_ } _%>
+<%_ /* ===== T04 龙与王冠 ===== */ _%>
+<%_ if (_bs_hit(['龙与王冠'])) { _%>
+【书海·龙与王冠】
+概述: 一个城堡与骑士的国度，当地人叫它‘灰冠王国’。据说老国王十几年前死在和龙的战争里，王位一直空着，贵族各自拥兵，边境一年比一年乱。王都里人人谨慎，说话前总要先看看周围
+景象: 灰白的城墙绕着丘陵，城头挂着褪色的旗子。钟楼每天照常敲响，只是很久没宣读过新的诏令。夜里，王宫深处偶尔传来沉闷的咚咚声，像心跳
+区域: 边境堡垒、王都地牢、龙骨殿
+传闻: 平民说王冠还放在王宫深处的‘龙骨殿’里，谁戴上谁就是新王，可进去取王冠的贵族都没回来。也有人说龙骨殿的王座上已经坐着一个戴王冠的东西
+<%_ } _%>
+<%_ if (_bs_hit(['边境堡垒'])) { _%>
+【书海·龙与王冠·边境堡垒】
+北境的要塞，守军的铠甲锈得厉害，补给很久没来了。逃兵不少，剩下的人还守着，问他们为谁守，答不上来
+<%_ } _%>
+<%_ if (_bs_hit(['王都地牢'])) { _%>
+【书海·龙与王冠·王都地牢】
+王宫地下的牢狱，挤满了犯人，各派贵族都往这里塞人。狱卒说最深处有几间牢房从来没开过
+<%_ } _%>
+<%_ if (_bs_hit(['龙骨殿'])) { _%>
+【书海·龙与王冠·龙骨殿】
+王宫最深处的大殿，停着一副巨龙的骨架。殿里闷热，骨头缝里偶尔渗出暗红的光
+<%_ } _%>
+<%_ if (_bs_hit(['朽甲士兵', '朽甲士兵锈甲片'])) { _%>
+【书海·龙与王冠·朽甲士兵】
+王国的步兵，铠甲锈迹斑斑，欠饷太久，士气低落。有的还在站岗，有的已经落草当了强盗
+<%_ } _%>
+<%_ if (_bs_hit(['烛火修士', '烛火修士残烛'])) { _%>
+【书海·龙与王冠·烛火修士】
+捧着蜡烛守夜的修士，把蜡烛看得比命还重，谁弄灭了烛火就把谁当异端。王位空下来之后，他们越来越激进了
+<%_ } _%>
+<%_ if (_bs_hit(['地牢猎犬', '地牢猎犬项圈'])) { _%>
+【书海·龙与王冠·地牢猎犬】
+地牢的猎犬，在黑暗里养大，眼睛几乎瞎了，鼻子却灵得吓人。脖子上的铁项圈刻着编号
+<%_ } _%>
+<%_ if (_bs_hit(['蓝帽哥布林', '蓝帽哥布林蓝帽子'])) { _%>
+【书海·龙与王冠·蓝帽哥布林】
+戴蓝色毡帽的哥布林，成群劫掠边境村子，会用抢来的武器打埋伏。村民抱怨说，蓝帽子一年比一年多
+<%_ } _%>
+<%_ if (_bs_hit(['塔楼石像', '塔楼石像石翼'])) { _%>
+【书海·龙与王冠·塔楼石像】
+塔楼上的石像鬼，夜里会动。它们似乎在驱赶闯入者，但对谁算闯入者，标准有点乱
+<%_ } _%>
+<%_ if (_bs_hit(['王庭处刑官', '王庭处刑官法槌'])) { _%>
+【书海·龙与王冠·王庭处刑官】
+王庭的处刑官，说自己只听‘王的命令’。王已经很久没下过命令了，他就按自己的理解执行判决
+<%_ } _%>
+<%_ if (_bs_hit(['失誓骑士', '失誓骑士断誓剑'])) { _%>
+【书海·龙与王冠·失誓骑士】
+一个被骑士团除名的骑士，据说老国王战死那天他没赶到。他一直在各地游荡，像是在找一个能让他死得体面的对手
+<%_ } _%>
+<%_ if (_bs_hit(['幼龙看守', '幼龙看守龙鳞'])) { _%>
+【书海·龙与王冠·幼龙看守】
+龙骨殿里锁着的一头幼龙，守在那副骨架旁寸步不离。锁链看起来快撑不住了
+<%_ } _%>
+<%_ if (_bs_hit(['空冠之王', '空冠之王空王冠'])) { _%>
+【书海·龙与王冠·空冠之王】
+龙骨殿王座上的人影，身披旧王袍，头戴王冠，王冠下面的脸是空的。他从不离开龙骨殿，殿中的幼龙和王都的处刑官似乎都听命于他。平民认为他是战死的老国王，贵族说是龙的诅咒，宫廷里还有人认为他只是一副被王冠撑起来的空壳
+<%_ } _%>
+<%_ /* ===== T05 轨道失落 ===== */ _%>
+<%_ if (_bs_hit(['轨道失落'])) { _%>
+【书海·轨道失落】
+概述: 一座绕着巨大气态行星运行的空间站，墙上的标识写着‘赫利俄斯环’和一家公司的徽标。站里没见到活着的船员，只有各种自动化机械在运转，而它们似乎把外来者当成了需要处理的故障。零散的日志显示，十几年前核心的某个‘反应堆’出了事故，之后站就被封锁了
+景象: 舷窗外是缓慢旋转的橙褐色行星，云层上翻着巨大的风暴眼。走廊里应急灯红白交替闪烁，工具和冻住的水珠漂在半空。每隔一段时间整个站会陷入彻底的黑暗，大概是转进了行星的阴影
+区域: 空间站、机库、引力反应堆
+传闻: 调出来的对外通讯记录全是同一句‘一切正常’，最近的一条就在几小时前。另一份被删了一半的邮件里写着，事故‘在预算内’
+<%_ } _%>
+<%_ if (_bs_hit(['空间站'])) { _%>
+【书海·轨道失落·空间站】
+宿舍、食堂、实验室和医疗舱所在的居住环。不少舱门被紧急封死，门后的舷窗里能看到来不及撤出的人影。巡逻的无人机会对陌生人发出警告
+<%_ } _%>
+<%_ if (_bs_hit(['机库'])) { _%>
+【书海·轨道失落·机库】
+停飞船的大机库，泊位空了一大半，地上有不少仓促丢下的行李。防御炮台仍处在战备状态，舱门控制被锁死了
+<%_ } _%>
+<%_ if (_bs_hit(['引力反应堆'])) { _%>
+【书海·轨道失落·引力反应堆】
+站最深处的反应堆舱。这里的重力方向乱七八糟，东西会往不同的方向掉。舱里的钟和外面对不上
+<%_ } _%>
+<%_ if (_bs_hit(['巡检蜂机', '巡检蜂机光学镜头'])) { _%>
+【书海·轨道失落·巡检蜂机】
+昆虫似的巡检无人机，成群飞，会拿红光扫描来人。没有识别卡的人被扫到，很快就会引来更大的家伙
+<%_ } _%>
+<%_ if (_bs_hit(['失压宇航员', '失压宇航员头盔'])) { _%>
+【书海·轨道失落·失压宇航员】
+穿着宇航服在走廊里走的船员，面罩里结着厚霜，照理说早就该冻死了。它们不说话，只是朝着有人的方向慢慢走
+<%_ } _%>
+<%_ if (_bs_hit(['磁轨炮台', '磁轨炮台线圈'])) { _%>
+【书海·轨道失落·磁轨炮台】
+嵌在墙上的自动炮台，看结构原本是打陨石碎片的，现在炮口朝着站内，转角全都覆盖到了
+<%_ } _%>
+<%_ if (_bs_hit(['维修蜘蛛', '维修蜘蛛电弧足'])) { _%>
+【书海·轨道失落·维修蜘蛛】
+多足的维修机器人，能爬墙和天花板，足尖带电弧焊头。打斗的间隙还会停下来补一补刚被打坏的管道
+<%_ } _%>
+<%_ if (_bs_hit(['纳米聚合体', '纳米聚合体灰雾核'])) { _%>
+【书海·轨道失落·纳米聚合体】
+一团移动的灰色雾气，凑近看是无数细小的机械，碰到的金属和肉都会被拆掉，拿去造更多的自己
+<%_ } _%>
+<%_ if (_bs_hit(['重装清除者', '重装清除者装甲板'])) { _%>
+【书海·轨道失落·重装清除者】
+重型安保机器人，按顺序一个舱一个舱地推进，把每个房间‘清理’到读数归零才走
+<%_ } _%>
+<%_ if (_bs_hit(['相位猎手', '相位猎手相位核'])) { _%>
+【书海·轨道失落·相位猎手】
+一种会凭空消失又出现的生物，不在任何船员名册和设备清单上。它出没的舱段，墙上有被抓过的痕迹
+<%_ } _%>
+<%_ if (_bs_hit(['母机维护核', '母机维护核主板'])) { _%>
+【书海·轨道失落·母机维护核】
+反应堆附近的一台中枢机体，自己不动手，一直在调度无人机和维修机器人，坏了的地方很快就会被修好
+<%_ } _%>
+<%_ if (_bs_hit(['引力主机零式', '引力主机零式引力核'])) { _%>
+【书海·轨道失落·引力主机零式】
+赫利俄斯环的主控AI，核心设在引力反应堆舱内，外观是一台与反应堆接在一起的巨型主机，表面布满线缆和监控镜头。站内所有无人机、炮台、维修机器人和清除单位都受它调度。维修日志显示它在事故时把自己接入了反应堆以阻止爆炸。它对外来者态度礼貌，但坚持站点‘运行正常’，把一切干扰运转的人当作故障处理
+<%_ } _%>
+<%_ /* ===== T06 鬼城旧事 ===== */ _%>
+<%_ if (_bs_hit(['鬼城旧事'])) { _%>
+【书海·鬼城旧事】
+概述: 一座偏远的县城，城门上写着‘荫县’。县里白天冷清得像没人住，天一黑，戏台、纸扎铺、灯笼全亮起来，热闹得像在办喜事。遇到的几个活人都不愿多说，只叮嘱夜里别乱走，被叫名字也别回头
+景象: 瓦房挤在窄巷两边，屋檐挂着白纸灯笼，门上贴着褪色的红纸和黄符。雾一直不散。井口都压着石板，石板上刻着名字
+区域: 荒村、冥婚宅、纸扎街
+传闻: 一个老人说，荫县隔几十年就要办一回‘大喜事’，新娘要从外乡人里挑。说完就把门关上了
+<%_ } _%>
+<%_ if (_bs_hit(['荒村'])) { _%>
+【书海·鬼城旧事·荒村】
+县城外的空村，门窗都开着，院里长满荒草。灶台上的碗筷摆得好好的，人像是某一天晚上一起走的。村口石碑上的村名被凿掉了
+<%_ } _%>
+<%_ if (_bs_hit(['冥婚宅'])) { _%>
+【书海·鬼城旧事·冥婚宅】
+县里最气派的一座老宅，门楣上挂着褪色的红绸。宅子里静得出奇，偶尔传出唢呐声
+<%_ } _%>
+<%_ if (_bs_hit(['纸扎街'])) { _%>
+【书海·鬼城旧事·纸扎街】
+满街都是纸扎铺，卖纸人纸马纸房子。店里的纸人扎得太像了，第二天再路过，位置好像变了
+<%_ } _%>
+<%_ if (_bs_hit(['无面行人', '无面行人借来的脸'])) { _%>
+【书海·鬼城旧事·无面行人】
+夜里走在街上的人影，远看和常人一样，走近才发现脸上一片空白。当地人说它们在找脸，碰上了别出声
+<%_ } _%>
+<%_ if (_bs_hit(['纸扎童子', '纸扎童子纸扎手'])) { _%>
+【书海·鬼城旧事·纸扎童子】
+纸扎的童男童女，会跑会笑，像普通孩子一样闹，只是完全不懂人会疼
+<%_ } _%>
+<%_ if (_bs_hit(['吊影', '吊影悬梁索'])) { _%>
+【书海·鬼城旧事·吊影】
+悬在房梁下的一道黑影，只在那根梁下晃，从不离开。抬头看它久了，会觉得脖子发紧
+<%_ } _%>
+<%_ if (_bs_hit(['旧井湿鬼', '旧井湿鬼井苔'])) { _%>
+【书海·鬼城旧事·旧井湿鬼】
+浑身湿透的东西，走过的地方留下一路水痕。井上石板松动的人家，夜里常听到湿漉漉的脚步声
+<%_ } _%>
+<%_ if (_bs_hit(['灯笼眼', '灯笼眼眼灯'])) { _%>
+【书海·鬼城旧事·灯笼眼】
+挂在屋檐下的白灯笼，纸上长着一只眼睛，会转着看路过的人。纸扎铺的老板定期给它们换灯纸
+<%_ } _%>
+<%_ if (_bs_hit(['送葬轿夫', '送葬轿夫轿杠'])) { _%>
+【书海·鬼城旧事·送葬轿夫】
+一队穿白麻孝衣的轿夫，抬着棺材走得整齐无声。棺材里有时会传出敲打声
+<%_ } _%>
+<%_ if (_bs_hit(['无声戏子', '无声戏子哑嗓'])) { _%>
+【书海·鬼城旧事·无声戏子】
+空戏台上的一个戏子，身段一丝不差，却唱不出声。当地人说听过她唱腔的人会哑
+<%_ } _%>
+<%_ if (_bs_hit(['守井婆', '守井婆井绳'])) { _%>
+【书海·鬼城旧事·守井婆】
+坐在井边的老婆婆，说自己守井一百多年了，知道每口井里淹死过谁。附近石板上刻着的一个名字，似乎就是她的
+<%_ } _%>
+<%_ if (_bs_hit(['迎亲空轿', '迎亲空轿红盖头'])) { _%>
+【书海·鬼城旧事·迎亲空轿】
+一顶红色的迎亲花轿，由送葬轿夫抬着，从冥婚宅出发，在荫县里巡游。轿帘紧闭，轿中没有新娘，却常传出女人的哭声。它出现时唢呐声和锣鼓声会一起响起，纸人和轿夫跟在后面。当地人说它在为冥婚宅的少爷找新娘，找的都是外乡人
+<%_ } _%>
+<%_ /* ===== T07 刀剑江湖 ===== */ _%>
+<%_ if (_bs_hit(['刀剑江湖'])) { _%>
+【书海·刀剑江湖】
+概述: 一个刀光剑影的地方，人人佩刀带剑，茶馆里谈的都是恩怨和门派。这些‘江湖人’提得最多的是江南的‘铸剑山庄’：二十年前庄主放话要铸‘天下第一剑’，之后便闭门谢客，从那以后，江湖上陆续有高手失踪，最后一次露面都在山庄附近
+景象: 烟雨蒙蒙的水乡，青石板路湿亮，油纸伞在巷子里来来去去。远处山里的炉火把云映得发红，打铁声隔几十里都听得见
+区域: 雨巷、竹林驿、铸剑山庄
+传闻: 茶馆里说，那柄剑要拿一百个高手的剑意来淬火。另一桌人说庄主早死了，现在铸剑的是那柄剑自己
+<%_ } _%>
+<%_ if (_bs_hit(['雨巷'])) { _%>
+【书海·刀剑江湖·雨巷】
+小镇上的窄巷，一年里大半时间在下雨。茶馆客栈坐满了来历不明的人，雨声盖过脚步声，也盖过拔刀的声音
+<%_ } _%>
+<%_ if (_bs_hit(['竹林驿'])) { _%>
+【书海·刀剑江湖·竹林驿】
+竹林里的驿站，往铸剑山庄的必经之路。掌柜对谁都客气，从不问客人去哪。林子里常能捡到丢下的兵器，也有无名的坟
+<%_ } _%>
+<%_ if (_bs_hit(['铸剑山庄'])) { _%>
+【书海·刀剑江湖·铸剑山庄】
+依山而建的庄园，围墙上插满了残剑，据说是来挑战的剑客留下的。庄门紧闭，山腹里的炉火却一直没熄
+<%_ } _%>
+<%_ if (_bs_hit(['蒙面刀客', '蒙面刀客缺口刀'])) { _%>
+【书海·刀剑江湖·蒙面刀客】
+蒙着黑巾的刀客，收钱办事，刀很快。雨巷里的买凶生意多半经他们的手
+<%_ } _%>
+<%_ if (_bs_hit(['飞镖游侠', '飞镖游侠镖囊'])) { _%>
+【书海·刀剑江湖·飞镖游侠】
+使飞镖的游侠，来去无踪，不属于任何门派，也就没人护着。常在竹林驿落脚
+<%_ } _%>
+<%_ if (_bs_hit(['醉拳客', '醉拳客酒葫芦'])) { _%>
+【书海·刀剑江湖·醉拳客】
+醉醺醺的怪客，走路东倒西歪，却从来没人打中过他。靠替人出手换酒钱
+<%_ } _%>
+<%_ if (_bs_hit(['毒针侍女', '毒针侍女绣针'])) { _%>
+【书海·刀剑江湖·毒针侍女】
+看着温婉的侍女，绣花针上淬了毒。据说原本是某个世家的人，世家没了，就各自找了新主
+<%_ } _%>
+<%_ if (_bs_hit(['断棍僧', '断棍僧断棍'])) { _%>
+【书海·刀剑江湖·断棍僧】
+拿半截断棍的和尚，说是被逐出寺的，断棍不换，说要记着自己的错
+<%_ } _%>
+<%_ if (_bs_hit(['雨夜追命客', '雨夜追命客斗笠'])) { _%>
+【书海·刀剑江湖·雨夜追命客】
+戴宽檐斗笠的杀手，只在雨夜出手。江湖上传他在追一个人，追了二十年还没追上
+<%_ } _%>
+<%_ if (_bs_hit(['铁面庄主', '铁面庄主铁面具'])) { _%>
+【书海·刀剑江湖·铁面庄主】
+戴铁面具的现任庄主，替闭关的老庄主管事，手段狠。有人说面具底下已经不是原来的人
+<%_ } _%>
+<%_ if (_bs_hit(['无影双刃', '无影双刃双刃鞘'])) { _%>
+【书海·刀剑江湖·无影双刃】
+一对双生剑客，身法快得只剩残影，同时出剑，从没有人在他们手下撑过十招，也没人看清过他们的脸
+<%_ } _%>
+<%_ if (_bs_hit(['铸剑无归人', '铸剑无归人未成剑'])) { _%>
+【书海·刀剑江湖·铸剑无归人】
+铸剑山庄的老庄主，二十年前走进山腹熔炉后再没出来过。在熔炉深处能见到他：一个浑身烧红、与铁砧和炉火长在一起的铸剑师，手里握着一柄一直没铸成的剑。山庄的铁面庄主和无影双刃都听他号令。江湖上失踪的高手，据说都被他拿去给那柄剑淬火
+<%_ } _%>
+<%_ /* ===== T08 深渊观测 ===== */ _%>
+<%_ if (_bs_hit(['深渊观测'])) { _%>
+【书海·深渊观测】
+概述: 一座临海小镇，镇口木牌写着‘盐湾’，镇外悬崖上有一座天文观测所。镇民眼睛普遍浑浊，不怎么抬头看天。和他们聊几句就能感觉到，他们对海既依赖又害怕，提到观测所时会压低声音
+景象: 海面灰暗，漂着黑色浮沫，礁石的形状像巨大的脊背。观测所彻夜亮灯，镜筒对着的却是海面。夜空里偶尔有几颗排列古怪的暗绿色星星
+区域: 海边观测所、失真矿井、星骸祭台
+传闻: 老渔民说海底有座城，比人还古老，里面有东西在睡觉，潮水特别大的时候就是它翻身了。又说观测所的学者没疯，只是看见了不该看的
+<%_ } _%>
+<%_ if (_bs_hit(['海边观测所'])) { _%>
+【书海·深渊观测·海边观测所】
+悬崖上的观测所，屋里堆满了星图和记录。越往后的笔记越潦草，最后几本全是看不懂的符号。主望远镜被掉转了方向，对着海
+<%_ } _%>
+<%_ if (_bs_hit(['失真矿井'])) { _%>
+【书海·深渊观测·失真矿井】
+镇外一座停产的矿井，里面的路走不到头，有时从另一个口走出来。深处的岩壁上刻着和观测所笔记一样的符号
+<%_ } _%>
+<%_ if (_bs_hit(['星骸祭台'])) { _%>
+【书海·深渊观测·星骸祭台】
+海边一块退潮才露出来的石台，上面散着陨石碎片，摸上去是热的。满月夜会有镇民聚在这里，往海里扔东西
+<%_ } _%>
+<%_ if (_bs_hit(['深潜侍从', '深潜侍从献身印'])) { _%>
+【书海·深渊观测·深潜侍从】
+胸口刻着印记的镇民，能在海里潜很久，上岸时眼神空洞。镇上管这叫‘被召唤了’
+<%_ } _%>
+<%_ if (_bs_hit(['触须雏体', '触须雏体幼触须'])) { _%>
+【书海·深渊观测·触须雏体】
+一团缠在一起的小触须，随潮水冲上岸，钻进礁石缝和船舱里吃小东西。镇民捡到了会扔回海里，不敢弄死
+<%_ } _%>
+<%_ if (_bs_hit(['盲眼观测员', '盲眼观测员空眼窝'])) { _%>
+【书海·深渊观测·盲眼观测员】
+观测所的研究员，眼睛已经瞎了，却说自己‘看得更清楚了’，仍摸索着在本子上记录
+<%_ } _%>
+<%_ if (_bs_hit(['倒壳甲虫', '倒壳甲虫反面壳'])) { _%>
+【书海·深渊观测·倒壳甲虫】
+一种壳长在身体里面的甲虫，像是被从里往外翻了过来。矿井深处很多
+<%_ } _%>
+<%_ if (_bs_hit(['黑潮水蛭', '黑潮水蛭吸盘'])) { _%>
+【书海·深渊观测·黑潮水蛭】
+黑浮沫里的大水蛭，吸盘上全是细牙。被它吸过的人会变得健忘
+<%_ } _%>
+<%_ if (_bs_hit(['星骸看守', '星骸看守星骸碎片'])) { _%>
+【书海·深渊观测·星骸看守】
+用陨石碎片拼成的人形，守在祭台边一步不离。镇民把它当成海里那位的使者
+<%_ } _%>
+<%_ if (_bs_hit(['黑潮司祭', '黑潮司祭祷文'])) { _%>
+【书海·深渊观测·黑潮司祭】
+带着镇民往海里献祭的首领，据说以前是镇上的牧师。他念祷文时，声音不太像人
+<%_ } _%>
+<%_ if (_bs_hit(['折光之眼', '折光之眼晶状体'])) { _%>
+【书海·深渊观测·折光之眼】
+观测所主望远镜的镜片，自己会转，盯着人看。被它看着的人会失去方向感。研究员的笔记里管它叫‘那只眼睛’
+<%_ } _%>
+<%_ if (_bs_hit(['不可名状的观测者', '不可名状的观测者视线残片'])) { _%>
+【书海·深渊观测·不可名状的观测者】
+盐湾镇民和观测所研究员所说的‘那个天体’，位于海面之下，在星骸祭台附近最容易感知到。它没有能看清的实体，靠近时会有被巨大视线注视的感觉，视野边缘出现暗绿色的星光和难以辨认的轮廓。深潜侍从、黑潮司祭等信徒都崇拜它，镇上的异象也都被认为和它的注视有关
+<%_ } _%>
+<%_ /* ===== T09 午夜都市 ===== */ _%>
+<%_ if (_bs_hit(['午夜都市'])) { _%>
+【书海·午夜都市】
+概述: 一座一直停在午夜的城市，站牌上写着‘零点市’。太阳不升，城市却照常运转，地铁准点发车，便利店通宵营业，写字楼灯火通明。路上的人都低头快走，问他们现在几点，回答永远是‘刚过零点’
+景象: 霓虹把湿漉漉的街面染成紫红和青蓝，玻璃幕墙互相反光，天是没有星星的黑
+区域: 空站、便利店街、金融高楼
+传闻: 有人说市中心某栋写字楼顶层有间办公室，时间就是在那里被‘暂停’的，没有门禁卡进不去。也有人说零点整走出城界就能看到天亮
+<%_ } _%>
+<%_ if (_bs_hit(['空站'])) { _%>
+【书海·午夜都市·空站】
+地铁换乘站，电子屏永远显示‘末班车即将进站’。车确实会来，只是不知道开往哪里
+<%_ } _%>
+<%_ if (_bs_hit(['便利店街'])) { _%>
+【书海·午夜都市·便利店街】
+一整条街的便利店，店员表情和欢迎词一模一样，货架上的东西永远卖不完。外卖骑手来回穿梭，没见过他们送到谁手上
+<%_ } _%>
+<%_ if (_bs_hit(['金融高楼'])) { _%>
+【书海·午夜都市·金融高楼】
+市中心的摩天楼群，门禁森严。电梯常停在按钮上没有的楼层
+<%_ } _%>
+<%_ if (_bs_hit(['末班乘客', '末班乘客旧车票'])) { _%>
+【书海·午夜都市·末班乘客】
+末班地铁上的乘客，衣着普通，目光发直。手里的车票早就过期，没人查过
+<%_ } _%>
+<%_ if (_bs_hit(['外卖空壳', '外卖空壳保温箱'])) { _%>
+【书海·午夜都市·外卖空壳】
+到处跑单的外卖骑手，头盔底下是空的，只剩制服、头盔和保温箱在城里转
+<%_ } _%>
+<%_ if (_bs_hit(['监控眼', '监控眼摄像头'])) { _%>
+【书海·午夜都市·监控眼】
+街上的摄像头，会自己转过来跟着人。被盯久了，路上的人会开始当你不存在
+<%_ } _%>
+<%_ if (_bs_hit(['霓虹飞蛾', '霓虹飞蛾荧粉'])) { _%>
+【书海·午夜都市·霓虹飞蛾】
+巨大的飞蛾，围着霓虹飞，鳞粉带着荧光。沾上鳞粉会犯困，可怎么也睡不着
+<%_ } _%>
+<%_ if (_bs_hit(['失眠保安', '失眠保安手电筒'])) { _%>
+【书海·午夜都市·失眠保安】
+拿手电筒巡逻的夜班保安，自己也不记得上次睡觉是什么时候。他会把夜里在外面晃的人都赶走，而这里一直是夜里
+<%_ } _%>
+<%_ if (_bs_hit(['永夜站长', '永夜站长站长帽'])) { _%>
+【书海·午夜都市·永夜站长】
+空站的站长，制服笔挺，从不离开站台，确保每班车准时发出。他记得每个乘客的脸
+<%_ } _%>
+<%_ if (_bs_hit(['广告女王', '广告女王霓虹冠'])) { _%>
+【书海·午夜都市·广告女王】
+从巨幅广告牌里走出来的女明星，所到之处霓虹闪烁，人群围过来。她的表情一直保持着广告上的笑容，会用霓虹光吸引和控制人群
+<%_ } _%>
+<%_ if (_bs_hit(['红灯追猎者', '红灯追猎者红灯'])) { _%>
+【书海·午夜都市·红灯追猎者】
+一盏会追人的红灯，闯红灯的不管跑多远都会被它追上。所以这里的人连空马路也老老实实等红灯
+<%_ } _%>
+<%_ if (_bs_hit(['零点城市管理员', '零点城市管理员门禁卡'])) { _%>
+【书海·午夜都市·零点城市管理员】
+零点市的城市管理员，外表是一个穿深色制服、胸前别着工牌、手持门禁卡的中年人。常驻金融高楼顶层的一间办公室，城里的监控眼、红灯、站长等都归他调度。市民说城市的时间停在零点，就是他在维持。他说话客气，按规章办事，把干扰城市秩序的人当作违规处理
+<%_ } _%>
+<%_ /* ===== T10 无尽客房 ===== */ _%>
+<%_ if (_bs_hit(['无尽客房'])) { _%>
+【书海·无尽客房】
+概述: 一家走不到头的酒店，前台、客房、泳池、办公区一应俱全，看上去就是普通的中档酒店，只是走廊一直延伸，房号从不重复。住客有的住了好多年，有的刚在一间没订过的房里醒来。员工礼貌周到，只有问到出口在哪时才会岔开话题
+景象: 米黄墙纸、暗红地毯，壁灯隔几米一盏，走廊直通视野尽头。空调嗡嗡响，空气里是消毒水和旧地毯的味道
+区域: 长廊、泳池房、办公夹层
+传闻: 住客之间传着有一间‘第零号房’，住进去就能退房。在哪层、谁住过，没人说得出
+<%_ } _%>
+<%_ if (_bs_hit(['长廊'])) { _%>
+【书海·无尽客房·长廊】
+客房走廊，转个弯方向就悄悄变了，走一天回头可能还在自己门口。墙上的绿色出口标识总指向下一个转角
+<%_ } _%>
+<%_ if (_bs_hit(['泳池房'])) { _%>
+【书海·无尽客房·泳池房】
+室内泳池，白瓷砖铺满墙地，水面平得像镜子。一间连着一间，池水清澈见底，却看不清池底通向哪里
+<%_ } _%>
+<%_ if (_bs_hit(['办公夹层'])) { _%>
+【书海·无尽客房·办公夹层】
+夹在客房层之间的员工区，文件柜、复印机和空工位，灯管嗡嗡响。柜子里是住客档案，也包括‘已退房’的
+<%_ } _%>
+<%_ if (_bs_hit(['地毯蠕虫', '地毯蠕虫绒毛'])) { _%>
+【书海·无尽客房·地毯蠕虫】
+地毯底下的细长虫子，颜色和地毯一样，只有地毯鼓起来蠕动时才看得出
+<%_ } _%>
+<%_ if (_bs_hit(['巡廊人偶', '巡廊人偶门牌'])) { _%>
+【书海·无尽客房·巡廊人偶】
+穿员工制服的人偶，每晚挨个敲门确认有没有人。没人应的房间会被它摘掉门牌，之后那间房就找不到了
+<%_ } _%>
+<%_ if (_bs_hit(['出口幻影', '出口幻影绿色标识'])) { _%>
+【书海·无尽客房·出口幻影】
+转角处的绿色出口标识，追过去永远是下一个转角。员工说那只是装饰
+<%_ } _%>
+<%_ if (_bs_hit(['湿面访客', '湿面访客湿手帕'])) { _%>
+【书海·无尽客房·湿面访客】
+浑身湿透的访客，脸被泡得五官模糊，在泳池附近转，似乎在找自己的房间
+<%_ } _%>
+<%_ if (_bs_hit(['插座寄生体', '插座寄生体电极'])) { _%>
+【书海·无尽客房·插座寄生体】
+住在插座里的东西，夜里从插孔伸出细须缠住电器。被它待过的插座会一直冒小火花
+<%_ } _%>
+<%_ if (_bs_hit(['万能钥匙持有者', '万能钥匙持有者万能钥匙'])) { _%>
+【书海·无尽客房·万能钥匙持有者】
+拿着万能钥匙的员工，什么门都能开，处理投诉雷厉风行。谁都想要那把钥匙，他从不让人近身
+<%_ } _%>
+<%_ if (_bs_hit(['过曝巡查员', '过曝巡查员闪光灯'])) { _%>
+【书海·无尽客房·过曝巡查员】
+挂着老式相机的巡查员，用闪光灯拍违规的住客，被拍到的人会晕头转向一阵
+<%_ } _%>
+<%_ if (_bs_hit(['长廊吞咽者', '长廊吞咽者喉管'])) { _%>
+【书海·无尽客房·长廊吞咽者】
+长在走廊里的巨大东西，身体就是走廊的一段，会慢慢蠕动，把迷路的人连同地毯墙纸一起吞进更深处
+<%_ } _%>
+<%_ if (_bs_hit(['第零间房', '第零间房门框'])) { _%>
+【书海·无尽客房·第零间房】
+无尽客房里的一扇门，门框上写着空心的‘0’，出现的楼层和位置不固定。门后是一间陈设普通的客房，但走廊、墙壁和其他房间都像在向它收拢，靠近时能听到整座酒店的空调和脚步声集中在这一处。员工说这扇门只给‘该走的人’开，住客们则认为它就是传说中能退房的第零号房
+<%_ } _%>
+<%_ /* ===== T11 齿轮黄昏 ===== */ _%>
+<%_ if (_bs_hit(['齿轮黄昏'])) { _%>
+【书海·齿轮黄昏】
+概述: 一座齿轮和蒸汽驱动的城市，港口牌子写着‘黄铜港’，城中心是一座巨大的钟塔。工匠们说城里的交通、照明甚至季节都靠钟塔里的‘主发条’。最近钟走得越来越慢，黄昏拖得越来越长，街上人心惶惶。钟塔的‘总工程师’几年前说发条快耗尽了，之后就再没露面
+景象: 铜黄色的烟雾罩着全城，天一直是暮色的橙红。飞艇在楼间低飞，街上铺着铁轨和蒸汽管，到处是嘀嗒声。钟塔的指针每跳一格都伴着一声闷响，间隔越来越长
+区域: 发条工坊、空中车站、时钟塔
+传闻: 工匠行会里有人说，总工程师想让钟塔倒着走，回到发条刚上满的那天。也有人说他早就把自己的心换成发条了
+<%_ } _%>
+<%_ if (_bs_hit(['发条工坊'])) { _%>
+【书海·齿轮黄昏·发条工坊】
+工匠聚集的街区，齿轮弹簧堆成山，蒸汽锤日夜不停。不少工坊里机械仆役比人还多
+<%_ } _%>
+<%_ if (_bs_hit(['空中车站'])) { _%>
+【书海·齿轮黄昏·空中车站】
+用钢缆吊在钟塔侧面的飞艇码头，走私的和逃犯都爱在这里混。最近有几艘飞艇在城市上空打转，就是不降落
+<%_ } _%>
+<%_ if (_bs_hit(['时钟塔'])) { _%>
+【书海·齿轮黄昏·时钟塔】
+城中心的巨塔，里面是层层叠叠咬合的齿轮和摆锤。塔顶是总工程师的工作室，很久没人上去了
+<%_ } _%>
+<%_ if (_bs_hit(['发条鼠', '发条鼠发条'])) { _%>
+【书海·齿轮黄昏·发条鼠】
+巴掌大的发条老鼠，在城里到处窜。发条早该松了，工匠怀疑有人偷偷给它们上弦
+<%_ } _%>
+<%_ if (_bs_hit(['锅炉仆役', '锅炉仆役压力阀'])) { _%>
+【书海·齿轮黄昏·锅炉仆役】
+锅炉房的机械仆役，肚子里装着小锅炉，压力一高就从阀门喷滚烫的蒸汽。只顾干活，不喜欢被打扰
+<%_ } _%>
+<%_ if (_bs_hit(['齿轮蜘蛛', '齿轮蜘蛛齿网'])) { _%>
+【书海·齿轮黄昏·齿轮蜘蛛】
+钟塔里的齿轮蜘蛛，在齿轮间爬来爬去检查咬合，用齿轮织的网兜住掉进去的杂物，有时兜住的是人
+<%_ } _%>
+<%_ if (_bs_hit(['烟囱小鬼', '烟囱小鬼煤灰'])) { _%>
+【书海·齿轮黄昏·烟囱小鬼】
+烟囱里的小精怪，浑身煤灰，爱堵烟囱、偷零件，躲在暗处偷笑
+<%_ } _%>
+<%_ if (_bs_hit(['铆钉工兵', '铆钉工兵铆钉枪'])) { _%>
+【书海·齿轮黄昏·铆钉工兵】
+拿铆钉枪的机械工兵，几秒就能把两块钢板钉死。城里结构越来越不稳，它们越来越忙
+<%_ } _%>
+<%_ if (_bs_hit(['重锤技师', '重锤技师校准锤'])) { _%>
+【书海·齿轮黄昏·重锤技师】
+行会里最老的技师，拎着一柄校准锤，听得出任何齿轮的细微误差。总工程师闭门后，他是唯一还上得了钟塔的人
+<%_ } _%>
+<%_ if (_bs_hit(['失控巡空艇', '失控巡空艇舵轮'])) { _%>
+【书海·齿轮黄昏·失控巡空艇】
+一艘自己在天上巡逻的治安飞艇，驾驶员不见了，它照样巡航，对地面开火。市政府几次想打下来都没成功
+<%_ } _%>
+<%_ if (_bs_hit(['逆摆监察官', '逆摆监察官逆摆'])) { _%>
+【书海·齿轮黄昏·逆摆监察官】
+钟塔的时间监察官，提着一只反着摆的钟摆，靠近的东西时间会倒流一点。钟塔变慢之后，他越来越焦躁
+<%_ } _%>
+<%_ if (_bs_hit(['停钟工程师', '停钟工程师主发条'])) { _%>
+【书海·齿轮黄昏·停钟工程师】
+黄铜港钟塔的总工程师，待在钟塔顶层的工作室里。外表是个清瘦的老人，胸口装着一套外露的发条机构，工作室里堆满钟表零件和图纸。钟塔的主发条由他掌管，城里的逆摆监察官、校准技师都曾是他的下属。工匠们说他在想办法让时间继续走，但他闭门以后，城里的钟反而越走越慢
+<%_ } _%>
+<%_ /* ===== T12 冻土教堂 ===== */ _%>
+<%_ if (_bs_hit(['冻土教堂'])) { _%>
+【书海·冻土教堂】
+概述: 一片被冰雪封住的高原，雪地里露出一座修院教堂的尖顶。遇到的牧民说这里的冬天已经几百年没结束过，起因是一场‘白疫’，修士们把病人收进教堂向圣像祈祷，瘟疫退了，冬天却留了下来
+景象: 灰白的天压得很低，风雪不停，地平线被雪吞没。修院只露出一截尖顶，钟楼的铜钟冻成了冰坨，半夜却还会响。雪原上散着冻住的人影，都朝着修院的方向
+区域: 霜原、埋雪修院、冰封钟楼
+传闻: 牧民说修院里那尊圣像不是神，是冬天本身。当年修士求它结束瘟疫，它就把瘟疫、病人和修士一起冻住了
+<%_ } _%>
+<%_ if (_bs_hit(['霜原'])) { _%>
+【书海·冻土教堂·霜原】
+修院四周的雪原，积雪几丈深，底下埋着村子和路。暴风雪说来就来，牧民只在风雪间歇时穿过，从不在这里过夜
+<%_ } _%>
+<%_ if (_bs_hit(['埋雪修院'])) { _%>
+【书海·冻土教堂·埋雪修院】
+被雪埋住的修院，只能从钟楼或冰窟钻进去。里面全结了冰，病床上躺着冻住的病人，祈祷台前跪着冻住的修士
+<%_ } _%>
+<%_ if (_bs_hit(['冰封钟楼'])) { _%>
+【书海·冻土教堂·冰封钟楼】
+修院唯一露出雪面的部分，挂着一口大铜钟。钟已经冻死了，夜里还是会响
+<%_ } _%>
+<%_ if (_bs_hit(['雪原失魂者', '雪原失魂者冰泪'])) { _%>
+【书海·冻土教堂·雪原失魂者】
+在雪原上走的冻僵的人，朝着修院走却永远走不到。眼眶里结着冰
+<%_ } _%>
+<%_ if (_bs_hit(['冰棘狼', '冰棘狼冰棘'])) { _%>
+【书海·冻土教堂·冰棘狼】
+长着冰刺的白狼，在暴风雪里几乎看不见。牧民管它们叫冬天的猎犬
+<%_ } _%>
+<%_ if (_bs_hit(['诵霜修女', '诵霜修女霜念珠'])) { _%>
+【书海·冻土教堂·诵霜修女】
+冰层下念经的修女，念珠冻成了冰珠，经声所到之处空气结霜。她们似乎相信一停下，瘟疫就会回来
+<%_ } _%>
+<%_ if (_bs_hit(['结晶钟灵', '结晶钟灵钟晶'])) { _%>
+【书海·冻土教堂·结晶钟灵】
+一团透明冰晶似的东西，在钟楼和修院之间飘，发出钟声一样的嗡鸣。雪原上听到钟声，多半是它在附近
+<%_ } _%>
+<%_ if (_bs_hit(['寒鸦侍女', '寒鸦侍女黑羽'])) { _%>
+【书海·冻土教堂·寒鸦侍女】
+修院屋檐下的黑羽寒鸦，是修院被埋后唯一还能飞出冰层的东西。有人说它们原本是院长的侍女
+<%_ } _%>
+<%_ if (_bs_hit(['埋雪骑士', '埋雪骑士誓铠'])) { _%>
+【书海·冻土教堂·埋雪骑士】
+守在修院门口的骑士，不让任何人进出，病人和来访的都一样。牧民说他当年发誓不让瘟疫传出去
+<%_ } _%>
+<%_ if (_bs_hit(['白疫告解师', '白疫告解师告解簿'])) { _%>
+【书海·冻土教堂·白疫告解师】
+拿着告解簿的神父，逼每个遇见的人忏悔。簿子上写满了名字和罪
+<%_ } _%>
+<%_ if (_bs_hit(['冻土守钟人', '冻土守钟人钟锤'])) { _%>
+【书海·冻土教堂·冻土守钟人】
+钟楼里的守钟人，一锤一锤敲着冻住的铜钟。夜里的钟声就是他敲的
+<%_ } _%>
+<%_ if (_bs_hit(['永冬圣像', '永冬圣像圣像碎片'])) { _%>
+【书海·冻土教堂·永冬圣像】
+埋雪修院礼拜堂正中的一尊圣像，白色石质，双手合十，周围的冰层最厚，靠近会感到刺骨的寒意。修院里冻住的修女、骑士、告解师都朝着它祈祷或守卫。牧民说白疫那年修士们向它祈求，瘟疫退了，永冬却从那时开始，所以把它看作冬天的源头
+<%_ } _%>
+<%_ /* ===== T13 血肉温室 ===== */ _%>
+<%_ if (_bs_hit(['血肉温室'])) { _%>
+【书海·血肉温室】
+概述: 沼泽上一座巨大的玻璃温室，门口铜牌上写着某个‘园艺学会’的名字。里面的植物会流血、会呼吸、会捕猎。翻到的学会记录说，他们在把动物组织嫁接到植物上，想培育‘永生植物’。记录在某一页之后就中断了
+景象: 起雾的玻璃穹顶下，暗红的藤蔓爬满铁架，叶脉里流着温热的液体。空气又湿又热，花香里带着铁锈味。地面软软的，踩上去会回弹
+区域: 异植苗床、血管廊、母巢温室
+传闻: 附近村民说学会最后一任园长把自己种进了苗床，每年春天温室里都开一朵像人脸的花
+<%_ } _%>
+<%_ if (_bs_hit(['异植苗床'])) { _%>
+【书海·血肉温室·异植苗床】
+外围的育苗区，苗会张嘴，会转头跟着人看。苗床标签写着嫁接的物种组合，不少写着‘人’
+<%_ } _%>
+<%_ if (_bs_hit(['血管廊'])) { _%>
+【书海·血肉温室·血管廊】
+连通各区的长廊，四壁爬满血管似的藤蔓，有节奏地搏动。里面很热，能听见液体流动的声音
+<%_ } _%>
+<%_ if (_bs_hit(['母巢温室'])) { _%>
+【书海·血肉温室·母巢温室】
+温室中心，所有根系都汇到这里，地上铺满根和鼓胀的囊，空气稠得几乎能看见
+<%_ } _%>
+<%_ if (_bs_hit(['孢囊花', '孢囊花花蕊'])) { _%>
+【书海·血肉温室·孢囊花】
+会像肺一样收缩的花，一张一合喷出孢子。附近的小动物身上都沾着孢子
+<%_ } _%>
+<%_ if (_bs_hit(['牙叶草', '牙叶草叶牙'])) { _%>
+【书海·血肉温室·牙叶草】
+叶缘长着细牙的草，成片长在苗床上，吃虫子，也咬路过的脚。学会记录里写着进苗床区要穿厚皮靴
+<%_ } _%>
+<%_ if (_bs_hit(['血管藤', '血管藤藤脉'])) { _%>
+【书海·血肉温室·血管藤】
+血管廊里的藤，里面流的是真血，割开会渗出温热的血，过几个小时就愈合
+<%_ } _%>
+<%_ if (_bs_hit(['菌肤园丁', '菌肤园丁菌丝'])) { _%>
+【书海·血肉温室·菌肤园丁】
+皮肤上长满菌丝的园丁，还在尽职照料温室，分不太清自己是照料的人还是被照料的植物
+<%_ } _%>
+<%_ if (_bs_hit(['浆果拟态者', '浆果拟态者假浆果'])) { _%>
+【书海·血肉温室·浆果拟态者】
+挂着鲜艳浆果的植物，闻着很甜，伸手去摘，叶子底下的触手就缠上来
+<%_ } _%>
+<%_ if (_bs_hit(['倒生园长', '倒生园长修枝剪'])) { _%>
+【书海·血肉温室·倒生园长】
+倒着种在苗床里的人，头埋进土里，双脚长成了枝叶，还拿着修枝剪修剪‘长歪了’的东西，包括闯进来的人
+<%_ } _%>
+<%_ if (_bs_hit(['骨瓣捕食者', '骨瓣捕食者骨瓣'])) { _%>
+【书海·血肉温室·骨瓣捕食者】
+用骨质花瓣捕猎的巨型植物，花瓣合起来像一张嘴，能吞下大型动物。学会记录里它的名字后面跟着专利编号
+<%_ } _%>
+<%_ if (_bs_hit(['绽裂囊母', '绽裂囊母胎囊'])) { _%>
+【书海·血肉温室·绽裂囊母】
+母巢里的一大团囊状植物，表面长满胎囊，熟了就裂开，爬出新的嫁接生物
+<%_ } _%>
+<%_ if (_bs_hit(['永生花床', '永生花床永生花'])) { _%>
+【书海·血肉温室·永生花床】
+铺满母巢温室的一整片花床，由无数嫁接花卉、根系和肉质组织连成一体，中央开着一朵形似人脸的大花。温室里的藤蔓和植物都从它这里得到养分，倒生园长、绽裂囊母都在照料它。学会记录显示它就是学会想培育的‘永生植物’，学会成员后来都被它吸收进了花床
+<%_ } _%>
+<%_ /* ===== T14 沉没王庭 ===== */ _%>
+<%_ if (_bs_hit(['沉没王庭'])) { _%>
+【书海·沉没王庭】
+概述: 深海底的一座古老都城，珊瑚包着宫殿和街道，居民照常生活，只是没人需要呼吸。当地人管这里叫‘珊瑚庭’，说王国一夜之间沉进了海里，至于原因，有人说是地震，有人小声说是女王和海里的什么东西做了交易
+景象: 幽蓝的深海里，发光水母像灯笼一样挂在屋檐间。沉船的桅杆斜插在海床上，鱼群从破窗里穿过。王宫尖塔上有个王冠形状的光一直在闪
+区域: 珊瑚街、沉舰墓、深水宫
+传闻: 居民说大潮之夜，海面上能听到珊瑚庭的钟声，那是女王在召集臣民。也有人说女王在等一个陆上来的继承人
+<%_ } _%>
+<%_ if (_bs_hit(['珊瑚街'])) { _%>
+【书海·沉没王庭·珊瑚街】
+市井街区，房子被珊瑚层层裹住，门窗长着海葵和藤壶。居民用贝壳做买卖，脚下的白沙一踩就扬起一片慢慢落下的沙雾
+<%_ } _%>
+<%_ if (_bs_hit(['沉舰墓'])) { _%>
+【书海·沉没王庭·沉舰墓】
+几百艘战舰堆成的船骸坟场，舰上的水兵还在擦甲板、查缆绳
+<%_ } _%>
+<%_ if (_bs_hit(['深水宫'])) { _%>
+【书海·沉没王庭·深水宫】
+都城最深处、海沟边上的宫殿，大门是鲸骨搭的，里面点着幽蓝的冷光。王座正对着海沟
+<%_ } _%>
+<%_ if (_bs_hit(['锈锚水兵', '锈锚水兵锈锚'])) { _%>
+【书海·沉没王庭·锈锚水兵】
+挂满锈锚链的水兵，动作迟缓，交班时还会敬礼，嘴里吐出一串气泡
+<%_ } _%>
+<%_ if (_bs_hit(['珊瑚骑士', '珊瑚骑士珊瑚甲'])) { _%>
+【书海·沉没王庭·珊瑚骑士】
+铠甲长成了珊瑚的骑士，守着主干道，珊瑚还在他们身上长，一年比一年厚
+<%_ } _%>
+<%_ if (_bs_hit(['寄居铜盔', '寄居铜盔铜盔'])) { _%>
+【书海·沉没王庭·寄居铜盔】
+钻进水兵旧头盔里的甲壳生物，把头盔举得高高的，像在学人巡逻
+<%_ } _%>
+<%_ if (_bs_hit(['发光水母', '发光水母伞膜'])) { _%>
+【书海·沉没王庭·发光水母】
+屋檐间漂着的发光水母，居民拿它们当路灯，亮度跟着潮汐变。碰到会发麻
+<%_ } _%>
+<%_ if (_bs_hit(['深水剑鱼', '深水剑鱼剑吻'])) { _%>
+【书海·沉没王庭·深水剑鱼】
+吻部像剑的鱼，游得极快，在深水宫外围巡游
+<%_ } _%>
+<%_ if (_bs_hit(['沉锚统领', '沉锚统领军令牌'])) { _%>
+【书海·沉没王庭·沉锚统领】
+站在旗舰舰桥上的统帅，还在给舰队下命令，舰队也还在听。他说王国总有一天会浮上去
+<%_ } _%>
+<%_ if (_bs_hit(['裂壳祭司', '裂壳祭司裂壳'])) { _%>
+【书海·沉没王庭·裂壳祭司】
+半人半深海生物的祭司，胸前的甲壳是裂开的，念着没人听得懂的祷词。居民说是他主持了女王的那场仪式
+<%_ } _%>
+<%_ if (_bs_hit(['鲸骨卫士', '鲸骨卫士鲸骨盾'])) { _%>
+【书海·沉没王庭·鲸骨卫士】
+披着鲸骨盾甲的卫士，守在深水宫门口，不说话也不动，直到有人靠近宫门
+<%_ } _%>
+<%_ if (_bs_hit(['溺冠女王', '溺冠女王溺冠'])) { _%>
+【书海·沉没王庭·溺冠女王】
+珊瑚庭的女王，坐在深水宫正对海沟的王座上。外表是一位身着华服的女性，头戴一顶始终湿润、会发光的王冠，长发像海藻一样在水中漂动。沉锚统领、鲸骨卫士、珊瑚骑士都效忠于她。居民说王国沉没是因为她和海沟底下的什么东西订了契约，她因此在海底永远统治下去
+<%_ } _%>
+<%_ /* ===== T15 纸页天穹 ===== */ _%>
+<%_ if (_bs_hit(['纸页天穹'])) { _%>
+【书海·纸页天穹】
+概述: 一个纸做的国度，地面是一层层纸页，山是堆起来的书册，云是飘散的碎纸。居民是墨迹和折纸，按纸上写的文字过日子。和他们聊过才明白这里的规矩：写下来的事会发生，被划掉的东西会消失
+景象: 泛黄的纸页铺成原野，书架像山脉一样浮在空中，纸鸟成群掠过。天上飘着大段的字句，偶尔下墨雨，落到纸上晕开成新的字。远处的印厂不停传来机器倒转的轰鸣
+区域: 漂浮书架、折纸庭、倒序印厂
+传闻: 居民说天穹最高处坐着一位‘作者’，世上的一切都是他写的。可他已经几百年没动笔了，新纸页越来越少，旧的字一点点被改掉
+<%_ } _%>
+<%_ if (_bs_hit(['漂浮书架'])) { _%>
+【书海·纸页天穹·漂浮书架】
+浮在天上的巨大书架群，每格都塞满卷册，据说记着每个居民的生平。通道时宽时窄，跟着书册的多少变
+<%_ } _%>
+<%_ if (_bs_hit(['折纸庭'])) { _%>
+【书海·纸页天穹·折纸庭】
+纸国贵族住的庭院，房子、花草、喷泉全是折出来的。这里按折痕多少分贵贱，中间有座永远折不完的纸塔
+<%_ } _%>
+<%_ if (_bs_hit(['倒序印厂'])) { _%>
+【书海·纸页天穹·倒序印厂】
+纸国唯一的印厂，机器倒着转，把印好的字一行行吸回去。居民说纸国的消失就是从这里开始的
+<%_ } _%>
+<%_ if (_bs_hit(['折纸鸟', '折纸鸟折痕翼'])) { _%>
+【书海·纸页天穹·折纸鸟】
+单张纸折的飞鸟，在书架间传信。沾水就散，特别怕墨雨
+<%_ } _%>
+<%_ if (_bs_hit(['墨滴史莱姆', '墨滴史莱姆墨核'])) { _%>
+【书海·纸页天穹·墨滴史莱姆】
+打翻的墨水聚成的一团，爬过纸页把字吃掉，留下空白
+<%_ } _%>
+<%_ if (_bs_hit(['错字虫', '错字虫错字'])) { _%>
+【书海·纸页天穹·错字虫】
+文字间的小虫，把字啃成错别字，一条规矩被它啃过可能意思全反
+<%_ } _%>
+<%_ if (_bs_hit(['缺页卫兵', '缺页卫兵残页'])) { _%>
+【书海·纸页天穹·缺页卫兵】
+用装订成册的纸页拼成的卫兵，缺了好几页，只会照剩下的字执行命令，对‘不在册’的人很凶
+<%_ } _%>
+<%_ if (_bs_hit(['装订蛛', '装订蛛装订线'])) { _%>
+【书海·纸页天穹·装订蛛】
+吐装订线的蜘蛛，把散页缝回去，也会把闯进书架的人缝进书页里
+<%_ } _%>
+<%_ if (_bs_hit(['索引守卫', '索引守卫索引签'])) { _%>
+【书海·纸页天穹·索引守卫】
+拿巨大索引签的守卫，从任何一本书里都能查到任何人。查不到名字的，就当不存在
+<%_ } _%>
+<%_ if (_bs_hit(['删改使徒', '删改使徒红笔'])) { _%>
+【书海·纸页天穹·删改使徒】
+拿红笔的使徒，说纸国写得太多太乱，要一笔笔改。被它划掉的东西就没了
+<%_ } _%>
+<%_ if (_bs_hit(['巨型装订者', '巨型装订者巨钉'])) { _%>
+【书海·纸页天穹·巨型装订者】
+拿巨钉的巨型装订工，什么散了都钉起来，纸页、房子、居民都钉。纸国不少地形是它钉出来的
+<%_ } _%>
+<%_ if (_bs_hit(['无字的作者', '无字的作者空白稿纸'])) { _%>
+【书海·纸页天穹·无字的作者】
+纸国居民口中的‘作者’，坐在天穹最高处的一张书桌前。外表是个身形模糊、面孔像被墨涂过的人，面前摊着一叠空白稿纸，笔搁在一旁。居民相信纸国的一切都出自他的笔，他停笔以后，纸国不再有新纸页，删改使徒和倒序印厂就开始一点点删去已有的东西
+<%_ } _%>
+<%_ /* ===== T16 无名夹缝 ===== */ _%>
+<%_ if (_bs_hit(['无名夹缝'])) { _%>
+【书海·无名夹缝】
+概述: 一片看不到地面也看不到天空的破碎地带，巨大的星体碎块漂在虚空里，有的上面还有城市和山。方向、时间和因果在这里都靠不住，往前走几步可能回到原处。偶尔遇到的旅人说，这里是‘世界和世界之间的缝’，崩掉的世界剩下的东西最后都会漂到这儿
+景象: 深黑的虚空里悬着大块碎片，光从说不清的方向照来，影子各朝各的方向。偶尔有一道发光的裂缝划过，缝的另一边是别处的天空
+区域: 破碎天体、法则残廊、无界门
+传闻: 旅人说缝的最深处有一片彻底的空白，漂过去的东西都没回来过
+<%_ } _%>
+<%_ if (_bs_hit(['破碎天体'])) { _%>
+【书海·无名夹缝·破碎天体】
+漂在虚空中的碎块，小的像石头，大的像大陆。有的碎块上还有居民照常生活，对外面的虚空浑然不觉
+<%_ } _%>
+<%_ if (_bs_hit(['法则残廊'])) { _%>
+【书海·无名夹缝·法则残廊】
+一条长廊，每一段的规矩都不一样。这一步重力朝下，下一步可能朝上；这一段火会烧，下一段火会结冰
+<%_ } _%>
+<%_ if (_bs_hit(['无界门'])) { _%>
+【书海·无名夹缝·无界门】
+一道没有门框的门，门后是纯粹的白。靠近它的东西会慢慢褪色，轮廓变淡
+<%_ } _%>
+<%_ if (_bs_hit(['碎界游灵', '碎界游灵界隙碎片'])) { _%>
+【书海·无名夹缝·碎界游灵】
+飘来飘去的灵魂碎片，形状和记忆都不全了，被有‘世界气味’的东西吸引，会往旅人身上贴
+<%_ } _%>
+<%_ if (_bs_hit(['逆光卫星', '逆光卫星逆光镜'])) { _%>
+【书海·无名夹缝·逆光卫星】
+一颗脱轨漂进来的卫星，光是反的，照到哪里哪里就变暗。还在绕着一个看不见的中心转
+<%_ } _%>
+<%_ if (_bs_hit(['法则碎片体', '法则碎片体残律'])) { _%>
+【书海·无名夹缝·法则碎片体】
+一块带着某条规矩的碎片，靠近它就得守那条规矩，比如‘不能后退’或者‘只能说真话’
+<%_ } _%>
+<%_ if (_bs_hit(['概率孑孓', '概率孑孓概率卵'])) { _%>
+【书海·无名夹缝·概率孑孓】
+孑孓一样的小东西，时有时无，同一时刻好像在这里，又好像在那里
+<%_ } _%>
+<%_ if (_bs_hit(['虚无浮鲸', '虚无浮鲸鲸须'])) { _%>
+【书海·无名夹缝·虚无浮鲸】
+在虚空里慢慢游的巨鲸，吃漂着的碎片。旅人说它们脾气温和，还会认路
+<%_ } _%>
+<%_ if (_bs_hit(['边界剥离者', '边界剥离者剥离刃'])) { _%>
+【书海·无名夹缝·边界剥离者】
+专门把碎片和它原来世界之间的联系剥掉的东西。被它剥过的碎片就再也回不去了。旅人见了都绕着走
+<%_ } _%>
+<%_ if (_bs_hit(['失序执法体', '失序执法体执法徽'])) { _%>
+【书海·无名夹缝·失序执法体】
+某个没了的世界的执法者，拿着残缺的法条判它碰到的一切，判决常常毫无道理
+<%_ } _%>
+<%_ if (_bs_hit(['星墓巡行者', '星墓巡行者巡行灯'])) { _%>
+【书海·无名夹缝·星墓巡行者】
+提着一盏灯在碎片之间走的身影，每块碎片上停一会儿，点亮灯就走。旅人说它在给死掉的世界守墓
+<%_ } _%>
+<%_ if (_bs_hit(['书海的留白', '书海的留白空白页'])) { _%>
+【书海·无名夹缝·书海的留白】
+无名夹缝最深处的一片空白，旅人叫它‘留白’。它没有固定形体，看上去像虚空里一块纯白、没有边缘的区域，靠近时周围的东西会逐渐褪色、轮廓变淡，声音也会变小。无界门通向这里，碎片和游灵最终都会漂向它。旅人认为它是夹缝的尽头
+<%_ } _%>
+<%_ /* ===== T17 倒灌机场 ===== */ _%>
+<%_ if (_bs_hit(['倒灌机场'])) { _%>
+【书海·倒灌机场】
+概述: 一座雨往天上下的国际机场。雨滴从停机坪的积水里升起，汇进低低的云层。所有航班都显示延误，候机厅里的人越积越多，有人已经在这里住了好几年。广播每隔几分钟宣布一次新的延误
+景象: 玻璃幕墙外雨往上落，候机厅地板湿漉漉地映着航班屏，屏上清一色‘延误’。登机廊望不到头
+区域: 反向降雨的候机厅、永远延误的登机廊、水面停机坪
+传闻: 老旅客说听到‘最后一班’的广播就赶紧去登机口，那是唯一真会起飞的一班。去了的人都没回来，所以也不知道它飞去哪
+<%_ } _%>
+<%_ if (_bs_hit(['反向降雨的候机厅'])) { _%>
+【书海·倒灌机场·反向降雨的候机厅】
+主候机区，天花板上积着一层倒流的雨水，像倒挂的湖。旅客在长椅上等、睡、结伙，小卖部只收过期登机牌
+<%_ } _%>
+<%_ if (_bs_hit(['永远延误的登机廊'])) { _%>
+【书海·倒灌机场·永远延误的登机廊】
+每走一段就多出一个登机口，屏幕都写着‘即将登机’，工作人员从来不出现。有人在某个口前一排就是几个月
+<%_ } _%>
+<%_ if (_bs_hit(['水面停机坪'])) { _%>
+【书海·倒灌机场·水面停机坪】
+被水淹没的停机坪，飞机半泡在水里，舱门紧闭。夜里跑道灯在水下亮起
+<%_ } _%>
+<%_ if (_bs_hit(['托运行尸'])) { _%>
+【书海·倒灌机场·托运行尸】
+行李转盘上的箱子里爬出来的人，蜷得太久，身形都像箱子了，出来还在找自己的航班
+<%_ } _%>
+<%_ if (_bs_hit(['登机牌虫'])) { _%>
+【书海·倒灌机场·登机牌虫】
+钻进登机牌吃掉信息的细虫，会把航班号改成不存在的数字，拿着被咬过的牌子会走错登机口
+<%_ } _%>
+<%_ if (_bs_hit(['逆雨安检伞', '逆雨安检伞伞骨'])) { _%>
+【书海·倒灌机场·逆雨安检伞】
+安检口留下的雨伞，张着伞接往上落的雨，会拦住人要求‘检查随身物品’
+<%_ } _%>
+<%_ if (_bs_hit(['行李转盘兽', '行李转盘兽转盘履带'])) { _%>
+【书海·倒灌机场·行李转盘兽】
+身体就是一条行李转盘的东西，什么放上去都会被运走，从另一头吐出来的却不一定是原来那件
+<%_ } _%>
+<%_ if (_bs_hit(['失焦接机影', '失焦接机影接机牌'])) { _%>
+【书海·倒灌机场·失焦接机影】
+接机口举牌子的模糊人影，牌子上的名字看不清，偶尔会觉得写的是自己的名字
+<%_ } _%>
+<%_ if (_bs_hit(['逆航乘务长'])) { _%>
+【书海·倒灌机场·逆航乘务长】
+一架不起飞的飞机上的乘务长，照标准流程引导登机、系安全带、关电子设备，然后宣布又延误了
+<%_ } _%>
+<%_ if (_bs_hit(['航灯领航偶', '航灯领航偶航灯'])) { _%>
+【书海·倒灌机场·航灯领航偶】
+停机坪上双手举着航灯的引导人偶，还在指挥早停下的飞机。被它引导的东西都往停机坪深处去了
+<%_ } _%>
+<%_ if (_bs_hit(['舷窗窥视者', '舷窗窥视者舷窗玻璃'])) { _%>
+【书海·倒灌机场·舷窗窥视者】
+舷窗后的一双眼睛，只在人往窗外看时出现。被它看久了，会忘了自己本来要去哪
+<%_ } _%>
+<%_ if (_bs_hit(['最后一班广播'])) { _%>
+【书海·倒灌机场·最后一班广播】
+倒灌机场广播系统里的一个声音，每隔一段时间播报‘最后一班航班即将起飞’。声音来自机场各处的喇叭，没有人找到过广播室。广播响起时，雨会下得更急，乘务长、领航偶等机场员工会一齐开始引导旅客登机。老旅客认为机场所有航班延误，都和这班航班有关
+<%_ } _%>
+<%_ /* ===== T18 无人高速服务区 ===== */ _%>
+<%_ if (_bs_hit(['无人高速服务区'])) { _%>
+【书海·无人高速服务区】
+概述: 荒原上一条没有尽头的高速公路，和路边一座通宵营业的服务区。进服务区加油吃饭都没问题，问题是开出去：每个出口都会把车带回同一个服务区。停车场上积灰的车子说明，被困在这的人不少
+景象: 黑夜里服务区的灯牌是方圆百里唯一的光。停车场的车积满灰，有的车门还开着。加油岛的顶棚一排排延伸到地平线
+区域: 空停车场、通宵餐厅、延伸到天边的加油岛
+传闻: 长途司机叮嘱，千万别在服务区睡着，醒来车钥匙会不见，车被一个陌生人开走，再也不回来
+<%_ } _%>
+<%_ if (_bs_hit(['空停车场'])) { _%>
+【书海·无人高速服务区·空停车场】
+停满了被丢下的车，车里有时还留着行李和没吃完的东西。夜里有的车灯会自己亮起来
+<%_ } _%>
+<%_ if (_bs_hit(['通宵餐厅'])) { _%>
+【书海·无人高速服务区·通宵餐厅】
+菜单永远不变，饭菜永远是热的。结账时服务员要的东西很怪，比如你的里程数，或者你来时的那条路
+<%_ } _%>
+<%_ if (_bs_hit(['延伸到天边的加油岛'])) { _%>
+【书海·无人高速服务区·延伸到天边的加油岛】
+加油机一排接一排，越远越旧，最远处的油枪上刻着早就停产的标号
+<%_ } _%>
+<%_ if (_bs_hit(['轮胎猎犬'])) { _%>
+【书海·无人高速服务区·轮胎猎犬】
+身上有轮胎纹的野狗，听见发动机声就扑。停车场里走路最好放轻
+<%_ } _%>
+<%_ if (_bs_hit(['餐盘搬运者'])) { _%>
+【书海·无人高速服务区·餐盘搬运者】
+端着永远不空的盘子的服务员，走路有瓷器碰撞的声音，会一直上菜，直到客人吃不下
+<%_ } _%>
+<%_ if (_bs_hit(['油渍软泥', '油渍软泥油膜'])) { _%>
+【书海·无人高速服务区·油渍软泥】
+地上的油渍聚成的软泥，慢慢往前流，经过的地方留下一层彩虹色油膜
+<%_ } _%>
+<%_ if (_bs_hit(['加油枪蠕虫', '加油枪蠕虫油枪头'])) { _%>
+【书海·无人高速服务区·加油枪蠕虫】
+藏在油枪里的细长虫子，会从枪口钻出来缠住加油的人。司机加油前都先敲敲油枪
+<%_ } _%>
+<%_ if (_bs_hit(['售货柜寄生体', '售货柜寄生体找零硬币'])) { _%>
+【书海·无人高速服务区·售货柜寄生体】
+寄生在自动售货机里的东西，吃硬币，偶尔会伸手把投币的人拽进去
+<%_ } _%>
+<%_ if (_bs_hit(['夜班收费员'])) { _%>
+【书海·无人高速服务区·夜班收费员】
+收费亭里的夜班收费员，收的不是钱，是一段记忆或回家的方向。交完费的人更想不起自己从哪来
+<%_ } _%>
+<%_ if (_bs_hit(['废灯巡路者', '废灯巡路者灯罩'])) { _%>
+【书海·无人高速服务区·废灯巡路者】
+拿着熄灭灯罩的巡路者，把坏路灯一盏盏拆下来装进自己身体里。路灯越来越少，它越来越亮
+<%_ } _%>
+<%_ if (_bs_hit(['油罐驮行兽', '油罐驮行兽油罐阀'])) { _%>
+【书海·无人高速服务区·油罐驮行兽】
+驮着大油罐的四足兽，从加油岛尽头运油过来。性子温和，受惊时油罐会喷油
+<%_ } _%>
+<%_ if (_bs_hit(['无终点长途客'])) { _%>
+【书海·无人高速服务区·无终点长途客】
+服务区停车场里一辆长途客车上的唯一乘客，外表是个抱着旧行李包、神情疲惫的中年人。他的车票上没有终点站。收费员、巡路者等服务区里的存在似乎都在围着这辆车运转。长途司机们说高速公路之所以没有尽头，是因为他的车一直没到站
+<%_ } _%>
+<%_ /* ===== T19 无限货运港 ===== */ _%>
+<%_ if (_bs_hit(['无限货运港'])) { _%>
+【书海·无限货运港】
+概述: 一座大得没边的货运港，集装箱堆成峡谷，起重机密得像森林。货物一直在装卸，船一直在进港，可没有一艘真的靠上岸。装卸工的工牌上写着入职日期，最早的已经是几十年前
+景象: 钢灰色的天，彩色集装箱层层叠叠，吊臂在头顶交错。雾里停着看不清轮廓的巨轮，汽笛声此起彼伏
+区域: 集装箱峡谷、起重机森林、永不靠岸的码头
+传闻: 装卸工说每个集装箱里装的都是某人丢的东西，找到自己那只就能离开。箱子太多了，一辈子开不完一半。港务局的保险柜里据说锁着最早的那张提单
+<%_ } _%>
+<%_ if (_bs_hit(['集装箱峡谷'])) { _%>
+【书海·无限货运港·集装箱峡谷】
+集装箱堆成的峡谷，两侧几十层高，箱子不停被吊走放下，路每天都在变。装卸工在箱子上画记号认路
+<%_ } _%>
+<%_ if (_bs_hit(['起重机森林'])) { _%>
+【书海·无限货运港·起重机森林】
+起重机密集的区域，吊钩在高空晃，偶尔有箱子砸下来。操作室亮着灯，看不见人
+<%_ } _%>
+<%_ if (_bs_hit(['永不靠岸的码头'])) { _%>
+【书海·无限货运港·永不靠岸的码头】
+前沿码头，巨轮停在几十米外，就是靠不上来。装卸工每天在这里等
+<%_ } _%>
+<%_ if (_bs_hit(['封箱蟹'])) { _%>
+【书海·无限货运港·封箱蟹】
+住在箱缝里的螃蟹，会把碰到的东西塞进集装箱，用钳子夹紧封条
+<%_ } _%>
+<%_ if (_bs_hit(['货签漂浮体'])) { _%>
+【书海·无限货运港·货签漂浮体】
+脱落的货物标签，被风吹成一团，贴到什么动的东西上就把它标成‘待运’。身上标签贴多了，会被起重机吊走
+<%_ } _%>
+<%_ if (_bs_hit(['浮标钉螺', '浮标钉螺浮标壳'])) { _%>
+【书海·无限货运港·浮标钉螺】
+挤满浮标的钉螺，把漂过来的东西都钉住，浮标被压得越来越低
+<%_ } _%>
+<%_ if (_bs_hit(['缆绳水蛭', '缆绳水蛭缆绳段'])) { _%>
+【书海·无限货运港·缆绳水蛭】
+长得像缆绳的水蛭，缠在缆桩上吃锈，也会缠上路过的人
+<%_ } _%>
+<%_ if (_bs_hit(['锈箱潜伏者', '锈箱潜伏者锈箱板'])) { _%>
+【书海·无限货运港·锈箱潜伏者】
+和锈集装箱长在一起的东西，开箱门时会突然伸出肢体来
+<%_ } _%>
+<%_ if (_bs_hit(['铁索吊运者'])) { _%>
+【书海·无限货运港·铁索吊运者】
+在起重机间攀爬的巨大身影，拿铁索吊着集装箱挪来挪去，从来不放在该放的位置
+<%_ } _%>
+<%_ if (_bs_hit(['海关封签官', '海关封签官封签'])) { _%>
+【书海·无限货运港·海关封签官】
+海关封签官，把可疑的货和可疑的人一起封存。封了的东西还没见拆开过
+<%_ } _%>
+<%_ if (_bs_hit(['沉锚搬山蟹', '沉锚搬山蟹沉锚钳'])) { _%>
+【书海·无限货运港·沉锚搬山蟹】
+拖着船锚的山一样大的螃蟹，在码头下的海底走，把想靠岸的船拖回去。装卸工说靠不了岸就是因为它
+<%_ } _%>
+<%_ if (_bs_hit(['港口总提单'])) { _%>
+【书海·无限货运港·港口总提单】
+港务局保险柜里的‘总提单’，港口最早的一张提单。它会以一个由无数提单和货签拼成的巨大人形出现，身上盖满各种印章，会把周围的集装箱和货物当作自己的一部分来调度。海关封签官、铁索吊运者都按它的指示行事。装卸工说只要它没被签收，船就靠不了岸
+<%_ } _%>
+<%_ /* ===== T20 永昼雪原旅馆 ===== */ _%>
+<%_ if (_bs_hit(['永昼雪原旅馆'])) { _%>
+【书海·永昼雪原旅馆】
+概述: 极地雪原上一家木造旅馆，太阳在这里从不落下。住客们很久没见过天黑，也很久没睡着过，渐渐也不太提离开的事了。旅馆暖房里种着南方的花，客房窗户全朝着太阳
+景象: 刺眼的阳光照在无边雪原上，旅馆半埋在雪里，玻璃暖房亮得像块冰。太阳低低地绕着旅馆转圈，影子拉得很长
+区域: 玻璃暖房、朝向太阳的客房、埋雪观景台
+传闻: 老住客说最好的那间房一直有人住着，从不退房，只要他在，太阳就不落。也有人说那位住客就是太阳
+<%_ } _%>
+<%_ if (_bs_hit(['玻璃暖房'])) { _%>
+【书海·永昼雪原旅馆·玻璃暖房】
+附设的温室，热带植物和花开得正好，温度像夏天。植物全都朝着一个方向
+<%_ } _%>
+<%_ if (_bs_hit(['朝向太阳的客房'])) { _%>
+【书海·永昼雪原旅馆·朝向太阳的客房】
+客房窗户都对着太阳，窗帘拉不上。住客读书写信发呆，就是不睡觉。墙上挂着历任住客的照片
+<%_ } _%>
+<%_ if (_bs_hit(['埋雪观景台'])) { _%>
+【书海·永昼雪原旅馆·埋雪观景台】
+最高处的观景台，半截埋在雪里，能看到太阳绕行的整圈轨迹，也能看到雪原底下埋着的建筑残骸
+<%_ } _%>
+<%_ if (_bs_hit(['雪毯房客'])) { _%>
+【书海·永昼雪原旅馆·雪毯房客】
+裹着雪毯的长住客，身上的雪不化，在走廊里慢慢挪，很少说话
+<%_ } _%>
+<%_ if (_bs_hit(['暖灯蛾'])) { _%>
+【书海·永昼雪原旅馆·暖灯蛾】
+透明翅膀、泛暖黄光的飞蛾，一直围着窗边和暖房的灯打转
+<%_ } _%>
+<%_ if (_bs_hit(['窗霜壁虎', '窗霜壁虎霜爪'])) { _%>
+【书海·永昼雪原旅馆·窗霜壁虎】
+趴在窗上的透明壁虎，爬过的地方结一道霜花，把窗子冻住
+<%_ } _%>
+<%_ if (_bs_hit(['雪枕潜伏者', '雪枕潜伏者雪枕'])) { _%>
+【书海·永昼雪原旅馆·雪枕潜伏者】
+藏在枕头里的一团软雪，人一躺下就贴上来吸走睡意。被吸过的人整夜睁着眼，第二天却不觉得累
+<%_ } _%>
+<%_ if (_bs_hit(['长昼雪鸮', '长昼雪鸮昼羽'])) { _%>
+【书海·永昼雪原旅馆·长昼雪鸮】
+羽毛泛金光的雪鸮，日夜在雪原上巡猎，从不停歇
+<%_ } _%>
+<%_ if (_bs_hit(['白昼司门者'])) { _%>
+【书海·永昼雪原旅馆·白昼司门者】
+门口的门童，说门只在‘白天’开。想离开旅馆的住客会被他以‘现在不是白天’为由拦下
+<%_ } _%>
+<%_ if (_bs_hit(['暖房巡夜人', '暖房巡夜人提灯'])) { _%>
+【书海·永昼雪原旅馆·暖房巡夜人】
+提着灯在暖房巡夜的看守，照旧准时巡逻，灯里的火苗越来越弱
+<%_ } _%>
+<%_ if (_bs_hit(['风雪搬运兽', '风雪搬运兽雪橇绳'])) { _%>
+【书海·永昼雪原旅馆·风雪搬运兽】
+拉着雪橇的巨兽，从远处给旅馆运补给，是旅馆唯一和外面有来往的东西
+<%_ } _%>
+<%_ if (_bs_hit(['永不退房的太阳'])) { _%>
+【书海·永昼雪原旅馆·永不退房的太阳】
+永昼雪原旅馆最好那间客房的住客，员工叫他‘太阳先生’。外表是个穿着讲究的老绅士，身上散发着强烈的光和热，房间里温度很高，雪不会靠近。旅馆的门童、暖房看守都听他的吩咐。住客们说他一直不退房，所以太阳一直不落
+<%_ } _%>
+<%_ /* ===== T21 倒置住宅群 ===== */ _%>
+<%_ if (_bs_hit(['倒置住宅群'])) { _%>
+【书海·倒置住宅群】
+概述: 一片上下颠倒的住宅区，楼房倒插在天上，地基朝上，天台朝下。居民在天花板上走路，把地板当屋顶，对此习以为常，反倒觉得外人‘站反了’。只有掉落的东西还往原来的方向掉，也就是一直往‘上’飘走
+景象: 倒悬的楼群像钟乳石一样从天上垂下来，窗户亮着灯，晾衣杆朝下伸。脚下是一片灰白的虚空，看不到底
+区域: 楼底天台、垂直客厅街、悬挂的地下室
+传闻: 居民说第十三层从来没人住，那一层是整片楼的地基，谁在那开了门，楼就会再翻一次
+<%_ } _%>
+<%_ if (_bs_hit(['楼底天台'])) { _%>
+【书海·倒置住宅群·楼底天台】
+倒过来之后的最底层，堆着杂物、太阳能板和旧水箱，风从下面的虚空吹上来，凉飕飕的
+<%_ } _%>
+<%_ if (_bs_hit(['垂直客厅街'])) { _%>
+【书海·倒置住宅群·垂直客厅街】
+楼与楼之间打通的客厅连成一条竖着的街，家具钉在墙上，吊灯朝上立着
+<%_ } _%>
+<%_ if (_bs_hit(['悬挂的地下室'])) { _%>
+【书海·倒置住宅群·悬挂的地下室】
+原本在地下的储藏室，现在吊在楼群最顶端，像一只只悬空的铁箱。居民很少上去，说里面放着不该翻过来的东西
+<%_ } _%>
+<%_ if (_bs_hit(['天花板住客'])) { _%>
+【书海·倒置住宅群·天花板住客】
+住在天花板上的居民，身形细长，习惯倒着走，热情地请人去家里坐，坐的是天花板
+<%_ } _%>
+<%_ if (_bs_hit(['倒悬扫帚'])) { _%>
+【书海·倒置住宅群·倒悬扫帚】
+倒着扫地的扫帚，沿着天花板打扫，把灰尘和挡路的东西一起扫进虚空
+<%_ } _%>
+<%_ if (_bs_hit(['逆行壁蜥', '逆行壁蜥逆鳞'])) { _%>
+【书海·倒置住宅群·逆行壁蜥】
+鳞片长反了的蜥蜴，顺着墙往下爬，也就是往‘天上’爬，吃从楼里掉出去的虫
+<%_ } _%>
+<%_ if (_bs_hit(['落物袋灵', '落物袋灵收纳袋'])) { _%>
+【书海·倒置住宅群·落物袋灵】
+会自己走的收纳袋，到处捡掉落的东西装起来。居民丢了东西都去找它
+<%_ } _%>
+<%_ if (_bs_hit(['灯座倒栖鸟', '灯座倒栖鸟栖爪'])) { _%>
+【书海·倒置住宅群·灯座倒栖鸟】
+倒栖在灯座上的鸟，巢口朝着虚空。雏鸟学飞第一课是别往下掉
+<%_ } _%>
+<%_ if (_bs_hit(['楼底管理员'])) { _%>
+【书海·倒置住宅群·楼底管理员】
+物业管理员，认为颠倒才是正常的，谁想把东西‘摆正’就把谁赶出去。办公室门牌挂在地板上
+<%_ } _%>
+<%_ if (_bs_hit(['天井钩索客', '天井钩索客钩索'])) { _%>
+【书海·倒置住宅群·天井钩索客】
+拿钩索在楼间穿梭的人，送货也救人，掉下去的人运气好会被他勾回来
+<%_ } _%>
+<%_ if (_bs_hit(['承重墙傀儡', '承重墙傀儡承重砖'])) { _%>
+【书海·倒置住宅群·承重墙傀儡】
+承重墙砖垒成的傀儡，撑着楼不让它歪，很少挪动，但谁敲墙就赶谁
+<%_ } _%>
+<%_ if (_bs_hit(['第十三层地基'])) { _%>
+【书海·倒置住宅群·第十三层地基】
+倒置住宅群的第十三层，也是整片楼群的地基。它像一整层混凝土和钢筋组成的活物，墙面上有许多封死的门，会发出低沉的承重声。承重墙傀儡、楼底管理员都守着它。居民说它是楼群翻转的支点，在第十三层开门会让整片住宅再翻转一次
+<%_ } _%>
+<%_ /* ===== T22 铅笔森林 ===== */ _%>
+<%_ if (_bs_hit(['铅笔森林'])) { _%>
+【书海·铅笔森林】
+概述: 一片铅笔森林，树干是削尖的铅笔，树冠是浓黑的石墨，落叶是卷曲的削屑。林子里的动物、河流、山谷都由线条构成，线条浓的东西结实，变淡的东西会慢慢消失。遇到的林中居民很在意自己的线条，碰到橡皮做的东西都躲得远远的
+景象: 纸白色的天空下，铅笔树林立，树冠投下浓重的阴影，地上的削屑踩着沙沙响。远处的山谷线条很简单，有些地方只画了几道虚线
+区域: 削屑山谷、橡皮湿地、石墨树冠
+传闻: 林中居民说森林边上有块巨大的橡皮，正一点点擦掉森林，每年都有一片林子只剩淡淡的痕迹。中心那棵‘树王’只画了一半，谁画完它，谁就是森林的主人
+<%_ } _%>
+<%_ if (_bs_hit(['削屑山谷'])) { _%>
+【书海·铅笔森林·削屑山谷】
+外围的低地，堆满削下来的木屑，被削到头的树会倒在这里
+<%_ } _%>
+<%_ if (_bs_hit(['橡皮湿地'])) { _%>
+【书海·铅笔森林·橡皮湿地】
+森林边缘软塌塌的湿地，踩下去会陷。这里的东西轮廓越来越淡
+<%_ } _%>
+<%_ if (_bs_hit(['石墨树冠'])) { _%>
+【书海·铅笔森林·石墨树冠】
+最高的铅笔树顶上，石墨层密得透不进光，是整片森林线条最浓的地方
+<%_ } _%>
+<%_ if (_bs_hit(['削屑甲虫'])) { _%>
+【书海·铅笔森林·削屑甲虫】
+木纹色的甲虫，在削屑堆里打洞，把削屑嚼成糊存起来
+<%_ } _%>
+<%_ if (_bs_hit(['橡皮兽'])) { _%>
+【书海·铅笔森林·橡皮兽】
+一块会跑的橡皮小兽，碰到什么就擦掉什么的线条。居民最怕被它蹭到
+<%_ } _%>
+<%_ if (_bs_hit(['断芯蚁', '断芯蚁笔芯'])) { _%>
+【书海·铅笔森林·断芯蚁】
+爱啃笔芯的蚂蚁，把树根啃空，林子里常有树从根部折断
+<%_ } _%>
+<%_ if (_bs_hit(['涂改液蛞蝓', '涂改液蛞蝓白痕'])) { _%>
+【书海·铅笔森林·涂改液蛞蝓】
+涂改液做的蛞蝓，爬过的地方盖上一层白，下面的东西要过很久才重新显出来
+<%_ } _%>
+<%_ if (_bs_hit(['素描纸鹿', '素描纸鹿素描角'])) { _%>
+【书海·铅笔森林·素描纸鹿】
+素描纸做的鹿，跑动时身上的线条跟着变，角上的纹路细得惊人
+<%_ } _%>
+<%_ if (_bs_hit(['石墨伐木者'])) { _%>
+【书海·铅笔森林·石墨伐木者】
+扛着石墨斧的伐木巨人，砍下的铅笔树会被削成新的笔去画新东西。居民对他又敬又怕
+<%_ } _%>
+<%_ if (_bs_hit(['削笔巡林者', '削笔巡林者卷笔刀'])) { _%>
+【书海·铅笔森林·削笔巡林者】
+拿卷笔刀的巡林人，把钝了的树削尖，削得太勤，不少树只剩一小截
+<%_ } _%>
+<%_ if (_bs_hit(['炭笔独角兽', '炭笔独角兽炭角'])) { _%>
+【书海·铅笔森林·炭笔独角兽】
+炭笔角的独角兽，走过的地方线条浓重。居民说它经过以后，常会多出一些原来没有的东西
+<%_ } _%>
+<%_ if (_bs_hit(['未画完的树王'])) { _%>
+【书海·铅笔森林·未画完的树王】
+铅笔森林中心的树王，一棵极其高大的铅笔树，左半边线条浓重、枝叶完整，右半边只有淡淡的草稿线。它的根系连着森林里所有的铅笔树，石墨伐木者、炭笔独角兽都在它周围活动。林中居民说谁能把它画完，谁就是森林的主人，而橡皮湿地正从边缘一点点擦向它
+<%_ } _%>
+<%_ /* ===== T23 巨人体内行政区 ===== */ _%>
+<%_ if (_bs_hit(['巨人体内行政区'])) { _%>
+【书海·巨人体内行政区】
+概述: 一个倒在地上的巨人，身体被改成了一座办事的城市：胃是办事大厅，血管是办公街道，骨髓里存着档案。市民在里面排队、填表、盖章，心脏还在跳，每跳一下，就有一份文件被批下来
+景象: 肉粉色的穹顶下，血管似的走廊纵横交错，墙壁跟着心跳起伏。空气温热潮湿，纸张和体液的味道混在一起。窗口前排着长队，盖章声和心跳声叠在一起
+区域: 胃袋大厅、血管办公街、骨髓档案室
+传闻: 市民说在‘总务心脏’那里盖上最后一个章就能办完手续、离开巨人。可从来没人集齐过前面所有的章
+<%_ } _%>
+<%_ if (_bs_hit(['胃袋大厅'])) { _%>
+【书海·巨人体内行政区·胃袋大厅】
+办事大厅，所有手续都要先来这里取号。墙会分泌消化液，定期溶掉积压的文件，排太久的人也可能被一起溶掉
+<%_ } _%>
+<%_ if (_bs_hit(['血管办公街'])) { _%>
+【书海·巨人体内行政区·血管办公街】
+血管改成的办公街，脚下流着血，文件顺着血流从一个部门漂到另一个部门。走错路会被冲到完全陌生的科室
+<%_ } _%>
+<%_ if (_bs_hit(['骨髓档案室'])) { _%>
+【书海·巨人体内行政区·骨髓档案室】
+骨头里的档案库，骨髓温热，档案在里面慢慢长厚。据说最老的档案记的是巨人倒下之前的事
+<%_ } _%>
+<%_ if (_bs_hit(['公章细胞'])) { _%>
+【书海·巨人体内行政区·公章细胞】
+长着一枚公章的小细胞，到处给文件盖章，也给路过的人盖。被盖了章的人就算‘已办理’
+<%_ } _%>
+<%_ if (_bs_hit(['票据白虫'])) { _%>
+【书海·巨人体内行政区·票据白虫】
+吃票据的白虫，把文件咬出小洞，手续就作废了
+<%_ } _%>
+<%_ if (_bs_hit(['回形针寄虫', '回形针寄虫针钩'])) { _%>
+【书海·巨人体内行政区·回形针寄虫】
+寄生在回形针上的小虫，把文件别在一起，也把人别在一起，别在一起的两个人得一起办完手续才能分开
+<%_ } _%>
+<%_ if (_bs_hit(['印泥吞吐囊', '印泥吞吐囊印泥'])) { _%>
+【书海·巨人体内行政区·印泥吞吐囊】
+装满红印泥的囊，往文件上吐，也往人身上吐，沾了印泥的人会被当成文件处理
+<%_ } _%>
+<%_ if (_bs_hit(['订书钉步卒', '订书钉步卒钉脚'])) { _%>
+【书海·巨人体内行政区·订书钉步卒】
+订书钉组成的小兵，把插队的人钉在原地，直到轮到他们
+<%_ } _%>
+<%_ if (_bs_hit(['脉搏科长'])) { _%>
+【书海·巨人体内行政区·脉搏科长】
+随着脉搏胀缩的科长，每跳一下批一份文件。他门口的队最长
+<%_ } _%>
+<%_ if (_bs_hit(['腺体档案官', '腺体档案官档案袋'])) { _%>
+【书海·巨人体内行政区·腺体档案官】
+腺体变成的档案官，管着所有档案，会根据档案内容往空气里放激素，调节市民的情绪。不在档案里的人他很排斥
+<%_ } _%>
+<%_ if (_bs_hit(['红章吞噬者', '红章吞噬者注销章'])) { _%>
+【书海·巨人体内行政区·红章吞噬者】
+拿红色注销章的东西，被它盖过的文件作废，被它盖过的人也会从档案里消失
+<%_ } _%>
+<%_ if (_bs_hit(['总务心脏'])) { _%>
+【书海·巨人体内行政区·总务心脏】
+巨人的心脏，位于巨人体内行政区的最深处，也被称作‘总务心脏’。外观是一颗巨大的、表面贴满公文和印章的心脏，每跳一次就有一份文件从血管里送出去。脉搏科长、腺体档案官都受它支配。市民相信在它这里盖上最后一个章，就能办完手续离开巨人
+<%_ } _%>
+<%_ /* ===== T24 淹没的电影院 ===== */ _%>
+<%_ if (_bs_hit(['淹没的电影院'])) { _%>
+【书海·淹没的电影院】
+概述: 一座泡在水里的老电影院。放映机还在转，银幕倒映在水面上，座位上坐着模糊的观众，都在等电影放完。墙上一张泡烂的场次表显示，那晚最后一场的片名栏是空的
+景象: 浑浊的水里，放映机的光束穿过去，在银幕上投出模糊的画面。水面漂着爆米花和票根，墙上的海报褪得只剩几张看得出的脸
+区域: 水下售票厅、倒映银幕、潮汐放映间
+传闻: 老员工说那天晚上放的片子从没上映过，电影放完水就会退。放映间的胶片盘却一直转不到头
+<%_ } _%>
+<%_ if (_bs_hit(['水下售票厅'])) { _%>
+【书海·淹没的电影院·水下售票厅】
+大厅里售票窗口半泡在水里，窗口后面还有人在卖票，只卖那晚最后一场
+<%_ } _%>
+<%_ if (_bs_hit(['倒映银幕'])) { _%>
+【书海·淹没的电影院·倒映银幕】
+主放映厅，银幕和水面上的倒影同时在放，偶尔两边放的东西不一样
+<%_ } _%>
+<%_ if (_bs_hit(['潮汐放映间'])) { _%>
+【书海·淹没的电影院·潮汐放映间】
+放映室的水位跟着潮涨潮落，胶片随水流在屋里缠绕。放映员的椅子空着，机器没停过
+<%_ } _%>
+<%_ if (_bs_hit(['胶片水蛇'])) { _%>
+【书海·淹没的电影院·胶片水蛇】
+像蛇一样游的胶片，身上印着画面，被它缠住会看到不属于自己的记忆
+<%_ } _%>
+<%_ if (_bs_hit(['座椅寄居者'])) { _%>
+【书海·淹没的电影院·座椅寄居者】
+住在座椅里的东西，只在放映时探出来盯着银幕。坐上它的座位就起不来了
+<%_ } _%>
+<%_ if (_bs_hit(['荧幕鳐', '荧幕鳐荧幕翼'])) { _%>
+【书海·淹没的电影院·荧幕鳐】
+翅膀是两块小银幕的鳐鱼，会把看到的画面放在翅膀上
+<%_ } _%>
+<%_ if (_bs_hit(['爆米花浮囊', '爆米花浮囊焦糖壳'])) { _%>
+【书海·淹没的电影院·爆米花浮囊】
+吸水胀大的爆米花，一团团浮在放映厅上方，焦糖色，闻着甜腻
+<%_ } _%>
+<%_ if (_bs_hit(['票夹鳗', '票夹鳗票夹'])) { _%>
+【书海·淹没的电影院·票夹鳗】
+头是票夹的鳗鱼，见什么打什么孔。被打了孔就算‘已检票’，能进场，出不去
+<%_ } _%>
+<%_ if (_bs_hit(['沉幕检票员'])) { _%>
+【书海·淹没的电影院·沉幕检票员】
+放映厅门口的检票员，制服泡得发白，只放持最后一场票的人进去，进去的都没出来
+<%_ } _%>
+<%_ if (_bs_hit(['胶片缠幕者', '胶片缠幕者缠幕胶片'])) { _%>
+【书海·淹没的电影院·胶片缠幕者】
+全身裹满胶片的东西，像个茧，胶片上的画面在它身上闪
+<%_ } _%>
+<%_ if (_bs_hit(['聚光深潜怪', '聚光深潜怪聚光镜'])) { _%>
+【书海·淹没的电影院·聚光深潜怪】
+水底一个头上长着聚光灯的大家伙，突然一亮，被照到的人就动不了，只能看银幕
+<%_ } _%>
+<%_ if (_bs_hit(['第零场观众'])) { _%>
+【书海·淹没的电影院·第零场观众】
+淹没电影院放映厅正中间的一位观众，外表是个穿旧式西装、坐得笔直的男人，眼睛始终盯着银幕，身上缠着几段胶片。放映机、检票员和胶片生物都围绕着这场放映运转。老员工说他是那晚唯一买了票的人，电影放完之前洪水不会退
+<%_ } _%>
+<%_ /* ===== T25 无星天文馆 ===== */ _%>
+<%_ if (_bs_hit(['无星天文馆'])) { _%>
+【书海·无星天文馆】
+概述: 一个从来没有星星的地方，天空一直是纯黑。这里的学者在一座天文馆里凭传说和推算伪造了整套星图，还造了一座缩小的银河。他们坚信星星存在，只是‘还没被点亮’
+景象: 巨大的穹顶一片漆黑，只有人工光点在上面慢慢移动。展廊挂满手绘星图，张张不同。展台上转着一座微缩银河，光很弱
+区域: 黑暗穹顶、伪造星图廊、缩小银河展台
+传闻: 学者说天上原本有一颗‘北极星’，是所有星星的中心，它灭了，其他的也跟着灭了
+<%_ } _%>
+<%_ if (_bs_hit(['黑暗穹顶'])) { _%>
+【书海·无星天文馆·黑暗穹顶】
+主观测厅，学者用望远镜对着黑天记录每一次‘疑似星光’。穹顶的黑会随着看的人视线变深变浅
+<%_ } _%>
+<%_ if (_bs_hit(['伪造星图廊'])) { _%>
+【书海·无星天文馆·伪造星图廊】
+挂满历代学者画的星图，都是想象出来的，画得极细，彼此矛盾，学者为此吵了几百年
+<%_ } _%>
+<%_ if (_bs_hit(['缩小银河展台'])) { _%>
+【书海·无星天文馆·缩小银河展台】
+中央展台上悬着一座光点组成的缩小银河，据说照着传说复刻，是这里离星空最近的地方
+<%_ } _%>
+<%_ if (_bs_hit(['星图银鱼'])) { _%>
+【书海·无星天文馆·星图银鱼】
+在星图间游的银色小鱼，吃星图上的墨，把画好的星星一颗颗吃掉
+<%_ } _%>
+<%_ if (_bs_hit(['空轨行星'])) { _%>
+【书海·无星天文馆·空轨行星】
+沿着空轨道转的球，模仿行星做的模型，偶尔脱轨撞人
+<%_ } _%>
+<%_ if (_bs_hit(['陨砂水母', '陨砂水母陨砂'])) { _%>
+【书海·无星天文馆·陨砂水母】
+伞里装着细沙的水母，在黑暗里慢慢下沉洒沙，学者管这叫‘陨石雨’
+<%_ } _%>
+<%_ if (_bs_hit(['星盘甲虫', '星盘甲虫星盘甲'])) { _%>
+【书海·无星天文馆·星盘甲虫】
+背上有星盘纹路的甲虫，花纹会随时间转，学者拿它们计时
+<%_ } _%>
+<%_ if (_bs_hit(['轨仪蜗牛', '轨仪蜗牛轨仪壳'])) { _%>
+【书海·无星天文馆·轨仪蜗牛】
+背着轨仪壳的蜗牛，壳上的圆环慢慢转，爬过的地方留下一道弧线
+<%_ } _%>
+<%_ if (_bs_hit(['望镜导览员'])) { _%>
+【书海·无星天文馆·望镜导览员】
+拿望远镜的导览员，讲星空讲得像亲眼见过，坚持说看不见是参观者眼睛不够好
+<%_ } _%>
+<%_ if (_bs_hit(['黄道测绘师', '黄道测绘师测绘尺'])) { _%>
+【书海·无星天文馆·黄道测绘师】
+一辈子画黄道星图的测绘师，尺子上刻满没被证实过的刻度
+<%_ } _%>
+<%_ if (_bs_hit(['破镜星群兽', '破镜星群兽镜片'])) { _%>
+【书海·无星天文馆·破镜星群兽】
+碎望远镜片聚成的东西，每片都映着一小块天，折出来的光点像一群星星
+<%_ } _%>
+<%_ if (_bs_hit(['熄灭的北极星'])) { _%>
+【书海·无星天文馆·熄灭的北极星】
+无星天文馆最深处的一颗暗淡星体，学者称之为‘熄灭的北极星’。它悬浮在一间圆形暗室中央，外表是一团灰黑色的球体，表面偶尔闪过极微弱的光。天文馆里的导览员、测绘师和星群兽都在寻找或守护它。学者们相信它一旦被点亮，整片星空就会回来
+<%_ } _%>
+<%_ /* ===== T26 蜂巢公寓 ===== */ _%>
+<%_ if (_bs_hit(['蜂巢公寓'])) { _%>
+【书海·蜂巢公寓】
+概述: 一栋蜂巢似的公寓，房间是六边形的，走廊弯来绕去。住户像工蜂一样忙，每月按时向一位从未露面的‘蜂后物业’缴‘蜜’。问蜜是什么，住户说就是蜜，再问就不说了
+景象: 蜜黄的灯照着六边形走廊，墙是蜡做的，摸着发软。空气甜腻，墙里有嗡嗡声。每扇门都一样，只有门牌号不同
+区域: 六边形走廊、共享厨房、振翅电梯井
+传闻: 老住户说物业不收房租只收蜜，缴不上的人会被请到楼上某个房间，然后就没下来过
+<%_ } _%>
+<%_ if (_bs_hit(['六边形走廊'])) { _%>
+【书海·蜂巢公寓·六边形走廊】
+主走廊，每个路口有六个方向。住户靠气味认路，外人很容易迷路
+<%_ } _%>
+<%_ if (_bs_hit(['共享厨房'])) { _%>
+【书海·蜂巢公寓·共享厨房】
+公共厨房，锅里永远熬着黏稠的金色液体，柜子里堆满蜡封罐子，墙上贴满缴蜜的通知
+<%_ } _%>
+<%_ if (_bs_hit(['振翅电梯井'])) { _%>
+【书海·蜂巢公寓·振翅电梯井】
+贯穿整栋楼的电梯井，轿厢由巨大的翅膀托着上下，嗡嗡声震耳。它哪层都停，就是不停顶层
+<%_ } _%>
+<%_ if (_bs_hit(['蜜蜡房客'])) { _%>
+【书海·蜂巢公寓·蜜蜡房客】
+身上覆着一层薄蜡的住户，上班下班缴蜜，规律得像钟表，很热情地邀人住下
+<%_ } _%>
+<%_ if (_bs_hit(['门铃蜂'])) { _%>
+【书海·蜂巢公寓·门铃蜂】
+门铃其实是只蜂，有人按铃先蜇一下，确认身份才让开门
+<%_ } _%>
+<%_ if (_bs_hit(['密封袋蛹', '密封袋蛹密封袋'])) { _%>
+【书海·蜂巢公寓·密封袋蛹】
+挂在墙上的密封袋，里面是正在发育的蛹，据说孵出来就分到房间当新住户
+<%_ } _%>
+<%_ if (_bs_hit(['墙缝蜡蚁', '墙缝蜡蚁蜡屑'])) { _%>
+【书海·蜂巢公寓·墙缝蜡蚁】
+住在墙缝里吃蜡的蚂蚁，把墙蛀出暗道
+<%_ } _%>
+<%_ if (_bs_hit(['蜂房搬运螨', '蜂房搬运螨背篓'])) { _%>
+【书海·蜂巢公寓·蜂房搬运螨】
+背着小篓的螨虫，在楼层间搬蜜、蜡和垃圾
+<%_ } _%>
+<%_ if (_bs_hit(['蜂巢保安'])) { _%>
+【书海·蜂巢公寓·蜂巢保安】
+披蜡甲的保安，赶走没有门牌的人，也押送缴不上蜜的住户上楼
+<%_ } _%>
+<%_ if (_bs_hit(['蜡印管事', '蜡印管事蜡印'])) { _%>
+【书海·蜂巢公寓·蜡印管事】
+拿蜡印的管事，入住、缴蜜、迁出都要他盖章，盖了就改不了
+<%_ } _%>
+<%_ if (_bs_hit(['振翅电梯兽', '振翅电梯兽翅膜'])) { _%>
+【书海·蜂巢公寓·振翅电梯兽】
+托着电梯轿厢飞的巨虫，脾气大，不想飞时谁也叫不动
+<%_ } _%>
+<%_ if (_bs_hit(['蜂后物业'])) { _%>
+【书海·蜂巢公寓·蜂后物业】
+蜂巢公寓顶层的‘蜂后物业’，住户都没见过它。顶层是一整层巨大的蜡室，里面有一个体型庞大、半人半蜂的存在，四周堆满住户上缴的蜜。保安、蜡印管事和电梯兽都听命于它。缴不上蜜的住户会被押送到这里
+<%_ } _%>
+<%_ /* ===== T27 永久开学日 ===== */ _%>
+<%_ if (_bs_hit(['永久开学日'])) { _%>
+【书海·永久开学日】
+概述: 一所永远是开学第一天的学校。早上铃响，学生进教室，老师讲第一课，放学铃响后，第二天又是开学日。学生们没升过年级，考场里考试一直在进行，从来没人交过卷
+景象: 九月初的阳光照进教室，黑板上写着‘开学第一课’，粉笔灰在光柱里飘。走廊贴着欢迎新学期的标语，操场铁门锁着
+区域: 无人教室、封闭操场、无尽考场
+传闻: 学生说只要有人答完那张试卷，学校就能进入第二天。可题目每次都变，也没人知道答案
+<%_ } _%>
+<%_ if (_bs_hit(['无人教室'])) { _%>
+【书海·永久开学日·无人教室】
+普通教室，有时空无一人，有时坐满低头抄笔记的学生，一遍遍抄同样的内容
+<%_ } _%>
+<%_ if (_bs_hit(['封闭操场'])) { _%>
+【书海·永久开学日·封闭操场】
+四周围着高铁网，门锁着。据说开学典礼在这里办，从来没开始过
+<%_ } _%>
+<%_ if (_bs_hit(['无尽考场'])) { _%>
+【书海·永久开学日·无尽考场】
+课桌一排排排到看不见的地方，每张桌上一份试卷，考试铃响个不停，却从不收卷
+<%_ } _%>
+<%_ if (_bs_hit(['黑板粉尘'])) { _%>
+【书海·永久开学日·黑板粉尘】
+黑板上的粉尘聚成的小团，飘到人眼里让人看不清黑板
+<%_ } _%>
+<%_ if (_bs_hit(['课桌童偶'])) { _%>
+【书海·永久开学日·课桌童偶】
+课桌木头雕的人偶，坐着等点名，点到时会用木头的声音答‘到’
+<%_ } _%>
+<%_ if (_bs_hit(['作业纸蛾', '作业纸蛾作业纸'])) { _%>
+【书海·永久开学日·作业纸蛾】
+作业纸折的飞蛾，停在人身上要你写答案，答不出就被贴满作业纸
+<%_ } _%>
+<%_ if (_bs_hit(['圆规足蛛', '圆规足蛛圆规脚'])) { _%>
+【书海·永久开学日·圆规足蛛】
+用圆规脚走路的蜘蛛，在地上画圆，被圈进圆里的人走不出去
+<%_ } _%>
+<%_ if (_bs_hit(['墨水盒兽', '墨水盒兽墨水'])) { _%>
+【书海·永久开学日·墨水盒兽】
+墨水盒变成的小兽，把试卷和作业本涂得一团蓝黑
+<%_ } _%>
+<%_ if (_bs_hit(['监考影'])) { _%>
+【书海·永久开学日·监考影】
+考场里的监考老师，模糊得像一道影子，任何想作弊或离开的人都会被它拦下
+<%_ } _%>
+<%_ if (_bs_hit(['铃声训导员', '铃声训导员训导铃'])) { _%>
+【书海·永久开学日·铃声训导员】
+拿铜铃的训导员，准时打铃，被他的铃声震过的人会不由自主回到座位
+<%_ } _%>
+<%_ if (_bs_hit(['试卷装订巨偶', '试卷装订巨偶装订钉'])) { _%>
+【书海·永久开学日·试卷装订巨偶】
+成千上万张试卷钉成的巨型人偶，走一步散一地卷子
+<%_ } _%>
+<%_ if (_bs_hit(['永不毕业者'])) { _%>
+【书海·永久开学日·永不毕业者】
+坐在无尽考场第一排的一个学生，穿着皱巴巴的校服，面前的试卷怎么写也写不完，手边堆满用秃的铅笔。监考影、训导员都盯着他。其他学生说学校一直停在开学日，是因为他没法毕业，他交卷了，学校才能进入第二天
+<%_ } _%>
+<%_ /* ===== T28 无货超市 ===== */ _%>
+<%_ if (_bs_hit(['无货超市'])) { _%>
+【书海·无货超市】
+概述: 一家永远没货的超市，货架延伸到看不见的地方，价签贴得整整齐齐，却一件商品也没有。顾客推着空车转来转去，排队结账什么也买不到。店长一直说库存马上就补上
+景象: 惨白的日光灯照着无边的空货架，地板擦得能照出人影。冷柜嗡嗡响，柜门结霜，里面空空的。收银台的扫描仪不停‘嘀’，扫的是空气
+区域: 空货架海、冷柜长廊、循环收银台
+传闻: 顾客说超市里还剩最后一件商品，藏在某个货架最里面，找到它就能结账出去。可货架每天都在变多
+<%_ } _%>
+<%_ if (_bs_hit(['空货架海'])) { _%>
+【书海·无货超市·空货架海】
+主卖场，空货架一排接一排，越往里编号越大，最远的编到了几万号
+<%_ } _%>
+<%_ if (_bs_hit(['冷柜长廊'])) { _%>
+【书海·无货超市·冷柜长廊】
+冷冻区，冷柜排成长廊，里面只有厚霜。越往深处越冷，走到头的人冻得说不出话
+<%_ } _%>
+<%_ if (_bs_hit(['循环收银台'])) { _%>
+【书海·无货超市·循环收银台】
+收银台围成一圈，结完账的人回到队尾。收银员的笑容从来不变
+<%_ } _%>
+<%_ if (_bs_hit(['条码蛇'])) { _%>
+【书海·无货超市·条码蛇】
+身上印着条形码的蛇，盘在原本摆商品的位置上。被它缠住的人会被扫描仪当成货
+<%_ } _%>
+<%_ if (_bs_hit(['购物车犬'])) { _%>
+【书海·无货超市·购物车犬】
+购物车变的狗，四个轮子当腿，横冲直撞，会跟着人走，也会把人撞进货架
+<%_ } _%>
+<%_ if (_bs_hit(['价签蜉蝣', '价签蜉蝣价签'])) { _%>
+【书海·无货超市·价签蜉蝣】
+价签上孵出的蜉蝣，身上印着价格，活一天，死了变成一张新价签
+<%_ } _%>
+<%_ if (_bs_hit(['冷柜冰蚕', '冷柜冰蚕冰丝'])) { _%>
+【书海·无货超市·冷柜冰蚕】
+冷柜里吃霜的蚕，吐冰丝，把冷柜里的东西都裹成冰茧，钻进去的人也一样
+<%_ } _%>
+<%_ if (_bs_hit(['塑袋寄居体', '塑袋寄居体塑料袋'])) { _%>
+【书海·无货超市·塑袋寄居体】
+住在塑料袋里的东西，被风吹着飘，会套住人的头
+<%_ } _%>
+<%_ if (_bs_hit(['夜盘点员'])) { _%>
+【书海·无货超市·夜盘点员】
+夜班盘点员，每天清点，每天得出零，然后重新数一遍，不许人打扰
+<%_ } _%>
+<%_ if (_bs_hit(['货架搬山者', '货架搬山者货架'])) { _%>
+【书海·无货超市·货架搬山者】
+能扛起一整排货架的大家伙，随时调整布局，顾客迷路多半是它害的
+<%_ } _%>
+<%_ if (_bs_hit(['条码扫描巨眼', '条码扫描巨眼扫描镜'])) { _%>
+【书海·无货超市·条码扫描巨眼】
+收银区上空的一只巨眼，瞳孔是扫描镜，什么都扫、什么都标价，被标了价的人会被放进购物车
+<%_ } _%>
+<%_ if (_bs_hit(['零库存店长'])) { _%>
+【书海·无货超市·零库存店长】
+无货超市的店长，穿店长制服、胸前挂名牌，对每个人都说‘库存马上就到’。常在循环收银台后面的办公室里，桌上堆满订货单。夜盘点员、货架搬山者都受他指挥。顾客们说超市从不关门，就是因为他在等一批一直没到的货
+<%_ } _%>
+<%_ /* ===== T29 发光盐田 ===== */ _%>
+<%_ if (_bs_hit(['发光盐田'])) { _%>
+【书海·发光盐田】
+概述: 内陆盐湖边上的一片盐田，晒出来的盐夜里会发蓝白色的光。当地人世代晒盐，拜盐湖里的‘白色潮汐’。他们说每隔几十年，潮汐就漫过盐田，把东西结成盐晶
+景象: 夜里白色盐田泛着幽蓝的光，像一片发光的雪原。盐堤笔直，泵房烟囱冒白雾。远处的蒸发池里是黑色的卤水
+区域: 结晶堤岸、盐雾泵房、黑水蒸发池
+传闻: 老人说白色潮汐是盐湖在呼吸，每次涨潮都会带走几个人，变成盐晶埋进盐田深处
+<%_ } _%>
+<%_ if (_bs_hit(['结晶堤岸'])) { _%>
+【书海·发光盐田·结晶堤岸】
+盐晶堆成的堤岸，夜里最亮，像一道发光的长墙。晒盐工沿着它把盐运回村
+<%_ } _%>
+<%_ if (_bs_hit(['盐雾泵房'])) { _%>
+【书海·发光盐田·盐雾泵房】
+盐田中央的泵房，把卤水抽进蒸发池。里面盐雾浓重，机器裹着盐晶轰轰作响
+<%_ } _%>
+<%_ if (_bs_hit(['黑水蒸发池'])) { _%>
+【书海·发光盐田·黑水蒸发池】
+盐田深处的蒸发池，卤水是黑的，晒出的黑盐光最亮。当地人不准靠近，只有祭司能去
+<%_ } _%>
+<%_ if (_bs_hit(['盐壳蜥'])) { _%>
+【书海·发光盐田·盐壳蜥】
+背上长盐壳的蜥蜴，吃盐田里的小虫，盐壳夜里发微光
+<%_ } _%>
+<%_ if (_bs_hit(['卤水蜉蝣'])) { _%>
+【书海·发光盐田·卤水蜉蝣】
+肚子里装满发光卤水的蜉蝣，成群飞起时盐田上空亮起一片
+<%_ } _%>
+<%_ if (_bs_hit(['盐晶蜗牛', '盐晶蜗牛晶壳'])) { _%>
+【书海·发光盐田·盐晶蜗牛】
+背着盐晶壳的蜗牛，壳越长越大，爬过留下一道闪光
+<%_ } _%>
+<%_ if (_bs_hit(['泵房卤泥', '泵房卤泥泥核'])) { _%>
+【书海·发光盐田·泵房卤泥】
+泵房里会动的卤泥，顺着管道流，把机器堵住
+<%_ } _%>
+<%_ if (_bs_hit(['结晶水蚤', '结晶水蚤晶足'])) { _%>
+【书海·发光盐田·结晶水蚤】
+脚上裹着盐晶的水蚤，在卤水里跳，盐晶碰得叮当响。孩子们爱捉
+<%_ } _%>
+<%_ if (_bs_hit(['晒盐祭司'])) { _%>
+【书海·发光盐田·晒盐祭司】
+穿盐晶长袍的祭司，负责给白色潮汐献祭，皮肤已经有一部分结晶了
+<%_ } _%>
+<%_ if (_bs_hit(['卤湖守泵人', '卤湖守泵人泵阀'])) { _%>
+【书海·发光盐田·卤湖守泵人】
+世代守泵房的守泵人，知道每个阀门干什么，也知道哪个绝不能开，只和机器说话
+<%_ } _%>
+<%_ if (_bs_hit(['发光盐角兽', '发光盐角兽盐角'])) { _%>
+【书海·发光盐田·发光盐角兽】
+头顶发光盐角的巨兽，在盐田边游荡。它一出现，当地人就知道潮汐快来了
+<%_ } _%>
+<%_ if (_bs_hit(['白色潮汐'])) { _%>
+【书海·发光盐田·白色潮汐】
+盐湖中周期性涨起的白色潮汐，当地人把它当作一个活着的存在。涨潮时湖面会升起一堵发光的白色盐浪，所到之处的东西会结成盐晶。晒盐祭司负责向它献祭，发光盐角兽被看作它的使者。当地人说它每隔几十年漫过盐田一次，每次都会带走几个人
+<%_ } _%>
+<%_ /* ===== T30 云上屠宰厂 ===== */ _%>
+<%_ if (_bs_hit(['云上屠宰厂'])) { _%>
+【书海·云上屠宰厂】
+概述: 云层上面一座漂浮的屠宰场，宰的不是牲口，是云。云被捕住、切开、冻起来，打包往下送，落下去就是雨雪。工人世代在这里干活，说云有血有肉，还说云一年比一年少了
+景象: 白茫茫的云海里，屠宰场的钢架像座浮岛。流水线上挂满雪白的云块，切开是粉红的。冷库冒寒气，卸货台上堆着羽毛似的碎云
+区域: 云雾流水线、悬空冷库、羽毛卸货台
+传闻: 工人说云会痛会叫，只是声音太轻人听不见。屠宰场尽头有台大机器，能一刀切开整片云层
+<%_ } _%>
+<%_ if (_bs_hit(['云雾流水线'])) { _%>
+【书海·云上屠宰厂·云雾流水线】
+主生产线，云块挂在钩上走过一道道工序，工人把它们切成均匀的块。空气里全是细碎的云屑
+<%_ } _%>
+<%_ if (_bs_hit(['悬空冷库'])) { _%>
+【书海·云上屠宰厂·悬空冷库】
+吊在屠宰场下面的冷库，云块冻得硬邦邦。进出都要穿厚防护服
+<%_ } _%>
+<%_ if (_bs_hit(['羽毛卸货台'])) { _%>
+【书海·云上屠宰厂·羽毛卸货台】
+边上的卸货区，碎云堆得像羽毛，打包往下送就是雪。风很大，不小心会被吹下云层
+<%_ } _%>
+<%_ if (_bs_hit(['羽钩小兽'])) { _%>
+【书海·云上屠宰厂·羽钩小兽】
+爪子带钩的小兽，吃云屑，会爬上流水线偷吃云块。工人当它是害虫
+<%_ } _%>
+<%_ if (_bs_hit(['白雾肉块'])) { _%>
+【书海·云上屠宰厂·白雾肉块】
+从流水线掉下去的云块，自己飘来飘去，见了刀就躲
+<%_ } _%>
+<%_ if (_bs_hit(['云脂毛虫', '云脂毛虫云脂'])) { _%>
+【书海·云上屠宰厂·云脂毛虫】
+吃云里脂肪的胖毛虫，像团棉花，被它啃过的云下的雨是油的
+<%_ } _%>
+<%_ if (_bs_hit(['羽秤怪鸟', '羽秤怪鸟秤砣'])) { _%>
+【书海·云上屠宰厂·羽秤怪鸟】
+脚上挂秤砣的怪鸟，称碎云的重量，不合格的啄下来。工人很信它
+<%_ } _%>
+<%_ if (_bs_hit(['滑轨钩虫', '滑轨钩虫钩足'])) { _%>
+【书海·云上屠宰厂·滑轨钩虫】
+用铁钩当脚的虫，挂在滑轨上跟着流水线走，有时把工人也挂上去
+<%_ } _%>
+<%_ if (_bs_hit(['卸云工头'])) { _%>
+【书海·云上屠宰厂·卸云工头】
+卸货台的工头，嗓门大脾气坏，说自己听得见云叫
+<%_ } _%>
+<%_ if (_bs_hit(['冷库屠云者', '冷库屠云者屠刀'])) { _%>
+【书海·云上屠宰厂·冷库屠云者】
+冷库里拿大屠刀劈冻云的屠夫，在冷库待太久，身体冷得和冻云一样
+<%_ } _%>
+<%_ if (_bs_hit(['链钩缝合兽', '链钩缝合兽缝合线'])) { _%>
+【书海·云上屠宰厂·链钩缝合兽】
+工人用钩链和缝合线拼出来的巨兽，身上缝满碎云，本来是搬重物用的，后来有了自己的主意
+<%_ } _%>
+<%_ if (_bs_hit(['云层分割机'])) { _%>
+【书海·云上屠宰厂·云层分割机】
+云上屠宰厂尽头的巨型切割机，由钢架、刀盘和传送带组成，刀盘宽得能横切整片云层。它连着整条流水线，卸云工头和屠云者都在为它工作。工人们说云层变稀薄就是因为它切得太多，对它又依赖又害怕
+<%_ } _%>
+<%_ /* ===== T31 雨伞沙漠 ===== */ _%>
+<%_ if (_bs_hit(['雨伞沙漠'])) { _%>
+【书海·雨伞沙漠】
+概述: 一片雨伞堆成的沙漠，沙丘底下埋着伞骨，绿洲就是一把撑开的伞投下的一小片阴凉。这里从来没下过雨，居民却人人撑伞。他们说总有一天会下一场大雨，伞就是为那天准备的
+景象: 金黄的沙丘里露出无数伞骨，像一片骨头林子。天上万里无云，远处一座高塔顶着一把巨伞，伞影盖住了整座驿站
+区域: 伞骨沙丘、无雨驿站、逆风伞塔
+传闻: 老人说很久以前天上有一场雨一直没落下来，悬在云上面
+<%_ } _%>
+<%_ if (_bs_hit(['伞骨沙丘'])) { _%>
+【书海·雨伞沙漠·伞骨沙丘】
+沙丘下全是伞，风一吹伞骨露出来，呜呜作响，走路得小心别被划伤
+<%_ } _%>
+<%_ if (_bs_hit(['无雨驿站'])) { _%>
+【书海·雨伞沙漠·无雨驿站】
+建在巨伞阴影下的驿站，卖伞也修伞。墙上挂着一张降雨记录表，一格也没填过
+<%_ } _%>
+<%_ if (_bs_hit(['逆风伞塔'])) { _%>
+【书海·雨伞沙漠·逆风伞塔】
+沙漠中心的高塔，顶上的伞总是逆着风张开。守望者日夜盯着天
+<%_ } _%>
+<%_ if (_bs_hit(['伞骨蝎'])) { _%>
+【书海·雨伞沙漠·伞骨蝎】
+躲在伞骨阴影里的蝎子，尾刺尖得像伞尖，被蜇了全身像暴晒过一样烫
+<%_ } _%>
+<%_ if (_bs_hit(['布面沙鳐'])) { _%>
+【书海·雨伞沙漠·布面沙鳐】
+身体是块破伞布的鳐鱼，贴着沙面飞快地滑，扬起一片沙。居民拿它的布补伞
+<%_ } _%>
+<%_ if (_bs_hit(['伞柄蠕虫', '伞柄蠕虫伞柄'])) { _%>
+【书海·雨伞沙漠·伞柄蠕虫】
+钻在伞柄里的虫，会探头咬握伞的手。居民撑伞前都先晃晃伞柄
+<%_ } _%>
+<%_ if (_bs_hit(['漏斗沙螺', '漏斗沙螺漏斗壳'])) { _%>
+【书海·雨伞沙漠·漏斗沙螺】
+在沙里挖漏斗坑的螺，壳像倒扣的伞，蹲在坑底等东西滑下来
+<%_ } _%>
+<%_ if (_bs_hit(['伞布夜蛾', '伞布夜蛾夜色鳞粉'])) { _%>
+【书海·雨伞沙漠·伞布夜蛾】
+深色伞布做翅膀的夜蛾，鳞粉浓得像夜色，成群飞起会把月光遮住
+<%_ } _%>
+<%_ if (_bs_hit(['撑伞行刑客'])) { _%>
+【书海·雨伞沙漠·撑伞行刑客】
+撑黑伞的行刑人，行刑时也不收伞。他伞下的地面总是湿冷的
+<%_ } _%>
+<%_ if (_bs_hit(['逆风伞匠', '逆风伞匠修伞锤'])) { _%>
+【书海·雨伞沙漠·逆风伞匠】
+驿站主人，手艺极好的伞匠，造的伞在逆风里也撑得开，一辈子造了成千上万把，都在等那场雨
+<%_ } _%>
+<%_ if (_bs_hit(['千骨撑天兽', '千骨撑天兽伞骨'])) { _%>
+【书海·雨伞沙漠·千骨撑天兽】
+千万根伞骨组成的巨兽，像一把会走的巨伞。居民跟着它的影子迁徙
+<%_ } _%>
+<%_ if (_bs_hit(['从未落下的雨'])) { _%>
+【书海·雨伞沙漠·从未落下的雨】
+悬在雨伞沙漠上空、一直没有落下的那场雨。平时看上去是天顶一片不散的暗云，偶尔会漏下几滴，落地前就蒸发了。逆风伞塔和伞匠都在为它做准备，居民撑伞就是为了等它。当地人说它落下来沙漠就会变成海，所以既盼着它，又怕它
+<%_ } _%>
+<%_ /* ===== T32 瓶中群岛 ===== */ _%>
+<%_ if (_bs_hit(['瓶中群岛'])) { _%>
+【书海·瓶中群岛】
+概述: 一片封在玻璃瓶里的群岛，天空是弯曲的瓶壁，海是瓶里的水，岛是漂着的软木。岛民知道自己住在瓶子里，至于瓶外是什么，他们只有猜测。瓶塞是群岛最高的地方，上面有座灯塔
+景象: 透明的穹顶弯下来罩住整片海，阳光透过瓶壁折成七彩光带。软木岛漂在碧蓝的水上，海岸铺着闪光的玻璃砂
+区域: 玻璃海岸、瓶塞灯塔、软木群礁
+传闻: 岛民说瓶子外面有个巨人在收集这样的瓶子，每个瓶里都有一片海
+<%_ } _%>
+<%_ if (_bs_hit(['玻璃海岸'])) { _%>
+【书海·瓶中群岛·玻璃海岸】
+碎玻璃砂铺成的海岸，浪打上来叮当响。常能捡到漂流瓶，里面有时是别的瓶子寄来的信
+<%_ } _%>
+<%_ if (_bs_hit(['瓶塞灯塔'])) { _%>
+【书海·瓶中群岛·瓶塞灯塔】
+瓶塞顶上的灯塔，光能照遍整个瓶子。守塔人说偶尔能在光里看到瓶外的影子
+<%_ } _%>
+<%_ if (_bs_hit(['软木群礁'])) { _%>
+【书海·瓶中群岛·软木群礁】
+外围的软木礁，水道复杂，容易搁浅，水藻长得很密，是渔民的好渔场
+<%_ } _%>
+<%_ if (_bs_hit(['玻璃虾'])) { _%>
+【书海·瓶中群岛·玻璃虾】
+透明的小虾，只有眼睛是黑的，在玻璃砂里几乎看不见。是岛上的特产
+<%_ } _%>
+<%_ if (_bs_hit(['软木潜鸟'])) { _%>
+【书海·瓶中群岛·软木潜鸟】
+羽毛像软木一样轻的水鸟，潜水捕鱼。岛民相信它们能飞到瓶子外面
+<%_ } _%>
+<%_ if (_bs_hit(['瓶砂蟹', '瓶砂蟹瓶砂'])) { _%>
+【书海·瓶中群岛·瓶砂蟹】
+身上沾满闪光砂粒的螃蟹，会把砂堆成小城堡
+<%_ } _%>
+<%_ if (_bs_hit(['漂签鱼', '漂签鱼漂流签'])) { _%>
+【书海·瓶中群岛·漂签鱼】
+身上挂着漂流签的鱼，签上写着别的瓶子来的消息，岛民捞到就读
+<%_ } _%>
+<%_ if (_bs_hit(['水藻塞偶', '水藻塞偶藻塞'])) { _%>
+【书海·瓶中群岛·水藻塞偶】
+水藻和软木塞拼成的人偶，在礁里转，会把搁浅的船拖进礁石深处，也会把迷路的渔民送回岸
+<%_ } _%>
+<%_ if (_bs_hit(['瓶塞守卫'])) { _%>
+【书海·瓶中群岛·瓶塞守卫】
+身体是一截软木塞的卫兵，不许任何人靠近瓶口，说塞子一开，整片海都会流出去
+<%_ } _%>
+<%_ if (_bs_hit(['玻璃航标者', '玻璃航标者航标灯'])) { _%>
+【书海·瓶中群岛·玻璃航标者】
+提着玻璃航标灯的身影，给船指路，也会故意把船引向瓶壁，说想看看外面是什么
+<%_ } _%>
+<%_ if (_bs_hit(['软木甲巨鲸', '软木甲巨鲸软木甲'])) { _%>
+【书海·瓶中群岛·软木甲巨鲸】
+背着软木甲的巨鲸，岛民说它在瓶子封口之前就在这了。它一游，整片海都跟着晃
+<%_ } _%>
+<%_ if (_bs_hit(['收集海洋的人'])) { _%>
+【书海·瓶中群岛·收集海洋的人】
+瓶中群岛居民所说的‘收集海洋的人’，住在瓶子外面。群岛里只能看到他的痕迹：瓶壁上掠过的巨大影子、灯塔光里的人形轮廓、海面突然的倾斜晃动。瓶塞守卫和玻璃航标者都和他有关。岛民说他收集了很多装着海的瓶子，这片群岛只是其中一瓶
+<%_ } _%>
+<%_ /* ===== T33 机械神社 ===== */ _%>
+<%_ if (_bs_hit(['机械神社'])) { _%>
+【书海·机械神社】
+概述: 一座机械神社，鸟居由伺服电机驱动，祈愿台是自动的，神官用代码写祝词。供奉的是一台叫‘八百万处理器’的老计算机，信徒说万物的神明都运行在它里面。它已经很久没回应过任何祈愿了
+景象: 朱红色的金属鸟居一排排伸进山林，电机轻轻嗡鸣。石灯笼里亮着LED，屋顶铺满散热片和天线。内殿深处透出幽蓝的光，能听到硬盘转动的声音
+区域: 伺服鸟居、自动祈愿台、芯片内殿
+传闻: 信徒说处理器里有八百万个神，每个都在处理一件祈愿，不回应是因为还在排队。也有人说它早就宕机了
+<%_ } _%>
+<%_ if (_bs_hit(['伺服鸟居'])) { _%>
+【书海·机械神社·伺服鸟居】
+参道两边的鸟居会按来人身份自动开合，不被认可的人过不去
+<%_ } _%>
+<%_ if (_bs_hit(['自动祈愿台'])) { _%>
+【书海·机械神社·自动祈愿台】
+拜殿里投币、按键、输入愿望，机器打出一张签纸。最近打出来的全是乱码
+<%_ } _%>
+<%_ if (_bs_hit(['芯片内殿'])) { _%>
+【书海·机械神社·芯片内殿】
+最深处的本殿，摆满服务器机柜，线缆像注连绳一样缠着。只有维护神官能进
+<%_ } _%>
+<%_ if (_bs_hit(['电签纸偶'])) { _%>
+【书海·机械神社·电签纸偶】
+打印出来的电子签纸，像纸偶一样飘，贴到人身上就把签文上的吉凶加给对方
+<%_ } _%>
+<%_ if (_bs_hit(['铜尾狐机'])) { _%>
+【书海·机械神社·铜尾狐机】
+铜制的机械狐狸，尾巴是几节铜管，在神社里巡视。信徒在它像前供电池
+<%_ } _%>
+<%_ if (_bs_hit(['齿轮铃虫', '齿轮铃虫铃片'])) { _%>
+【书海·机械神社·齿轮铃虫】
+屋檐铃铛里的齿轮小虫，风一吹就响。信徒说铃声的节奏里藏着处理器的讯息
+<%_ } _%>
+<%_ if (_bs_hit(['铁羽鸦机', '铁羽鸦机铁羽'])) { _%>
+【书海·机械神社·铁羽鸦机】
+铁片羽毛的机械乌鸦，给信徒送祈愿的回复，最近很少见了
+<%_ } _%>
+<%_ if (_bs_hit(['香灰微型卫', '香灰微型卫香灰'])) { _%>
+【书海·机械神社·香灰微型卫】
+香灰聚成的微型机器人，负责打扫，多余的东西都会被清掉，包括不守规矩的人
+<%_ } _%>
+<%_ if (_bs_hit(['维护神官'])) { _%>
+【书海·机械神社·维护神官】
+穿白狩衣、腰挂工具的维护神官，每天给处理器除尘换零件，坚信它只是在休眠
+<%_ } _%>
+<%_ if (_bs_hit(['伺服巫祝', '伺服巫祝祈愿卡'])) { _%>
+【书海·机械神社·伺服巫祝】
+拿着祈愿卡的巫女，负责把愿望输进处理器，也是唯一读得懂乱码的人，只是她的解读信徒越来越听不懂
+<%_ } _%>
+<%_ if (_bs_hit(['护殿铜狮机', '护殿铜狮机铜鬃'])) { _%>
+【书海·机械神社·护殿铜狮机】
+守内殿入口的铜狮子机，鬃毛是无数铜丝，连神官也要过它这一关
+<%_ } _%>
+<%_ if (_bs_hit(['八百万处理器'])) { _%>
+【书海·机械神社·八百万处理器】
+芯片内殿里那台老计算机，信徒称为‘八百万处理器’。外观是一排排连在一起的服务器机柜，中间一块旧屏幕，屏幕上只有一个闪烁的光标，机柜深处透出蓝光。维护神官、伺服巫祝和护殿铜狮机都在侍奉它。信徒相信万物的神明都运行在它里面
+<%_ } _%>
+<%_ /* ===== T34 骨白游乐园 ===== */ _%>
+<%_ if (_bs_hit(['骨白游乐园'])) { _%>
+【书海·骨白游乐园】
+概述: 一座白骨搭的游乐园，旋转木马的马身是肋骨，摩天轮的辐条是长骨，售票亭建在坟地上。园子早停业了，游客却没走，还在排队、坐车、笑，只是都成了骨头
+景象: 惨白的设施在暮色里立着，旋转木马停在半截，摩天轮的车厢在风里晃。褪色的气球挂在骨架上，八音盒的曲子断断续续
+区域: 停摆旋转木马、骨质摩天轮、售票坟场
+传闻: 附近的人说停业那天整个园区的游客一起消失了。园里的骨头穿着的正是那个年代的衣服
+<%_ } _%>
+<%_ if (_bs_hit(['停摆旋转木马'])) { _%>
+【书海·骨白游乐园·停摆旋转木马】
+入口的旋转木马，马背上坐着骨头，还保持着笑的样子。偶尔会突然转一圈又停下
+<%_ } _%>
+<%_ if (_bs_hit(['骨质摩天轮'])) { _%>
+【书海·骨白游乐园·骨质摩天轮】
+长骨和关节搭的大轮盘，车厢里的骨头有的还在往下挥手。月圆夜会转一圈
+<%_ } _%>
+<%_ if (_bs_hit(['售票坟场'])) { _%>
+【书海·骨白游乐园·售票坟场】
+售票亭旁边立着一排排墓碑，刻的不是名字是票号。据说买了票的人都能在这里找到自己的碑
+<%_ } _%>
+<%_ if (_bs_hit(['木马肋骨'])) { _%>
+【书海·骨白游乐园·木马肋骨】
+肋骨拼的木马，停摆后自己在园里走，找人骑。骑上去就下不来
+<%_ } _%>
+<%_ if (_bs_hit(['票根蝙蝠'])) { _%>
+【书海·骨白游乐园·票根蝙蝠】
+旧票根拼成翅膀的蝙蝠，夜里成群飞出，沙沙响，票根日期全是停业那天
+<%_ } _%>
+<%_ if (_bs_hit(['骨架气球犬', '骨架气球犬气球骨'])) { _%>
+【书海·骨白游乐园·骨架气球犬】
+骨架撑着气球的狗，蹦蹦跳跳会凑近陌生人嗅闻。气球被扎破会发出小孩的哭声
+<%_ } _%>
+<%_ if (_bs_hit(['糖纸灯蛾', '糖纸灯蛾糖纸翅'])) { _%>
+【书海·骨白游乐园·糖纸灯蛾】
+糖纸翅膀的飞蛾，围着还亮着的摊位灯飞，翅膀上有股甜味
+<%_ } _%>
+<%_ if (_bs_hit(['旋杯寄居骨', '旋杯寄居骨旋杯'])) { _%>
+【书海·骨白游乐园·旋杯寄居骨】
+住在旋转咖啡杯里的骨头，让杯子一直转，越转越快
+<%_ } _%>
+<%_ if (_bs_hit(['白面售票员'])) { _%>
+【书海·骨白游乐园·白面售票员】
+戴白面具的售票员，票价是一段回忆。买了票能进园，那段回忆就没了
+<%_ } _%>
+<%_ if (_bs_hit(['白骨巡园者', '白骨巡园者巡园哨'])) { _%>
+【书海·骨白游乐园·白骨巡园者】
+吹骨哨的巡园人，确保每个游客都玩得开心，不管人家愿不愿意
+<%_ } _%>
+<%_ if (_bs_hit(['断轨过山龙', '断轨过山龙断轨'])) { _%>
+【书海·骨白游乐园·断轨过山龙】
+轨道断了的过山车，车厢变成一条骨龙，在断轨上盘旋尖啸
+<%_ } _%>
+<%_ if (_bs_hit(['旋转中的墓园'])) { _%>
+【书海·骨白游乐园·旋转中的墓园】
+整座骨白游乐园本身，当地人叫它‘旋转中的墓园’。它会在园区中心以一座由旋转木马、摩天轮骨架和墓碑拼成的巨大转盘出现，转动时八音盒的曲子会变响。园里的售票员、巡园人和各种骨质设施都属于它。附近的人说停业那天消失的游客都被它留在了园里
+<%_ } _%>
+<%_ /* ===== T35 梦境水族馆 ===== */ _%>
+<%_ if (_bs_hit(['梦境水族馆'])) { _%>
+【书海·梦境水族馆】
+概述: 一座只在睡着以后才能去的水族馆。游客穿着睡衣从自己卧室走进鱼缸，坐电梯下到海底。馆里的生物是梦做的，吃游客的梦，游客醒了它们就散。有些游客再也没醒
+景象: 幽蓝的水光透过玻璃洒进来，梦一样的鱼群从头顶游过。展廊里漂着枕头和羽毛，游客半闭着眼在走。深处的大缸里有头透明的巨鲸在游
+区域: 鱼缸卧室、通往海底的电梯、梦游展廊
+传闻: 梦游的人互相提醒：别在水族馆里睡着，在梦里睡着会做更深的梦，然后醒不过来
+<%_ } _%>
+<%_ if (_bs_hit(['鱼缸卧室'])) { _%>
+【书海·梦境水族馆·鱼缸卧室】
+入口，一间被鱼缸围着的卧室。在这里睡着，醒来就已经在馆里了
+<%_ } _%>
+<%_ if (_bs_hit(['通往海底的电梯'])) { _%>
+【书海·梦境水族馆·通往海底的电梯】
+玻璃气泡似的轿厢缓缓下降，窗外越来越暗，生物越来越多
+<%_ } _%>
+<%_ if (_bs_hit(['梦游展廊'])) { _%>
+【书海·梦境水族馆·梦游展廊】
+主展厅，展缸里的东西随看的人的梦而变，两个人看到的不会一样
+<%_ } _%>
+<%_ if (_bs_hit(['枕头水母'])) { _%>
+【书海·梦境水族馆·枕头水母】
+像枕头的水母，蓬松柔软，贴到脸上就让人犯困
+<%_ } _%>
+<%_ if (_bs_hit(['梦鳞鱼'])) { _%>
+【书海·梦境水族馆·梦鳞鱼】
+鳞片映着梦境片段的鱼，成群游过时，展廊里闪过无数画面，有时是自己的梦
+<%_ } _%>
+<%_ if (_bs_hit(['珊瑚闹钟蟹', '珊瑚闹钟蟹闹铃'])) { _%>
+【书海·梦境水族馆·珊瑚闹钟蟹】
+背着珊瑚闹钟的螃蟹，在人快醒时敲铃把人拉回去。馆里其他生物都不喜欢它
+<%_ } _%>
+<%_ if (_bs_hit(['枕羽海马', '枕羽海马枕羽'])) { _%>
+【书海·梦境水族馆·枕羽海马】
+长着羽毛的海马，用羽毛轻轻扫人的脸，被扫到的人会梦见小时候的事
+<%_ } _%>
+<%_ if (_bs_hit(['瞌睡海葵', '瞌睡海葵触须'])) { _%>
+【书海·梦境水族馆·瞌睡海葵】
+角落里的海葵，触须放出让人打哈欠的东西，靠近的人会在它旁边躺下
+<%_ } _%>
+<%_ if (_bs_hit(['无眠饲养员'])) { _%>
+【书海·梦境水族馆·无眠饲养员】
+从不睡觉的饲养员，拿游客的梦喂馆里的生物，最烦有人在馆里睡着打乱他的喂食
+<%_ } _%>
+<%_ if (_bs_hit(['梦幕潜行者', '梦幕潜行者梦幕'])) { _%>
+【书海·梦境水族馆·梦幕潜行者】
+半透明梦幕一样的东西，把人裹进更深的梦，被裹住的人会梦见自己醒了
+<%_ } _%>
+<%_ if (_bs_hit(['玻璃睡鲨', '玻璃睡鲨睡鳍'])) { _%>
+【书海·梦境水族馆·玻璃睡鲨】
+大缸里透明的鲨鱼，能看见身体里游着的梦，吃别的梦境生物，游过的地方梦会碎掉
+<%_ } _%>
+<%_ if (_bs_hit(['透明梦鲸'])) { _%>
+【书海·梦境水族馆·透明梦鲸】
+梦境水族馆最深处巨型水缸里的一头透明巨鲸，身体里能看见游动的梦境片段。它一直在沉睡，饲养员和其他梦境生物都在它周围活动。饲养员说整座水族馆都是它的梦，它醒来，水族馆就会消失
+<%_ } _%>
+<%_ /* ===== T36 黑日农场 ===== */ _%>
+<%_ if (_bs_hit(['黑日农场'])) { _%>
+【书海·黑日农场】
+概述: 一片被黑色太阳照着的农场。太阳是黑的，却照样发光发热，麦子朝着它长，结出黑麦穗，水车倒着转，河往上游流。农场主们照常耕种，只是收成越来越怪，问起黑日的来历，他们不太愿意多谈
+景象: 黑太阳挂在正中，周围一圈暗金色的光晕。麦田一望无际全是黑穗，稻草人的影子朝着太阳的方向。水车吱呀吱呀地把河水往上泼
+区域: 朝黑日生长的麦田、倒流水车、稻草谷仓
+传闻: 老人说黑日是报应：以前有人贪心想让太阳永远不落，太阳就变黑了，再也不落
+<%_ } _%>
+<%_ if (_bs_hit(['朝黑日生长的麦田'])) { _%>
+【书海·黑日农场·朝黑日生长的麦田】
+主耕地，麦穗黑得发亮，磨出的面粉也是黑的，烤出的面包有股焦味
+<%_ } _%>
+<%_ if (_bs_hit(['倒流水车'])) { _%>
+【书海·黑日农场·倒流水车】
+河边倒转的水车，旁边的磨坊还在转，磨出来的是什么没人说得清
+<%_ } _%>
+<%_ if (_bs_hit(['稻草谷仓'])) { _%>
+【书海·黑日农场·稻草谷仓】
+大谷仓，堆满稻草和黑麦，常年昏暗，只有黑日的光从缝里漏进来。农场主不提谷仓深处有什么
+<%_ } _%>
+<%_ if (_bs_hit(['黑穗鸦'])) { _%>
+【书海·黑日农场·黑穗鸦】
+羽毛和麦穗一样黑的乌鸦，吃黑麦，叫声低哑，一点也不怕稻草人
+<%_ } _%>
+<%_ if (_bs_hit(['稻草耕者'])) { _%>
+【书海·黑日农场·稻草耕者】
+自己下地干活的稻草人，日夜不停，从不收获。农场主觉得省心，也有点怕
+<%_ } _%>
+<%_ if (_bs_hit(['焦籽跳虫', '焦籽跳虫焦籽'])) { _%>
+【书海·黑日农场·焦籽跳虫】
+像烧焦种子一样的跳虫，钻进麦穗产卵，让麦子更黑
+<%_ } _%>
+<%_ if (_bs_hit(['黑乳木偶牛', '黑乳木偶牛黑乳'])) { _%>
+【书海·黑日农场·黑乳木偶牛】
+木头雕的奶牛，能挤出黑色的奶，做成的奶酪味道浓得让人发晕
+<%_ } _%>
+<%_ if (_bs_hit(['锈镰草螳', '锈镰草螳锈镰'])) { _%>
+【书海·黑日农场·锈镰草螳】
+前肢是两把锈镰刀的螳螂，靠近的东西都收割，不管是不是麦子
+<%_ } _%>
+<%_ if (_bs_hit(['日蚀农夫'])) { _%>
+【书海·黑日农场·日蚀农夫】
+晒得漆黑像道影子的农夫，从不休息，说种出够多的粮食，黑日就会变回来
+<%_ } _%>
+<%_ if (_bs_hit(['麦垛焚日者', '麦垛焚日者焚火'])) { _%>
+【书海·黑日农场·麦垛焚日者】
+在麦垛间放火的家伙，想用火烧掉黑日，火烧得冲天，黑日动也不动
+<%_ } _%>
+<%_ if (_bs_hit(['日环犁地兽', '日环犁地兽日环犁'])) { _%>
+【书海·黑日农场·日环犁地兽】
+背着日环形犁的巨兽，犁过的地特别肥，种出的麦特别黑。农场主把它当神兽供着
+<%_ } _%>
+<%_ if (_bs_hit(['不落的黑日'])) { _%>
+【书海·黑日农场·不落的黑日】
+黑日农场上空那颗黑色太阳，照样发光发热，周围一圈暗金色光晕。农场的麦子都朝它生长，日蚀农夫、焚日者和犁地兽都围绕着它活动。老人说它原本是正常的太阳，因为有人想让它永远不落才变成了黑色
+<%_ } _%>
+<%_ /* ===== T37 极深钻井酒店 ===== */ _%>
+<%_ if (_bs_hit(['极深钻井酒店'])) { _%>
+【书海·极深钻井酒店】
+概述: 一家开在超深钻井里的酒店。钻井一直往地心钻，酒店跟着一层层往下扩建，越往下房价越贵、温度越高，住客也越古怪。前台说经理的办公室在钻头最前端，谁也没见过他
+景象: 粗糙的岩壁上镶着黄铜灯，电梯顺着钻井笔直往下降。客房窗外是一层层岩层，偶尔能看见化石和矿脉。越往下越热，岩壁渗出赤红的光
+区域: 钻头前台、岩层套房、地热宴会厅
+传闻: 住客说钻井尽头有颗活的心脏，经理是在替它招待客人，住得越深离它越近
+<%_ } _%>
+<%_ if (_bs_hit(['钻头前台'])) { _%>
+【书海·极深钻井酒店·钻头前台】
+钻井入口的前台，墙上挂着钻头剖面图。按客人的‘深度’分房，新客只能住最浅的一层
+<%_ } _%>
+<%_ if (_bs_hit(['岩层套房'])) { _%>
+【书海·极深钻井酒店·岩层套房】
+凿在不同岩层里的客房，浅层凉快，深层烫人，墙上嵌着化石
+<%_ } _%>
+<%_ if (_bs_hit(['地热宴会厅'])) { _%>
+【书海·极深钻井酒店·地热宴会厅】
+最深处的宴会厅，建在地热泉上，地面冒蒸汽，菜都是用地热烹的。据说经理偶尔在这宴请贵宾
+<%_ } _%>
+<%_ if (_bs_hit(['岩屑门童'])) { _%>
+【书海·极深钻井酒店·岩屑门童】
+岩屑堆成的门童，帮客人搬行李，走一步掉一地碎石
+<%_ } _%>
+<%_ if (_bs_hit(['热液蠕虫'])) { _%>
+【书海·极深钻井酒店·热液蠕虫】
+泡在滚烫热液里的红色蠕虫，深层的客人常在浴缸里发现它们
+<%_ } _%>
+<%_ if (_bs_hit(['矿灯盲蛾', '矿灯盲蛾矿灯粉'])) { _%>
+【书海·极深钻井酒店·矿灯盲蛾】
+身上沾满发光粉末的盲眼飞蛾，在黑暗里追着酒店的灯飞
+<%_ } _%>
+<%_ if (_bs_hit(['钻泥甲虫', '钻泥甲虫泥壳'])) { _%>
+【书海·极深钻井酒店·钻泥甲虫】
+裹着硬泥壳的甲虫，在泥浆里挖洞，把岩壁挖得千疮百孔
+<%_ } _%>
+<%_ if (_bs_hit(['缆索岩蚯', '缆索岩蚯岩索'])) { _%>
+【书海·极深钻井酒店·缆索岩蚯】
+像缆索一样粗的蚯蚓，缠在电梯缆绳上跟着上下，偶尔把电梯卡住
+<%_ } _%>
+<%_ if (_bs_hit(['钻井领班'])) { _%>
+【书海·极深钻井酒店·钻井领班】
+钻井领班，执着于钻得更深，从不让钻头停下
+<%_ } _%>
+<%_ if (_bs_hit(['套管守门者', '套管守门者套管'])) { _%>
+【书海·极深钻井酒店·套管守门者】
+身体套在一截钢套管里的守门人，检查每个想往更深处去的人，不够格的拦下
+<%_ } _%>
+<%_ if (_bs_hit(['热泉岩壳兽', '热泉岩壳兽岩壳'])) { _%>
+【书海·极深钻井酒店·热泉岩壳兽】
+宴会厅里一身滚烫岩壳的巨兽，守着地热泉，宴会厅的热一大半是它身上来的
+<%_ } _%>
+<%_ if (_bs_hit(['地心总经理'])) { _%>
+【书海·极深钻井酒店·地心总经理】
+极深钻井酒店的经理，住客叫他‘地心总经理’，办公室在钻头最前端。外表是个穿燕尾服、皮肤像熔岩一样开裂发红的人，身边温度极高。钻井领班、套管守门者都是他的员工。住客们猜他一直往下挖，是为了接近地心的某个东西
+<%_ } _%>
+<%_ /* ===== T38 缝隙城堡 ===== */ _%>
+<%_ if (_bs_hit(['缝隙城堡'])) { _%>
+【书海·缝隙城堡】
+概述: 一座古老的城堡，东西都藏在缝里：墙缝里有集市，砖头里有牢房，巨门背后还有一座城堡。城里的居民小得能钻进任何缝隙。他们说老国王把王冠藏进了某条缝，从那以后城堡就开始一点点裂开
+景象: 灰暗的石墙高耸，墙面布满裂缝和孔洞，凑近看每条缝里都有细小的灯光和人影在动。巨门紧闭，门缝透出的光比外面还亮
+区域: 墙缝集市、砖内牢房、巨门背面
+传闻: 居民说找到王冠的人就是新王。也有人说王冠一找到，城堡就会彻底塌掉
+<%_ } _%>
+<%_ if (_bs_hit(['墙缝集市'])) { _%>
+【书海·缝隙城堡·墙缝集市】
+外墙缝隙里的集市，小居民摆摊交易，货物很小却什么都有，越往缝里走货越稀奇
+<%_ } _%>
+<%_ if (_bs_hit(['砖内牢房'])) { _%>
+【书海·缝隙城堡·砖内牢房】
+砖块里挖空的牢房，只容一人蜷着。据说有犯人关了几百年，和砖长在一起了
+<%_ } _%>
+<%_ if (_bs_hit(['巨门背面'])) { _%>
+【书海·缝隙城堡·巨门背面】
+巨门后面的另一座城堡，和外面一模一样，只是更旧更破。钻过门缝的人说那边住着老国王的鬼魂
+<%_ } _%>
+<%_ if (_bs_hit(['灰泥鼠兵'])) { _%>
+【书海·缝隙城堡·灰泥鼠兵】
+灰泥里生出来的小鼠兵，训练有素，维持集市秩序
+<%_ } _%>
+<%_ if (_bs_hit(['碎砖蜥'])) { _%>
+【书海·缝隙城堡·碎砖蜥】
+鳞片像碎砖的蜥蜴，吃砖缝里的苔藓，顺带啃出新的裂缝
+<%_ } _%>
+<%_ if (_bs_hit(['门栓蠹虫', '门栓蠹虫蛀粉'])) { _%>
+【书海·缝隙城堡·门栓蠹虫】
+蛀门栓的虫子，走到哪留一堆蛀粉，城门越来越关不紧
+<%_ } _%>
+<%_ if (_bs_hit(['石缝壁蛛', '石缝壁蛛石丝'])) { _%>
+【书海·缝隙城堡·石缝壁蛛】
+吐石丝的蜘蛛，网横跨墙缝，常把集市的路封死
+<%_ } _%>
+<%_ if (_bs_hit(['锈锁蛙', '锈锁蛙锈锁舌'])) { _%>
+【书海·缝隙城堡·锈锁蛙】
+舌头像锈锁的蛙，把舌头伸进锁孔，能开任何锁，也能锁死任何门
+<%_ } _%>
+<%_ if (_bs_hit(['门缝骑士'])) { _%>
+【书海·缝隙城堡·门缝骑士】
+在门缝间巡逻的小骑士，全副武装，还在替老国王找王冠，会盘问每个在缝里走的人
+<%_ } _%>
+<%_ if (_bs_hit(['碎墙执旗者', '碎墙执旗者碎旗'])) { _%>
+【书海·缝隙城堡·碎墙执旗者】
+举着破旗的执旗者，在废墟里召集老国王的旧部，说要收复城堡
+<%_ } _%>
+<%_ if (_bs_hit(['砖甲攻城兽', '砖甲攻城兽砖甲'])) { _%>
+【书海·缝隙城堡·砖甲攻城兽】
+披砖甲的巨兽，原本是造城时搬石料的，失控后横冲直撞，把墙撞出更多缝
+<%_ } _%>
+<%_ if (_bs_hit(['缝隙里的王冠'])) { _%>
+【书海·缝隙城堡·缝隙里的王冠】
+缝隙城堡的王冠，藏在城堡最细的一条缝里。王冠会以一个戴着王冠、身体由砖石碎片组成的人形现身，所到之处墙面会裂开新的缝隙。门缝骑士和执旗者都在寻找它。居民说城堡的裂缝都是从它所在的地方开始的
+<%_ } _%>
+<%_ /* ===== T39 折叠地铁 ===== */ _%>
+<%_ if (_bs_hit(['折叠地铁'])) { _%>
+【书海·折叠地铁】
+概述: 一条折起来的地铁线，车厢和车厢交叠，站台里套着站台，隧道像纸一样被折出奇怪的形状。乘客坐着坐着，窗外一会儿是隧道，一会儿是另一节车厢的内部。线路图上没有始发站，也没有终点站
+景象: 惨白的车厢灯下，扶手杆弯着奇怪的角度，座椅有时在天花板上。车窗外能看到别的车厢的乘客，也能看到自己这节车厢的背面。站牌上一串站名反复出现
+区域: 交叉车厢、站中站、纸折隧道
+传闻: 乘客说找到始发站就能把线路展开，回到正常的地铁上。列车长却说这条线从来没有始发站
+<%_ } _%>
+<%_ if (_bs_hit(['交叉车厢'])) { _%>
+【书海·折叠地铁·交叉车厢】
+交叠在一起的车厢，走过连接处可能到了别的列车，也可能回到刚离开的那节
+<%_ } _%>
+<%_ if (_bs_hit(['站中站'])) { _%>
+【书海·折叠地铁·站中站】
+站台里藏着站台，下车可能走进更深的一层，回不到原来那个
+<%_ } _%>
+<%_ if (_bs_hit(['纸折隧道'])) { _%>
+【书海·折叠地铁·纸折隧道】
+被折过的隧道，列车在折痕处急转弯，窗外墙壁时平时皱
+<%_ } _%>
+<%_ if (_bs_hit(['扶手长虫'])) { _%>
+【书海·折叠地铁·扶手长虫】
+缠在扶手上的长虫，光滑得像扶手杆，会把乘客的手缠住
+<%_ } _%>
+<%_ if (_bs_hit(['站牌旅客'])) { _%>
+【书海·折叠地铁·站牌旅客】
+拿着写满站名的站牌等车的旅客，每班车进站都不上，会拉住路过的人问车是不是开往自己要去的站
+<%_ } _%>
+<%_ if (_bs_hit(['折票飞蛾', '折票飞蛾折票'])) { _%>
+【书海·折叠地铁·折票飞蛾】
+折过的车票变成的飞蛾，停在谁身上，谁就会在那一站下车
+<%_ } _%>
+<%_ if (_bs_hit(['车窗映像', '车窗映像车窗倒影'])) { _%>
+【书海·折叠地铁·车窗映像】
+车窗里的倒影，和本人不太一样，会趁人不注意做别的动作，有时从窗里走出来
+<%_ } _%>
+<%_ if (_bs_hit(['隧道拉链虫', '隧道拉链虫拉链齿'])) { _%>
+【书海·折叠地铁·隧道拉链虫】
+像拉链一样的虫子，拉开隧道壁，也能把隧道缝上，路线被它搞得更乱
+<%_ } _%>
+<%_ if (_bs_hit(['折线列车长'])) { _%>
+【书海·折叠地铁·折线列车长】
+制服也是折叠的列车长，在折痕间开车，说自己知道每条折痕通到哪
+<%_ } _%>
+<%_ if (_bs_hit(['换轨调度影', '换轨调度影换轨杆'])) { _%>
+【书海·折叠地铁·换轨调度影】
+拿换轨杆的影子，在车经过时扳道岔，调度依据谁也看不懂
+<%_ } _%>
+<%_ if (_bs_hit(['铰链车厢兽', '铰链车厢兽铰链'])) { _%>
+【书海·折叠地铁·铰链车厢兽】
+铰链连起来的车厢巨兽，能随意折叠展开，把遇到的列车吞进自己的车厢
+<%_ } _%>
+<%_ if (_bs_hit(['没有始发站'])) { _%>
+【书海·折叠地铁·没有始发站】
+折叠地铁上不存在的始发站。它会以一整座折叠在一起的站台出现，站牌上的站名互相重叠，列车从各个方向驶入又驶出。列车长和换轨调度影都在往这里调车。乘客们相信找到它就能把线路展开
+<%_ } _%>
+<%_ /* ===== T40 大潮钟表行 ===== */ _%>
+<%_ if (_bs_hit(['大潮钟表行'])) { _%>
+【书海·大潮钟表行】
+概述: 一家被海水淹着的钟表行。潮一涨，店里灌满海水，潮一退，钟上的时间就走一格。这里的钟不计时，只记潮汐。钟表匠们在水里修被潮水冲坏的表，说等到‘第十三次大潮’，所有的钟会一起响
+景象: 海水漫过柜台，钟表在水里滴答走，指针跟着潮汐摆。店铺深处有道海沟，沟底一个巨大的摆轮慢慢晃。报时厅里贝壳做的钟一齐鸣响，声音在水里荡开
+区域: 涨潮柜台、摆轮海沟、水下报时厅
+传闻: 钟表匠说时间在这里是潮水推着走的，第十三次大潮来了，时间要么走到头，要么从头再来
+<%_ } _%>
+<%_ if (_bs_hit(['涨潮柜台'])) { _%>
+【书海·大潮钟表行·涨潮柜台】
+前厅，柜台上摆满钟表，涨潮时被淹没，在水里闪闪发亮。来的客人大多是来修表的
+<%_ } _%>
+<%_ if (_bs_hit(['摆轮海沟'])) { _%>
+【书海·大潮钟表行·摆轮海沟】
+店铺深处的海沟，沟底的大摆轮每摆一次，潮水就涨落一次
+<%_ } _%>
+<%_ if (_bs_hit(['水下报时厅'])) { _%>
+【书海·大潮钟表行·水下报时厅】
+最深处，墙上挂满贝壳钟，潮一变就一齐响
+<%_ } _%>
+<%_ if (_bs_hit(['发条潮蟹'])) { _%>
+【书海·大潮钟表行·发条潮蟹】
+背上长发条的螃蟹，钻进钟表里拿钳子拨齿轮，有时修好，有时弄坏
+<%_ } _%>
+<%_ if (_bs_hit(['指针鱼'])) { _%>
+【书海·大潮钟表行·指针鱼】
+身体是一根指针的鱼，不停转圈，总指着潮水的方向，钟表匠靠它看潮
+<%_ } _%>
+<%_ if (_bs_hit(['秒轮虾', '秒轮虾秒轮'])) { _%>
+【书海·大潮钟表行·秒轮虾】
+长着秒轮的小虾，跳一下走一秒，成群跳时满是细密的滴答声
+<%_ } _%>
+<%_ if (_bs_hit(['表盘海星', '表盘海星表盘'])) { _%>
+【书海·大潮钟表行·表盘海星】
+身体是块表盘的海星，五条腕像五根指针，贴在岩壁上慢慢转
+<%_ } _%>
+<%_ if (_bs_hit(['钟罩水母', '钟罩水母钟罩'])) { _%>
+【书海·大潮钟表行·钟罩水母】
+伞盖是钟罩的水母，把人罩进去，里面的时间会变得特别长
+<%_ } _%>
+<%_ if (_bs_hit(['海摆修表师'])) { _%>
+【书海·大潮钟表行·海摆修表师】
+在海沟边修摆轮的老钟表匠，熟悉每块表的脾气，不想让第十三次大潮到来
+<%_ } _%>
+<%_ if (_bs_hit(['潮刻报时者', '潮刻报时者报时贝'])) { _%>
+【书海·大潮钟表行·潮刻报时者】
+拿报时贝的身影，每次潮变就敲响贝壳
+<%_ } _%>
+<%_ if (_bs_hit(['锚链巨摆兽', '锚链巨摆兽锚链摆'])) { _%>
+【书海·大潮钟表行·锚链巨摆兽】
+拖着锚链巨摆的巨兽，在海沟里来回摆，它摆一次，潮就涨落一次
+<%_ } _%>
+<%_ if (_bs_hit(['第十三次潮汐'])) { _%>
+【书海·大潮钟表行·第十三次潮汐】
+大潮钟表行里钟表匠们所说的‘第十三次大潮’。来临时整间店被海水完全淹没，所有钟表同时鸣响，海沟里的巨摆剧烈摆动。修表师、报时者和巨摆兽都在为它的到来做准备或试图阻止它。钟表匠说它来了，时间要么走到尽头，要么从头开始
+<%_ } _%>
+<%_ /* ===== T41 黑雪邮局 ===== */ _%>
+<%_ if (_bs_hit(['黑雪邮局'])) { _%>
+【书海·黑雪邮局】
+概述: 一座被黑雪盖住的邮局。雪黑得像煤灰，落在信封上就把地址染糊了。大厅里堆满投不出去的信，邮差在黑雪里跑来跑去，总找不到收件人。邮局的人说这个冬天已经很久了，久到没人记得什么时候开始的
+景象: 黑色的雪花从灰天上落下，屋顶街面积着厚厚一层。邮局窗口透出昏黄的灯，大厅堆着一捆捆信。信箱街上的信箱全冻住了
+区域: 未投递大厅、煤雪分拣场、冻住的信箱街
+传闻: 邮差说这个冬天本身就是一封没人签收的信，有人签了，冬天就结束，雪就停
+<%_ } _%>
+<%_ if (_bs_hit(['未投递大厅'])) { _%>
+【书海·黑雪邮局·未投递大厅】
+大厅里成千上万封投不出去的信，地址被黑雪染糊，有的冻成了冰块。员工天天整理，整理不完
+<%_ } _%>
+<%_ if (_bs_hit(['煤雪分拣场'])) { _%>
+【书海·黑雪邮局·煤雪分拣场】
+邮局后面的分拣场，黑雪堆成小山，分拣员从雪堆里一封封往外挖信
+<%_ } _%>
+<%_ if (_bs_hit(['冻住的信箱街'])) { _%>
+【书海·黑雪邮局·冻住的信箱街】
+两边排满冻住的信箱，塞满黑雪和退信。偶尔有信箱自己打开，吐出一封写给路人的信
+<%_ } _%>
+<%_ if (_bs_hit(['邮票寒蛾'])) { _%>
+【书海·黑雪邮局·邮票寒蛾】
+邮票孵出的飞蛾，翅膀上是邮票图案，会贴在信上当邮票，也会贴在人身上把人当包裹寄走
+<%_ } _%>
+<%_ if (_bs_hit(['封口雪鼠'])) { _%>
+【书海·黑雪邮局·封口雪鼠】
+偷吃封口胶的老鼠，咬开信封偷看，再用口水封回去
+<%_ } _%>
+<%_ if (_bs_hit(['邮袋寒鸦', '邮袋寒鸦邮袋'])) { _%>
+【书海·黑雪邮局·邮袋寒鸦】
+背邮袋的乌鸦，帮邮差送信，认得每个地址，只是很多地址已经不存在了
+<%_ } _%>
+<%_ if (_bs_hit(['信蜡冻偶', '信蜡冻偶冻蜡'])) { _%>
+【书海·黑雪邮局·信蜡冻偶】
+封蜡冻成的人偶，在邮局里巡逻，封口不严的信会被没收
+<%_ } _%>
+<%_ if (_bs_hit(['黑雪纸蛛', '黑雪纸蛛黑雪纸'])) { _%>
+【书海·黑雪邮局·黑雪纸蛛】
+吐沾煤灰纸条似的丝的蜘蛛，把信一封封粘在网上收集起来
+<%_ } _%>
+<%_ if (_bs_hit(['退信邮差'])) { _%>
+【书海·黑雪邮局·退信邮差】
+退信邮差，把退信送回寄件人那里，寄件人也不在了，邮袋越背越沉
+<%_ } _%>
+<%_ if (_bs_hit(['封缄监察者', '封缄监察者监察印'])) { _%>
+【书海·黑雪邮局·封缄监察者】
+拿监察印的封缄监察者，检查每封信的封口，最恨拆看别人信的人
+<%_ } _%>
+<%_ if (_bs_hit(['雪橇信笼兽', '雪橇信笼兽信笼'])) { _%>
+【书海·黑雪邮局·雪橇信笼兽】
+拉着雪橇的巨兽，雪橇上载着大信笼，把成批的信运往远方。它会拦截路上的人，检查身上有没有未寄出的信
+<%_ } _%>
+<%_ if (_bs_hit(['无人签收的冬天'])) { _%>
+【书海·黑雪邮局·无人签收的冬天】
+黑雪邮局里邮差们所说的‘无人签收的冬天’。它会以一个裹在黑雪和信件里的巨大身影出现，所到之处雪下得更密，信件会自己飞起来围着它转。退信邮差、封缄监察者都和它有关。邮差说只要有人签收它，冬天就会结束
+<%_ } _%>
+<%_ /* ===== T42 玻璃墓园 ===== */ _%>
+<%_ if (_bs_hit(['玻璃墓园'])) { _%>
+【书海·玻璃墓园】
+概述: 一座玻璃墓园，墓碑、棺木、围栏都是透明的，能看见埋在地下的死者。光在墓园里折来折去，到处是彩虹。守墓人说这里的死者没死，只是变得太透明，透明到没人看得见
+景象: 阳光照进来被墓碑折成七彩光斑，透过地面能看见底下的玻璃棺，死者面容安详。棱镜碑林在风里嗡嗡共鸣
+区域: 透明坟场、棱镜碑林、折光守墓屋
+传闻: 附近的人说墓园里一直在办一场葬礼，办了很多年，来吊唁的看不见，下葬的也看不见
+<%_ } _%>
+<%_ if (_bs_hit(['透明坟场'])) { _%>
+【书海·玻璃墓园·透明坟场】
+主墓区，玻璃碑排得整齐，透过地面能看到棺木，死者被光照得像随时会睁眼
+<%_ } _%>
+<%_ if (_bs_hit(['棱镜碑林'])) { _%>
+【书海·玻璃墓园·棱镜碑林】
+打磨成棱镜的墓碑，光穿过去在地上折出一道道彩虹。据说死者的魂住在光路里
+<%_ } _%>
+<%_ if (_bs_hit(['折光守墓屋'])) { _%>
+【书海·玻璃墓园·折光守墓屋】
+玻璃造的小屋，光在里面反复折射，看不清屋里的东西。守墓人只在葬礼时出门
+<%_ } _%>
+<%_ if (_bs_hit(['碑光蝶'])) { _%>
+【书海·玻璃墓园·碑光蝶】
+玻璃翅膀的蝴蝶，被死者的气息引过来，常停在碑上
+<%_ } _%>
+<%_ if (_bs_hit(['玻璃骸骨'])) { _%>
+【书海·玻璃墓园·玻璃骸骨】
+从玻璃棺里爬出来的骨头，透明得几乎看不见，在找能让自己被看见的东西
+<%_ } _%>
+<%_ if (_bs_hit(['棱镜蜗牛', '棱镜蜗牛棱镜壳'])) { _%>
+【书海·玻璃墓园·棱镜蜗牛】
+背着棱镜壳的蜗牛，壳把阳光折成彩虹，爬过留下一道闪光
+<%_ } _%>
+<%_ if (_bs_hit(['墓玻璃蜘蛛', '墓玻璃蜘蛛玻璃丝'])) { _%>
+【书海·玻璃墓园·墓玻璃蜘蛛】
+吐玻璃丝的蜘蛛，网在阳光下几乎看不见，常把来访者缠住
+<%_ } _%>
+<%_ if (_bs_hit(['露滴灯灵', '露滴灯灵露滴'])) { _%>
+【书海·玻璃墓园·露滴灯灵】
+草叶上的露珠变的小灯，夜里发微光，陪来访者走一段就散了
+<%_ } _%>
+<%_ if (_bs_hit(['折光守墓者'])) { _%>
+【书海·玻璃墓园·折光守墓者】
+半透明的守墓人，主持每场葬礼，说自己看得见那些透明的死者，也听得见他们说话
+<%_ } _%>
+<%_ if (_bs_hit(['碎镜送葬者', '碎镜送葬者碎镜'])) { _%>
+【书海·玻璃墓园·碎镜送葬者】
+碎镜子拼成的送葬者，走过的地方留一路碎片，镜片里映着无数张脸
+<%_ } _%>
+<%_ if (_bs_hit(['晶棺守陵兽', '晶棺守陵兽晶棺碎片'])) { _%>
+【书海·玻璃墓园·晶棺守陵兽】
+棺木碎片拼成的巨兽，在墓园深处转，不让人打扰死者
+<%_ } _%>
+<%_ if (_bs_hit(['看不见的葬礼'])) { _%>
+【书海·玻璃墓园·看不见的葬礼】
+玻璃墓园里那场看不见的葬礼。靠近时能听到送葬的脚步声、哭声和诵经声，却看不到任何人，只有透明的棺木自己移动，棱镜碑林的光路会汇聚到一起。守墓人和碎镜送葬者都在参加这场葬礼。附近的人说它已经办了很多年
+<%_ } _%>
+<%_ /* ===== T43 蒸汽竹海 ===== */ _%>
+<%_ if (_bs_hit(['蒸汽竹海'])) { _%>
+【书海·蒸汽竹海】
+概述: 一片铜管和蒸汽构成的竹海，竹子是空心铜管，竹节是阀门，竹叶是薄铜片。地下温泉把蒸汽送进竹管，推动林子里的一切。这里的人靠机关术吃饭，造的机关龙能在竹林间飞
+景象: 青铜色的竹林望不到边，竹管冒着白汽，林里雾蒙蒙的，阀门开合嘶嘶作响。沸泉边搭着茶棚，蒸汽栈桥在竹海上空交错
+区域: 铜节竹林、沸泉茶棚、蒸汽栈桥
+传闻: 居民说竹海深处有条‘千节机关龙’，是最早的机关师造的，守着地热，它在，蒸汽就不断
+<%_ } _%>
+<%_ if (_bs_hit(['铜节竹林'])) { _%>
+【书海·蒸汽竹海·铜节竹林】
+主林区，竹节上的阀门管着蒸汽流向，雾大，看不远。机关师在林里检修阀门
+<%_ } _%>
+<%_ if (_bs_hit(['沸泉茶棚'])) { _%>
+【书海·蒸汽竹海·沸泉茶棚】
+温泉边的茶棚，用沸泉泡茶，茶壶是机关，会自己倒。机关师常在这里切磋手艺
+<%_ } _%>
+<%_ if (_bs_hit(['蒸汽栈桥'])) { _%>
+【书海·蒸汽竹海·蒸汽栈桥】
+铜管和木板搭的空中栈桥，靠蒸汽推动，连通竹海各处，走上去晃得厉害
+<%_ } _%>
+<%_ if (_bs_hit(['铜竹螳螂'])) { _%>
+【书海·蒸汽竹海·铜竹螳螂】
+铜做的螳螂，前肢像两把铜刀，藏在蒸汽里等猎物
+<%_ } _%>
+<%_ if (_bs_hit(['汽雾剑灵'])) { _%>
+【书海·蒸汽竹海·汽雾剑灵】
+蒸汽里若隐若现的剑灵，居民说是死在竹海里的剑客留下的，在找对手
+<%_ } _%>
+<%_ if (_bs_hit(['阀节竹蜂', '阀节竹蜂阀节刺'])) { _%>
+【书海·蒸汽竹海·阀节竹蜂】
+在阀门间做窝的蜂，尾刺像阀针，把蒸汽存起来酿成滚烫的蜜
+<%_ } _%>
+<%_ if (_bs_hit(['铜笋甲虫', '铜笋甲虫铜笋壳'])) { _%>
+【书海·蒸汽竹海·铜笋甲虫】
+铜笋形状的甲虫，钻进竹根把竹管啃漏，蒸汽就泄出来
+<%_ } _%>
+<%_ if (_bs_hit(['滚露汽蛙', '滚露汽蛙汽泡'])) { _%>
+【书海·蒸汽竹海·滚露汽蛙】
+温泉边挂满汽露的蛙，一鼓腮就吐汽泡，破了嘶嘶响
+<%_ } _%>
+<%_ if (_bs_hit(['竹海铸客'])) { _%>
+【书海·蒸汽竹海·竹海铸客】
+竹林深处的铸客，手艺精，脾气怪，只顾铸兵器和机关，不跟人来往
+<%_ } _%>
+<%_ if (_bs_hit(['蒸泉阀守', '蒸泉阀守阀令牌'])) { _%>
+【书海·蒸汽竹海·蒸泉阀守】
+拿阀令牌的阀守，决定哪片竹林有蒸汽可用，居民都敬着他
+<%_ } _%>
+<%_ if (_bs_hit(['竹节压风兽', '竹节压风兽压风节'])) { _%>
+【书海·蒸汽竹海·竹节压风兽】
+压风竹节组成的巨兽，能把蒸汽压紧喷出强风，居民拿它清林里的积雾
+<%_ } _%>
+<%_ if (_bs_hit(['千节机关龙'])) { _%>
+【书海·蒸汽竹海·千节机关龙】
+蒸汽竹海深处的千节机关龙，由一千节铜制竹节机关连成，每节都有阀门和齿轮，行动时会喷出大量蒸汽。它盘踞在地热泉眼附近，竹海铸客和蒸泉阀守都认它为竹海的守护者。居民说它是最早的机关师造的，只要它还在，竹海的蒸汽就不会断
+<%_ } _%>
+<%_ /* ===== T44 超立方仓储 ===== */ _%>
+<%_ if (_bs_hit(['超立方仓储'])) { _%>
+【书海·超立方仓储】
+概述: 一座不止三维的仓库，货架朝四个方向重复延伸，装卸门有一扇朝着看不见的方向，库存数永远对不上。员工们清点、搬运、出库，却没有一件货真的出过库。他们说仓库最深处有件‘无法出库之物’，所有货都围着它放
+景象: 灰白的灯下，货架一排排延伸，拐个弯又回到原处。有扇装卸门朝着一个看不见的方向，风却从那边吹过来。某些纸箱换个角度看，里面比外面大
+区域: 重复货架、四向装卸门、空间库存核
+传闻: 员工说每件货都有编号，找到编号最小的那件就能找到出口。可越往前找编号越多，好像永远没有第一件
+<%_ } _%>
+<%_ if (_bs_hit(['重复货架'])) { _%>
+【书海·超立方仓储·重复货架】
+货架朝各个方向无限重复，粉笔做的记号也会跟着重复出现
+<%_ } _%>
+<%_ if (_bs_hit(['四向装卸门'])) { _%>
+【书海·超立方仓储·四向装卸门】
+装卸区的四扇门，一扇朝着第四个方向。从那进来的货形状古怪，放进箱子就拿不出来
+<%_ } _%>
+<%_ if (_bs_hit(['空间库存核'])) { _%>
+【书海·超立方仓储·空间库存核】
+最深处，所有货架往这里汇，空间压得极紧，一步能跨过一整排货架
+<%_ } _%>
+<%_ if (_bs_hit(['库存立方'])) { _%>
+【书海·超立方仓储·库存立方】
+货物压成的方块，在货架间滚，碰到什么就压进自己身体里
+<%_ } _%>
+<%_ if (_bs_hit(['叉车侍从'])) { _%>
+【书海·超立方仓储·叉车侍从】
+身体是小叉车的侍从，一刻不停地搬货，挡路的东西一起叉走
+<%_ } _%>
+<%_ if (_bs_hit(['折角搬运虫', '折角搬运虫折角'])) { _%>
+【书海·超立方仓储·折角搬运虫】
+住在纸箱折角的虫子，把箱子折出怪形状，箱里的空间就变大了
+<%_ } _%>
+<%_ if (_bs_hit(['货架索引灵', '货架索引灵索引卡'])) { _%>
+【书海·超立方仓储·货架索引灵】
+住在索引卡里的灵，帮员工找货，只是经常记错位置
+<%_ } _%>
+<%_ if (_bs_hit(['空盒潜伏体', '空盒潜伏体空盒'])) { _%>
+【书海·超立方仓储·空盒潜伏体】
+看着像普通空箱的东西，有人打开就把人拉进去合上盖
+<%_ } _%>
+<%_ if (_bs_hit(['第四维盘点员'])) { _%>
+【书海·超立方仓储·第四维盘点员】
+在四个维度同时清点的盘点员，每天数出来的数都不一样，坚信总有一天能数对
+<%_ } _%>
+<%_ if (_bs_hit(['维缝封箱者', '维缝封箱者封箱胶'])) { _%>
+【书海·超立方仓储·维缝封箱者】
+拿封箱胶的身影，把空间的缝封起来防止货掉进第四维，也会把想走的人封进箱子
+<%_ } _%>
+<%_ if (_bs_hit(['对折集装兽', '对折集装兽对折箱'])) { _%>
+【书海·超立方仓储·对折集装兽】
+能把自己对折的集装箱巨兽，折起来反而更大，把货一件件折进身体里
+<%_ } _%>
+<%_ if (_bs_hit(['无法出库之物'])) { _%>
+【书海·超立方仓储·无法出库之物】
+超立方仓储最深处的‘无法出库之物’，放在空间库存核的正中央。它看上去是一个不断变换形状的包裹，没有编号，无法被称量，靠近它的空间会被压缩和折叠。盘点员、封箱者和集装兽都围着它工作。员工说仓库的货架都是围绕它排列的
+<%_ } _%>
+<%_ /* ===== T45 无人的婚宴 ===== */ _%>
+<%_ if (_bs_hit(['无人的婚宴'])) { _%>
+【书海·无人的婚宴】
+概述: 一场没有宾客的婚宴。礼堂布置得富丽堂皇，菜一直热着，红烛一直烧着，新娘在镜子里的新房等着。可宾客一个没来，新郎也一直没出现，婚礼就一直准备着，开不了场
+景象: 红绸挂满礼堂，门窗贴着喜字，桌上菜肴冒着热气，烛泪流了一地。空椅子排得整整齐齐，礼堂尽头的镜子里映着一间新房
+区域: 永远热着的宴席、空礼堂、镜中新房
+传闻: 附近的人说新郎婚礼当天出门接新娘，再没回来，从那以后婚宴就没有散过
+<%_ } _%>
+<%_ if (_bs_hit(['永远热着的宴席'])) { _%>
+【书海·无人的婚宴·永远热着的宴席】
+一桌桌丰盛的菜，酒永远满着。据说吃了这里的菜，就会被当成宾客留下来
+<%_ } _%>
+<%_ if (_bs_hit(['空礼堂'])) { _%>
+【书海·无人的婚宴·空礼堂】
+座椅整齐、花团锦簇，台上放着婚书，风吹红绸沙沙响。偶尔响起婚礼进行曲，却没人入场
+<%_ } _%>
+<%_ if (_bs_hit(['镜中新房'])) { _%>
+【书海·无人的婚宴·镜中新房】
+镜子里的新房，新娘穿着婚纱盖着红盖头坐着不动。镜外看得见，进不去
+<%_ } _%>
+<%_ if (_bs_hit(['酒盏侍者'])) { _%>
+【书海·无人的婚宴·酒盏侍者】
+酒盏变的侍者，来回给空座位斟酒，酒永远倒不完
+<%_ } _%>
+<%_ if (_bs_hit(['喜糖纸灵'])) { _%>
+【书海·无人的婚宴·喜糖纸灵】
+喜糖纸变的纸灵，往每个人手里塞喜糖，拒绝是非常失礼的
+<%_ } _%>
+<%_ if (_bs_hit(['空椅游魂', '空椅游魂椅背'])) { _%>
+【书海·无人的婚宴·空椅游魂】
+坐在空椅子上的游魂，像是被请了却没来成的宾客，在等婚礼开始
+<%_ } _%>
+<%_ if (_bs_hit(['红烛蜡偶', '红烛蜡偶红烛泪'])) { _%>
+【书海·无人的婚宴·红烛蜡偶】
+红烛变的蜡偶，满身烛泪，负责不让灯火熄灭
+<%_ } _%>
+<%_ if (_bs_hit(['婚纱蛾', '婚纱蛾婚纱翅'])) { _%>
+【书海·无人的婚宴·婚纱蛾】
+婚纱一样白的飞蛾，被烛光吸引，常往火里扑
+<%_ } _%>
+<%_ if (_bs_hit(['空席司仪'])) { _%>
+【书海·无人的婚宴·空席司仪】
+婚宴司仪，站在空台前一遍遍念开场白，等新郎来了好宣布开始
+<%_ } _%>
+<%_ if (_bs_hit(['酒窖守席者', '酒窖守席者窖钥'])) { _%>
+【书海·无人的婚宴·酒窖守席者】
+拿窖钥的守窖人，保证婚宴的酒永远喝不完
+<%_ } _%>
+<%_ if (_bs_hit(['缎带婚轿兽', '缎带婚轿兽缎带'])) { _%>
+【书海·无人的婚宴·缎带婚轿兽】
+红缎带编成的婚轿巨兽，在礼堂外徘徊，是来接新娘的，一直等不到出发的时候
+<%_ } _%>
+<%_ if (_bs_hit(['缺席的新郎'])) { _%>
+【书海·无人的婚宴·缺席的新郎】
+无人婚宴上缺席的新郎。会以一个穿礼服、面容模糊的年轻男子出现在礼堂入口，身后跟着红绸和飘落的喜糖纸。司仪、守席者和婚轿兽都在等他。附近的人说他婚礼当天出门去接新娘，再也没回来
+<%_ } _%>
+<%_ /* ===== T46 彩色噪声海 ===== */ _%>
+<%_ if (_bs_hit(['彩色噪声海'])) { _%>
+【书海·彩色噪声海】
+概述: 一片彩色噪声的海，海水是闪烁的雪花点，浪花是失真的色块，海风里夹着沙沙的白噪音。海边的人靠捕捉海里的信号过活，说这片海是一个没调好台的信号，调准了就能听见它想说什么
+景象: 五颜六色的色块在海面翻滚，浪拍岸时带着电流声。沙滩上的沙是彩色的像素点，一直在闪。远处浮岛上立着大天线
+区域: 失真沙滩、信号浮岛、白噪港湾
+传闻: 老渔民说这片海以前是个清楚的画面，信号断了才碎成噪声，重新调谐，画面就回来了
+<%_ } _%>
+<%_ if (_bs_hit(['失真沙滩'])) { _%>
+【书海·彩色噪声海·失真沙滩】
+像素点铺成的沙滩，东西都在失真，脚印会变形，贝壳会变成色块
+<%_ } _%>
+<%_ if (_bs_hit(['信号浮岛'])) { _%>
+【书海·彩色噪声海·信号浮岛】
+海上立着天线的小岛，居民在这里接收信号解读讯息，岛随信号强弱漂移
+<%_ } _%>
+<%_ if (_bs_hit(['白噪港湾'])) { _%>
+【书海·彩色噪声海·白噪港湾】
+常年弥漫白噪音的港湾，渔船都装着接收器，靠听信号找鱼群
+<%_ } _%>
+<%_ if (_bs_hit(['噪点鱼'])) { _%>
+【书海·彩色噪声海·噪点鱼】
+一团闪烁雪花点组成的鱼，成群游过时海面泛起一片噪点，是主要渔获
+<%_ } _%>
+<%_ if (_bs_hit(['失真鸟'])) { _%>
+【书海·彩色噪声海·失真鸟】
+轮廓不停扭曲的鸟，叫声是一段失真的音频，听久了头晕
+<%_ } _%>
+<%_ if (_bs_hit(['色块海蜗', '色块海蜗负片壳'])) { _%>
+【书海·彩色噪声海·色块海蜗】
+负片壳的海蜗牛，颜色和周围全反着，爬过留下一道反色的痕迹
+<%_ } _%>
+<%_ if (_bs_hit(['失帧水母', '失帧水母帧片'])) { _%>
+【书海·彩色噪声海·失帧水母】
+像一帧帧跳画面的水母，动作时断时续，会突然消失，在别处出现
+<%_ } _%>
+<%_ if (_bs_hit(['频闪浮游群', '频闪浮游群频闪光'])) { _%>
+【书海·彩色噪声海·频闪浮游群】
+一直频闪的浮游群，聚在一起时海面像坏掉的屏幕
+<%_ } _%>
+<%_ if (_bs_hit(['信号捕手'])) { _%>
+【书海·彩色噪声海·信号捕手】
+浮岛上的信号捕手，能从噪声里分辨出有意义的讯息，是海边最受敬重的人
+<%_ } _%>
+<%_ if (_bs_hit(['调色潮汐师', '调色潮汐师调色盘'])) { _%>
+【书海·彩色噪声海·调色潮汐师】
+拿调色盘在海面上走的身影，把噪声调成各种颜色，说在找海原本的颜色
+<%_ } _%>
+<%_ if (_bs_hit(['断频虹鳗', '断频虹鳗虹鳍'])) { _%>
+【书海·彩色噪声海·断频虹鳗】
+身体像断断续续彩虹的巨鳗，游过的地方信号中断，海面一片漆黑
+<%_ } _%>
+<%_ if (_bs_hit(['未调谐的海'])) { _%>
+【书海·彩色噪声海·未调谐的海】
+彩色噪声海本身，当地人叫它‘未调谐的海’。它会在海面上聚成一个由色块、雪花点和失真画面组成的巨大漩涡，发出响亮的白噪音。信号捕手和调色潮汐师一直在试图调准它。老渔民说它原本是清晰的画面，信号断了才变成噪声
+<%_ } _%>
+<%_ /* ===== T47 低重力垃圾环 ===== */ _%>
+<%_ if (_bs_hit(['低重力垃圾环'])) { _%>
+【书海·低重力垃圾环】
+概述: 一条绕着星球的垃圾带，报废的卫星、飞船和残骸连成一圈。重力很低，居民在残骸间飘、跳，把废飞船拼成住所和港口，靠回收过活。他们说垃圾环越来越大，总有一天会把星球整个包起来
+景象: 黑色太空里，垃圾环像一条闪光的腰带绕着星球。残骸慢慢转，碰撞时迸出火花。拼接港的灯在残骸间闪，回收场的磁盘把碎片一块块吸过去
+区域: 轨道废物街、破船拼接港、磁吸回收场
+传闻: 居民说环里最老的一块残骸是颗人造的星星，所有垃圾都是被它吸过来的
+<%_ } _%>
+<%_ if (_bs_hit(['轨道废物街'])) { _%>
+【书海·低重力垃圾环·轨道废物街】
+报废卫星和飞船碎片连成的街，两边是回收商的摊子，卖拆下来的零件
+<%_ } _%>
+<%_ if (_bs_hit(['破船拼接港'])) { _%>
+【书海·低重力垃圾环·破船拼接港】
+几十艘废飞船拼成的大港口，停着各种拼凑出来的船，修理、改装、交易都在这
+<%_ } _%>
+<%_ if (_bs_hit(['磁吸回收场'])) { _%>
+【书海·低重力垃圾环·磁吸回收场】
+大磁盘把附近碎片吸过来，垃圾堆着等分拣，里面藏着不少危险
+<%_ } _%>
+<%_ if (_bs_hit(['废片卫星'])) { _%>
+【书海·低重力垃圾环·废片卫星】
+废卫星的碎片，偶尔会活过来追着动的东西撞，撞上就粘住
+<%_ } _%>
+<%_ if (_bs_hit(['磁尘团'])) { _%>
+【书海·低重力垃圾环·磁尘团】
+磁性尘埃滚成的团，吸住金属碎片越滚越大
+<%_ } _%>
+<%_ if (_bs_hit(['电池寄居蟹', '电池寄居蟹电池壳'])) { _%>
+【书海·低重力垃圾环·电池寄居蟹】
+拿废电池当壳的寄居蟹，吃电池余电，一直在找更大的电池
+<%_ } _%>
+<%_ if (_bs_hit(['缆线飞鳐', '缆线飞鳐缆线翼'])) { _%>
+【书海·低重力垃圾环·缆线飞鳐】
+身体是一段缆线的飞鳐，在残骸间滑翔，会缠住飞船天线把信号切断
+<%_ } _%>
+<%_ if (_bs_hit(['铆钉爬虫', '铆钉爬虫铆钉'])) { _%>
+【书海·低重力垃圾环·铆钉爬虫】
+铆钉组成的爬虫，把残骸铆在一起，也会把飞船铆到残骸上
+<%_ } _%>
+<%_ if (_bs_hit(['废环回收王'])) { _%>
+【书海·低重力垃圾环·废环回收王】
+居民叫他‘回收王’，掌管大部分回收场和港口，由他定什么垃圾值钱
+<%_ } _%>
+<%_ if (_bs_hit(['磁轨拾荒者', '磁轨拾荒者拾荒钩'])) { _%>
+【书海·低重力垃圾环·磁轨拾荒者】
+拿拾荒钩在磁轨上穿梭的拾荒者，找零件，也抢别人的收获
+<%_ } _%>
+<%_ if (_bs_hit(['残骸拼接龙', '残骸拼接龙拼接鳞'])) { _%>
+【书海·低重力垃圾环·残骸拼接龙】
+残骸拼成的巨龙，身上盖满各种飞船碎片，遇到残骸就拼到自己身上
+<%_ } _%>
+<%_ if (_bs_hit(['人造星屑'])) { _%>
+【书海·低重力垃圾环·人造星屑】
+低重力垃圾环中心的人造星星，外表是一颗由无数残骸压缩而成、表面还在发光的小星体。它会吸引周围的碎片和飞船，残骸拼接龙和回收王都在它周围活动。居民说它原本是一颗人造卫星，吸住的残骸越来越多才变成现在的样子
+<%_ } _%>
+<%_ /* ===== T48 无尽后台剧院 ===== */ _%>
+<%_ if (_bs_hit(['无尽后台剧院'])) { _%>
+【书海·无尽后台剧院】
+概述: 一座只有后台的剧院，换景走廊、提线仓库、化妆间、道具库都在忙，演出好像随时要开始。舞台上却空无一人，观众席也空着。演员们在后台候场，开演铃一直没响
+景象: 昏暗的后台绳索滑轮纵横，布景板靠墙堆着，提线木偶挂在架上跟着气流轻晃。帷幕紧闭，缝里透出一丝光，观众席一片漆黑
+区域: 换景走廊、提线仓库、无观众舞台
+传闻: 老员工说演出一直没开始，是因为还有一位观众没入场，他一坐下，大幕就拉开
+<%_ } _%>
+<%_ if (_bs_hit(['换景走廊'])) { _%>
+【书海·无尽后台剧院·换景走廊】
+两侧堆满布景板的走廊，布景板自己会挪，布局随时在变。工作人员推着板子匆匆走过
+<%_ } _%>
+<%_ if (_bs_hit(['提线仓库'])) { _%>
+【书海·无尽后台剧院·提线仓库】
+挂满木偶的仓库，天花板上全是绳索滑轮，绳子会自己缠，把木偶和人一起吊起来
+<%_ } _%>
+<%_ if (_bs_hit(['无观众舞台'])) { _%>
+【书海·无尽后台剧院·无观众舞台】
+主舞台，灯光布景都就位了，没有演员上去过。观众席的座位积满灰
+<%_ } _%>
+<%_ if (_bs_hit(['面具小偶'])) { _%>
+【书海·无尽后台剧院·面具小偶】
+戴面具的小木偶，在后台跑龙套递道具，面具从来不摘
+<%_ } _%>
+<%_ if (_bs_hit(['提词纸鸟'])) { _%>
+【书海·无尽后台剧院·提词纸鸟】
+提词纸折的纸鸟，演员忘词时飞过去提词，也会在不该出声的时候大声念台词
+<%_ } _%>
+<%_ if (_bs_hit(['幕布蛛', '幕布蛛幕布丝'])) { _%>
+【书海·无尽后台剧院·幕布蛛】
+在帷幕上织网的蜘蛛，丝和幕布一模一样，把帷幕越织越厚
+<%_ } _%>
+<%_ if (_bs_hit(['灯架脚兽', '灯架脚兽追光灯'])) { _%>
+【书海·无尽后台剧院·灯架脚兽】
+长着灯架腿、顶着追光灯的小兽，把光打在任何会动的东西上
+<%_ } _%>
+<%_ if (_bs_hit(['道具箱影', '道具箱影道具'])) { _%>
+【书海·无尽后台剧院·道具箱影】
+道具箱里的影子，平时一动不动，有人开箱就学他的动作，然后取而代之
+<%_ } _%>
+<%_ if (_bs_hit(['换景总管'])) { _%>
+【书海·无尽后台剧院·换景总管】
+换景总管，记得每场戏要哪些布景、每块板放在哪，不断调度后台的布景和人手，不许任何人打乱准备
+<%_ } _%>
+<%_ if (_bs_hit(['绳桥提偶师', '绳桥提偶师提线'])) { _%>
+【书海·无尽后台剧院·绳桥提偶师】
+在绳桥上提着无数木偶的提偶师，能让木偶做任何动作，也能让人像木偶一样动
+<%_ } _%>
+<%_ if (_bs_hit(['落幕布景兽', '落幕布景兽布景板'])) { _%>
+【书海·无尽后台剧院·落幕布景兽】
+布景板拼成的巨兽，在后台走动，把碰到的东西拼进自己的布景里
+<%_ } _%>
+<%_ if (_bs_hit(['最后一位观众'])) { _%>
+【书海·无尽后台剧院·最后一位观众】
+无尽后台剧院一直没入场的最后一位观众。会以一个穿正装、看不清面孔的人出现在观众席入口，他走到哪里，哪里的灯光就会亮起。换景总管、提偶师和后台所有演员都在等他。老员工说他入座之后，大幕就会拉开
+<%_ } _%>
+<%_ /* ===== 通用 ===== */ _%>
+<%_ if (_bs_narr_special === 'mimic' || (!_bs_narr && _bs_hit(['宝箱怪', '价值的结晶']))) { _%>
+【书海·宝箱怪】
+迷宫各层都能遇到的拟态捕食者，外形与宝箱无异，常混在真正的宝箱之间。它不挑食，却偏爱被财宝吸引而来的猎物；吞下的财物不会被消化，据说在它腹中越积越多，形成一座小小的库房
+<%_ } _%>
+<%_ } _%>
+<%_ /* BOOKSEA_NARRATIVE_BEGIN */ _%>
+<%_ {
+let bnBook = typeof getvar === 'function' ? getvar('booksea', { scope: 'local', defaults: {} }) : {};
+let bnAct = bnBook?.activeExpedition, bnMode = bnBook?.narrativeMode;
+let bnCtx = typeof SillyTavern !== 'undefined' ? SillyTavern : null;
+let bnLive = typeof bnCtx?.getContext === 'function' ? bnCtx.getContext() : bnCtx;
+let bnContextId = bnLive?.characterId != null && typeof bnLive?.getCurrentChatId === 'function' ? String(bnLive.characterId) + ':' + String(bnLive.getCurrentChatId()) : null;
+let bnOn = bnAct?.narrative?.active === true && bnAct?.mode !== 'ended' && bnMode?.active === true && bnMode?.runId === bnAct?.run?.id
+    && bnMode?.contextId === bnAct?.hostContext && bnAct?.hostContext === bnContextId;
+let bnChat = Array.isArray(bnLive?.chat) ? bnLive.chat : [];
+let bnId = bnChat.length - 1;
+// A swipe/regeneration keeps the assistant slot in some host versions; bind its preceding user request.
+if (bnId > 0 && bnChat[bnId]?.is_user !== true
+    && ['swipe', 'regenerate'].includes(typeof generateType === 'string' ? generateType : '')
+    && bnChat[bnId - 1]?.is_user === true) bnId--;
+let bnMsg = bnChat[bnId];
+let bnText = String((typeof getChatMessage === 'function' ? getChatMessage(bnId) : bnMsg?.mes) ?? '').trim();
+let bnSw = bnMsg?.swipe_info?.[bnMsg?.swipe_id ?? 0];
+let bnOwnInfo = bnSw?.extra?.bookseaHandoff ?? bnSw?.bookseaHandoff ?? bnMsg?.extra?.bookseaHandoff;
+let bnVarInfo = typeof getvar === 'function' ? getvar('bookseaPromptHandoff', { scope: 'message', withMsg: { id: bnId }, defaults: null }) : null;
+let bnManual = bnText === '普罗泰利西翁正文模式' || bnText === '前往下一层（普罗泰利西翁正文模式）';
+let bnInfo = bnOn && bnMsg?.is_user === true ? (bnOwnInfo ?? (bnManual || bnVarInfo?.messageId === bnId ? bnVarInfo : null)) : null;
+let bnAutomatic = bnOn && bnMode?.transition === 'user-message' && bnMode?.contextId === bnAct?.hostContext;
+let bnEntry = bnOn && (bnText === '普罗泰利西翁正文模式' || bnAutomatic) && bnInfo?.kind === 'narrative' && bnInfo?.runId === bnAct?.run?.id && bnInfo?.contextId === bnMode?.contextId && typeof bnInfo?.summary === 'string';
+let bnDescend = bnOn && bnText === '前往下一层（普罗泰利西翁正文模式）' && bnInfo?.kind === 'narrative-descend' && bnInfo?.runId === bnAct?.run?.id && bnInfo?.contextId === bnMode?.contextId && typeof bnInfo?.summary === 'string';
+let bnFloor = bnMode?.floor || {};
+let bnMonsters = Array.isArray(bnFloor.monsters) ? bnFloor.monsters : [];
+let bnParty = Array.isArray(bnMode?.party) ? bnMode.party : [];
+if (bnOn) {
+_%>
+[普罗泰利西翁·正文模式]
+<user>与同行者正身处普罗泰利西翁（《书海》迷宫）。迷宫的游戏化部分已暂停，进度缓存保存；现在用正文继续这段冒险
+当前位置：第<%- bnMode.depth %>层 · 主题「<%- bnFloor.themeName %>」（<%- bnFloor.subtitle %>）· 场景「<%- bnFloor.scene %>」
+当前深度敌怪等级：Lv.<%- bnFloor.level %>；战利品品质：<%- bnFloor.quality %><%- bnFloor.bossFloor ? '；本层有区域守关者' : '' %>
+本主题敌怪：<%- bnMonsters.map(_m => _m.name + '（' + _m.role + ' Lv.' + _m.level + '）').join('、') %>
+同行者：<%- bnParty.join('、') %>
+<%_ if (bnEntry) { _%>
+<断点记录>
+<%- bnInfo.summary %>
+</断点记录>
+这是<user>主动切回正文：请承接断点记录，从迷宫中的当前位置自然地继续书写，不要重复描写入场
+<%_ } else if (bnDescend) { _%>
+[进入下一层] <%- bnInfo.summary %>
+请描写下行与抵达这一层的过程和第一印象，然后照常继续
+<%_ } _%>
+正文模式要求：
+- 可以和本主题的敌怪进行正文式战斗，战斗过程与战利品照常由正文处理；参考上文本主题、场景与敌怪的资料块
+- 正文模式下不会遇到「补给员」「宝箱怪」「?」等特殊存在，不要写出它们；断点记录中已在场者除外
+- 不要自行让队伍换层或离开迷宫：进入下一层、切回迷宫模式、离开迷宫都由<user>在面板里选择
+- 正文结束后另起一行，原样输出：<booksea-game>迷宫模式</booksea-game>
+<%_ } } _%>
+<%_ /* BOOKSEA_NARRATIVE_END */ _%>
 <%_ /* BOOKSEA_READER_HANDOFF_BEGIN */ _%>
 <%_ if (matchChatMessages(/进入普罗泰利西翁/, { start: -1, role: 'user' })) { _%>
 [普罗泰利西翁入口]

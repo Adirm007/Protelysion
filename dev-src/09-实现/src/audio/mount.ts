@@ -8,7 +8,7 @@ import {GameAudioEngine, type AudioStatus} from './web-audio';
 import type {AudioFrame, AudioManifest, Preferences, UICue} from './types';
 
 export type GameAudioOptions = {structuredBattle?: boolean; baseUrl?: string; controlsRoot?: HTMLElement; onLevels?: (levels: {music: number; effects: number}) => void};
-const SILENT = {observe(_s: State | null) {}, intent(_type: string) {}, ui(_name: UICue) {}, writing(_active: boolean) {}, resolved(_before: Battle, _after: Battle, _speed: number) {}, dispose() {}};
+const SILENT = {observe(_s: State | null) {}, intent(_type: string) {}, ui(_name: UICue) {}, writing(_active: boolean) {}, resolved(_before: Battle, _after: Battle, _speed: number) {}, setVisible(_visible:boolean) {}, dispose() {}};
 /** Attach to the existing playable host. No Godot pack, mechanics or save schema changes. */
 export function mountGameAudio(win: Window, options: GameAudioOptions | false = {}) {
   if (options === false || typeof win.document?.createElement !== 'function' || typeof win.fetch !== 'function') return SILENT;
@@ -23,7 +23,7 @@ export function mountGameAudio(win: Window, options: GameAudioOptions | false = 
   if(root.classList.contains('rpg-audio'))panel.open=true;
   root.append(panel);
   const status = panel.querySelector<HTMLElement>('[data-status]')!;
-  let disposed = false, manifest: AudioManifest | undefined, director: ScoreDirector | undefined, frame: AudioFrame | undefined;
+  let disposed = false, hostVisible=true, manifest: AudioManifest | undefined, director: ScoreDirector | undefined, frame: AudioFrame | undefined;
   let loading: Promise<void> | undefined, levels = '', metadataError = '';
   const aborter = new AbortController();
   const report = (s: AudioStatus) => {if (!disposed) {status.textContent = s.message; status.style.color = s.error ? '#f0a49b' : '#cbbf9c';}};
@@ -77,12 +77,13 @@ export function mountGameAudio(win: Window, options: GameAudioOptions | false = 
   // Sliders and keyboard focus may not accidentally move the player beneath the panel.
   for (const type of ['keydown', 'keyup', 'pointerdown', 'pointerup', 'click', 'touchstart'] as const) panel.addEventListener(type, e => e.stopPropagation());
   const gesture = () => {if (engine.inspect().contextState !== 'running') void engine.unlock();};
-  const visibility = () => {if(doc.hidden)sequence.cancel();engine.setBackground(doc.hidden);};
+  const visibility = () => {const hidden=!hostVisible||doc.hidden;if(hidden)sequence.cancel();engine.setBackground(hidden);};
   const pagehide = () => {sequence.cancel();engine.setBackground(true);};
-  const pageshow = () => engine.setBackground(doc.hidden);
+  const pageshow = visibility;
   win.addEventListener('pointerdown', gesture, true); win.addEventListener('keydown', gesture, true);
   doc.addEventListener('visibilitychange', visibility); win.addEventListener('pagehide', pagehide); win.addEventListener('pageshow', pageshow);
   const api = {
+    setVisible(visible:boolean){hostVisible=visible;visibility();},
     inspect: () => ({...engine.inspect(), manifestLoaded: !!manifest, metadataError, theme: frame?.theme,
       feedbackSequence: sequence.inspect(), lastBattlePlan: lastPlan ? {...lastPlan,events:lastPlan.events.map(e=>({...e}))} : null,
       catalog: manifest ? {themes: Object.keys(manifest.themes).length, music: Object.keys(manifest.music).length,

@@ -6,8 +6,40 @@ import {playtestParty} from '../game/content';
 import {startExpedition} from '../game/expedition';
 import {installPlayerTheme,shellHeader,hero,modalFrame,bindModal,icons} from '../ui/theme';
 import {mountNarrativePanel} from './narrative-panel';
+import {narrativeState} from './narrative-panel';
 const mb=(n:number)=>(n/1000000).toFixed(1)+' MB';
-type BootConfig={base:string;manifest:ReleaseManifest;mode?:'host'|'standalone';fixedRelease?:FixedRelease};
+export type BootConfig={base:string;manifest:ReleaseManifest;mode?:'host'|'standalone';fixedRelease?:FixedRelease};
+type PersistentOptions={onUserNarrative?:()=>void};
+/** One reader-owned view, independent of the <booksea-game> message that opened it. */
+export async function bootPersistent(root:HTMLElement,config:BootConfig,win:Window=window,options:PersistentOptions={}){
+ if(config.mode==='standalone')throw Error('常驻窗口需要连接当前角色聊天');
+ installPlayerTheme(root);
+ const portal=await bootPortal(root,config,win,false,options);
+ let disposed=false,panel:ReturnType<typeof mountNarrativePanel>,panelRoot:HTMLElement|undefined;
+ const clearPanel=()=>{panel?.dispose();panel=undefined;panelRoot?.remove();panelRoot=undefined;};
+ return {
+  setVisible:async(visible:boolean)=>{if(!disposed)await portal.setVisible(visible);},
+  async action(kind='maze'){
+   if(disposed)return;
+   if(!['maze','narrative','descend','leave'].includes(kind))throw Error('未知的书海操作');
+   clearPanel();
+   if(kind==='maze'){
+    if(narrativeState(win))await portal.resume();
+    await portal.setVisible(true);return;
+   }
+   await portal.setVisible(false);
+   panelRoot=win.document.createElement('section');panelRoot.className='bs-root';
+   panelRoot.style.cssText='position:fixed;inset:0;overflow:auto;background:#191c2b;padding:12px;z-index:2000';
+   root.append(panelRoot);
+   panel=mountNarrativePanel(panelRoot,win,()=>{clearPanel();void portal.resume().then(()=>portal.setVisible(true));});
+   if(!panel){clearPanel();await portal.setVisible(true);return;}
+   // Leaving retains the existing two-click confirmation in the narrative panel.
+   if(kind==='descend'||kind==='leave')panelRoot.querySelector<HTMLButtonElement>(kind==='descend'?'#nm-down':'#nm-leave')?.click();
+  },
+  dispose(){if(disposed)return;disposed=true;clearPanel();portal.dispose();},
+  inspect:()=>({disposed,hasNarrativePanel:!!panel,resources:portal.store.inspect()})
+ };
+}
 export async function boot(root:HTMLElement,config:BootConfig,win:Window=window):Promise<{dispose():void;store?:ResourceStore}>{
  installPlayerTheme(root);root.parentElement?.querySelector(':scope > footer')?.remove();
  const globals=win as any;
@@ -16,7 +48,7 @@ export async function boot(root:HTMLElement,config:BootConfig,win:Window=window)
  if(config.mode!=='standalone'){let portal:{dispose():void}|undefined;const panel=mountNarrativePanel(root,globals,()=>{void bootPortal(root,config,win,true).then(p=>{portal=p;});});if(panel)return {dispose(){panel.dispose();portal?.dispose();}};}
  return bootPortal(root,config,win,false);
 }
-async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResume:boolean){
+async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResume:boolean,options:PersistentOptions={}){
  const base=new URL(config.base),store=await ResourceStore.open(win,base,config.manifest,config.fixedRelease),globals=win as any;
  root.innerHTML=`<section id="resource-setup" class="bs-portal">${shellHeader('夜梦的书间',`<button id="resource-options" class="bs-icon-button" title="设置" aria-label="设置">${icons.gear}</button>`)}${hero('将零散的书页钉在一起，看上去乱七八糟的无限迷宫。<br>向你和命定之人开放的训练场','普罗泰利西翁',false,true)}
  <div class="bs-resource-card"><div class="bs-card-title"><div>${icons.spark}<h2>启程准备</h2></div><span id="resource-percent" class="bs-percent">0%</span></div><progress id="resource-progress" max="1" value="0" aria-label="下载进度"></progress><div class="bs-download-info"><span id="resource-status" role="status">准备中</span><span id="resource-count"></span></div><div class="bs-download-options"><button id="download-all" class="bs-option bs-primary"><span><strong>完整下载</strong><small id="all-size"></small></span>${icons.arrow}</button><button id="download-core" class="bs-option"><span><strong>轻装启程</strong><small id="core-size"></small></span>${icons.arrow}</button></div></div>
@@ -29,12 +61,14 @@ async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResu
  el('resource-percent').textContent=Math.floor(all.cachedBytes/all.bytes*100)+'%';progress.value=all.cachedBytes/all.bytes;
  status.textContent=all.cachedFiles===all.files?'已准备好':'等待启程';
  Object.assign(win,{BookseaResources:{inspect:()=>store.inspect(),status:(coreOnly=false)=>store.status(coreOnly)},BookseaResourceMenu:menu});el('resource-options').onclick=menu.open;
- let busy=false,started=false;let cleanup:()=>void=()=>{};
+ let busy=false,started=false,disposed=false,visible=true;let cleanup:()=>void=()=>{};
+ let app:ReturnType<typeof mountHostGame>|undefined;
  async function launch(coreOnly:boolean){
-  if(busy||started)return;busy=true;(el('download-all') as HTMLButtonElement).disabled=true;(el('download-core') as HTMLButtonElement).disabled=true;
+  if(busy||started||disposed)return;busy=true;(el('download-all') as HTMLButtonElement).disabled=true;(el('download-core') as HTMLButtonElement).disabled=true;
   try{
    try{await win.navigator.storage?.persist?.();}catch{}
    await store.prefetch(coreOnly,p=>{progress.value=p.readyBytes/p.totalBytes;el('resource-percent').textContent=Math.floor(progress.value*100)+'%';status.textContent=p.completed===p.total?'正在展开书页':'正在下载';el('resource-count').textContent=mb(p.readyBytes)+' / '+mb(p.totalBytes);el('storage-size').textContent='已下载 '+mb(p.readyBytes);});
+    if(disposed)return;
    try{win.localStorage.setItem('protelysion-resource-mode',coreOnly?'core':'all');}catch{}
    store.installFetch();globals.BOOKSEA_ASSET_BASE=base.href;
    if(config.mode==='standalone'){
@@ -42,7 +76,7 @@ async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResu
     const runtime=mountExpeditionRuntime({storageKey:'booksea-expedition-random-v2',uiRoot:el('stage'),onResources:menu.open,newGame:()=>startExpedition(playtestParty(),Date.now()>>>0),audio:{baseUrl:new URL('audio/',base).href,controlsRoot:el('stage')}},win);
     cleanup=()=>runtime.dispose();
     const Engine=await store.loadEngine(),engine=new Engine({executable:new URL('game',base).href,mainPack:new URL('game.pck',base).href,canvas:el('canvas'),canvasResizePolicy:0,focusCanvas:true});cleanup=()=>{runtime.dispose();engine.requestQuit();};game.hidden=false;await engine.startGame();
-   }else{const app=mountHostGame(game,globals,{loadEngine:()=>store.loadEngine(),autoResume});cleanup=app.dispose;}
+   }else{app=mountHostGame(game,globals,{loadEngine:()=>store.loadEngine(),autoResume,onUserNarrative:options.onUserNarrative});cleanup=app.dispose;if(!visible)await app.setVisible(false);}
    el('resource-setup').hidden=true;game.hidden=false;root.classList.add('bs-playing');started=true;
   }catch(error){cleanup();game.replaceChildren();game.hidden=true;status.textContent=/空间|quota/i.test(String(error))?'空间不足，请清理后重试。':'下载暂时中断，点击重试。';}
   finally{busy=false;(el('download-all') as HTMLButtonElement).disabled=false;(el('download-core') as HTMLButtonElement).disabled=false;}
@@ -52,6 +86,7 @@ async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResu
  clear.onclick=()=>{if(busy){el('resource-menu-status').textContent='请等这次下载完成。';return;}if(Date.now()>confirmUntil){confirmUntil=Date.now()+10000;clear.textContent='再次点击确认';el('resource-menu-status').textContent='不会删除你的旅程。';return;}confirmUntil=0;clear.disabled=true;void store.cacheStorage.delete(store.cacheName).then(()=>{clear.textContent='已清理';el('resource-menu-status').textContent='下次进入时重新下载。';el('storage-size').textContent='已清理下载';}).catch(()=>{clear.disabled=false;clear.textContent='清理下载';el('resource-menu-status').textContent='暂时未能清理，请再试一次。';});};
  let preferCore=false;try{preferCore=win.localStorage.getItem('protelysion-resource-mode')==='core';}catch{}
  if(all.cachedFiles===all.files)await launch(false);else if(preferCore&&core.cachedFiles===core.files)await launch(true);
- win.addEventListener('pagehide',()=>{cleanup();store.dispose();},{once:true});
- return {dispose(){cleanup();store.dispose();},store};
+ const dispose=()=>{if(disposed)return;disposed=true;cleanup();store.dispose();win.removeEventListener('pagehide',dispose);};
+ win.addEventListener('pagehide',dispose,{once:true});
+ return {dispose,store,async setVisible(value:boolean){visible=value;if(app)await app.setVisible(value);},async resume(){autoResume=true;if(app){await app.refresh();await app.resume();}}};
 }

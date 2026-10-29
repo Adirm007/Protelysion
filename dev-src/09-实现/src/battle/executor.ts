@@ -9,7 +9,7 @@ import type {SourceKindSpec} from '../compiler/contract';
 import {elementKey,resolveDamageTypes,bestType,typeMultiplier,affinityLabel,DAMAGE_TYPES,type DamageType} from './elements';
 import {bindLibrary} from '../compiler/library';
 import {INTERLUDE_TAG} from '../compiler/examples';
-import {tier,integer} from '../core/actors';
+import {tier,integer,finite} from '../core/actors';
 import {monsterNumbers} from '../game/monsters/numbers';
 import type {MonsterDesign} from '../game/monsters/catalog';
 import {EFFECT_VERSION,validateAction,EMPTY_LIBRARY,type ActionSpec,type EffectSpec,type AmountSpec,type DurationSpec,type TargetSpec,type StatusSpec,type ModifierSpec,type TriggerSpec,type LibrarySpec,type ConditionSpec,type ReactionSpec} from '../compiler/contract';
@@ -465,6 +465,18 @@ function recompute(u:Unit,b:Battle){
  const cu=b.clock.units.find(c=>c.id===u.id);if(cu){cu.agility=u.attributes.敏捷;cu.speedBonus=u.stats.initiative??0;
   {const sp=u.speeds.filter(s=>!s.suppressed);let haste=sp.reduce((n,s)=>n*s.multiplier,1)*(u.stats.speed??1);if(u.free||sp.some(s=>imposedOn(b,u,s)))haste=Math.max(haste,.5*sp.filter(s=>!imposedOn(b,u,s)).reduce((n,s)=>n*s.multiplier,1)*(u.free?.speed??u.stats.speed??1));cu.haste=Math.max(1e-3,haste);}
   cu.side=allegiance(b,u);cu.stopped=!!activeRule(u,'sealed')||HARD_CONTROLS.some(k=>controls(u,k).length>0);}
+}
+/** Adopt mechanical host growth without rebuilding actions, replaying passives,
+ * advancing clocks, or changing any command's already paid cost. */
+export function rebaseUnitNumeric(b:Battle,id:string,numeric:CompiledActor['numeric'],mitigation:Mitigation,current?:Resources):Unit{
+ const u=b.units.find(x=>x.id===id);if(!u)throw Error('数值同步的战场成员不存在');
+ const level=integer(numeric.level,'宿主等级',1);if(level>25)throw Error('宿主等级不得超过25');
+ for(const key of ATTR)finite(numeric.attributes[key],key);
+ for(const key of RES){if(finite(numeric.max[key],'资源上限')<0)throw Error('资源上限不能为负数');if(current&&finite(current[key],'当前资源')<0)throw Error('当前资源不能为负数');}
+ for(const ch of ['physical','energy','mental'] as const){finite(mitigation.armor[ch],'护甲');finite(mitigation.attributeReduction[ch],'属性减伤');}
+ for(const n of Object.values(mitigation.elementMultipliers))finite(n,'属性抗性');
+ u.level=level;u.base={attributes:clone(numeric.attributes),max:clone(numeric.max),mitigation:clone(mitigation)};if(current)u.current=clone(current);
+ recompute(u,b);return u;
 }
 /** 0.35：持有 immune_status '*' 的单位，敌对阵营的任何状态类效果（含 modify / rule / 护盾 / 速度）都挂不上。 */
 function hostileBlocked(c:Context,t:Unit,priority=0):boolean{if(c.caster.id===t.id||allegiance(c.battle,c.caster)===allegiance(c.battle,t))return false;const s=opposingRule(c,t,'immune_status','*',priority,true);if(!s)return false;log(c.battle,'fizzle',t.id,'对她无效');return true;}

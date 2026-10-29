@@ -5,9 +5,9 @@ export type HostSaveStamp={frame:string;revision:number};
 // Runtime saves have optional undefined fields; JSON storage omits these by contract.
 const comparable=(value:unknown)=>canonical(JSON.parse(JSON.stringify(value)));
 const FRAME='bookseaFrameV1', SNAPSHOT='bookseaCheckpointV1', REF='bookseaProgressRef';
-const FIELDS=['activeExpedition','lastExpedition','unlockedIds','exitDeliveries','narrativeRequests','failureHandoff','activeRun','lastEndedRun','endings'] as const;
+const FIELDS=['activeExpedition','lastExpedition','unlockedIds','exitDeliveries','narrativeRequests','narrativeMode','failureHandoff','activeRun','lastEndedRun','endings'] as const;
 const rec=(v:unknown):Obj=>v&&typeof v==='object'&&!Array.isArray(v)?v as Obj:{};
-function progress(book:Obj):Obj {const out:Obj={activeExpedition:null,lastExpedition:null,unlockedIds:['depth-1'],exitDeliveries:{},narrativeRequests:{},failureHandoff:null,activeRun:null,lastEndedRun:null,endings:{}};for(const k of FIELDS)if(book[k]!==undefined)out[k]=structuredClone(book[k]);return out;}
+function progress(book:Obj):Obj {const out:Obj={activeExpedition:null,lastExpedition:null,unlockedIds:['depth-1'],exitDeliveries:{},narrativeRequests:{},narrativeMode:null,failureHandoff:null,activeRun:null,lastEndedRun:null,endings:{}};for(const k of FIELDS)if(book[k]!==undefined)out[k]=structuredClone(book[k]);return out;}
 function stampRuns(value:Obj,stamp:HostSaveStamp){for(const key of ['activeExpedition','lastExpedition'])if(value[key]&&typeof value[key]==='object')(value[key] as Obj).hostSave={...stamp};}
 /** Full saves live in the owning message's extra, which MVU does not copy to every
  * response. Message variables carry only a small reference. Chat metadata is a
@@ -15,15 +15,15 @@ function stampRuns(value:Obj,stamp:HostSaveStamp){for(const key of ['activeExped
 export function createMessageTimeline(globals:any){
   const raw=globals.TavernHelper??globals,context=()=>globals.SillyTavern.getContext();
   const identity=()=>`${context().characterId}:${context().getCurrentChatId()}`,pinned=identity();
-  let head=-2,frame='',native:any,swipe:unknown,prepared=false,preparing:Promise<void>|undefined,own=0;
+  let head=-2,frame='',native:any,swipe:unknown,prepared=false,preparing:Promise<void>|undefined,own=0,closed=false;
   let current:Obj=progress({}),currentReceipts:Obj={},sourceFrame='',sourceRevision=0;
   const last=()=>Number(raw.getLastMessageId());
-  const assertContext=()=>{if(identity()!==pinned)throw Error('聊天已切换，拒绝写入另一聊天');};
+  const assertContext=()=>{if(closed)throw Error('书海窗口已关闭，旧任务已取消');if(identity()!==pinned)throw Error('聊天已切换，拒绝写入另一聊天');};
   const message=(id:number)=>{const rows=raw.getChatMessages(id);const row=rows?.find((r:any)=>r.message_id===id)??rows?.[id]??(rows?.length===1?rows[0]:undefined);if(!row)throw Error('聊天楼层已变化，请重新打开书海');return {...row,extra:readMessageExtra(row.extra,nativeAt(id))};};
   const nativeAt=(id:number)=>Array.isArray(context().chat)?context().chat[id]:undefined;
   const rawChat=()=>raw.getVariables({type:'chat'}) as Obj;
   function valid(expected?:HostSaveStamp){
-    if(!prepared||identity()!==pinned||last()!==head)return false;
+    if(closed||!prepared||identity()!==pinned||last()!==head)return false;
     const now=nativeAt(head);if(native&&(now!==native||now?.swipe_id!==swipe||rec(now.extra)[FRAME]!==frame))return false;
     return !expected||expected.frame===frame;
   }
@@ -118,11 +118,23 @@ export function createMessageTimeline(globals:any){
       await prepare();if(failure)throw failure;return value as T;
     }finally{own--;}
   }
+  /** Attach handoff facts to the selected message without changing its prose or
+   * refreshing its iframe. The same synchronous frame guard protects both copies. */
+  async function annotate(extra:Obj,transform:(vars:Obj)=>Obj){
+    assertFrame();await writeMessage(head,extra,transform,native,frame);assertFrame();await context().saveChat();assertFrame();
+  }
+  /** A pre-generation preview is visible to EJS before native user-message
+   * creation. It is deliberately absent from the previous frame's snapshot;
+   * prepare() rebuilds this mirror if sending is cancelled or a branch changes. */
+  async function previewNarrative(value:Obj){
+    assertFrame();await raw.updateVariablesWith((v:Obj)=>{assertFrame();return {...v,booksea:{...rec(v.booksea),narrativeMode:structuredClone(value)}};},{type:'chat'});assertFrame();
+  }
   return {prepare,chat,readVars,stamp,commit,updateChat,valid,assertFrame,
     authorizedFrames:()=>[...new Set([frame,sourceFrame].filter(Boolean))],
     sourceRevision:()=>sourceRevision,
-    ownedAppend,
+    ownedAppend,annotate,previewNarrative,
     invalidate(){prepared=false;},
+    close(){closed=true;prepared=false;},
     get contextId(){return pinned;}
   };
 }

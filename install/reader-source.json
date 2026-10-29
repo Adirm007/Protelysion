@@ -1,0 +1,14 @@
+{
+  "repository": "Adirm007/reader",
+  "version": "2026.10.29.1",
+  "manifestSha256": "1f3dfccd392b46c82a47c44aa4ff0ca9b7009911dde1fef42bc90c199a4aa1bd",
+  "regex": {
+    "path": "regex/读者对话渲染-外链版.json",
+    "bytes": 6315,
+    "sha256": "9a128165e8d48b725c731f2074448d69c1e39ff7f2bfdf57c9d96e74182c98e1"
+  },
+  "core": {
+    "bytes": 315999,
+    "sha256": "1dec49db53f503a26f3fb33a8cb0742abcb46f5bcd5c018b1247cb269e4fe815"
+  }
+}

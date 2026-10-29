@@ -7,6 +7,19 @@ export function makeExternalHtml(base,css='',mode='host'){
  const boot=`(()=>{
  const base=${mode==='standalone'?"new URL('./',location.href).href":JSON.stringify(url.href).replace(/</g,'\\u003c')},mode=${JSON.stringify(mode)};
  const status=document.getElementById('loader-status'),retry=document.getElementById('loader-retry'),root=document.getElementById('booksea-game');let busy=false;
+ // A selected reader core already owns the application. This message is only a view/control surface.
+ const reader=mode==='host'&&window.parent&&window.parent.ReaderCore;
+ if(reader&&typeof reader.openBooksea==='function'){
+  const h=window.TavernHelper||window,ctx=window.SillyTavern?.getContext?.()||window.parent.SillyTavern?.getContext?.();
+  const identity=ctx&&String(ctx.characterId)+':'+String(ctx.getCurrentChatId?.()),head=ctx?.chat?.length-1,native=ctx?.chat?.[head];
+  let own;try{own=typeof getCurrentMessageId==='function'?getCurrentMessageId():undefined;}catch{}
+  const current=()=>{const c=window.parent.SillyTavern?.getContext?.();return c&&String(c.characterId)+':'+String(c.getCurrentChatId?.())===identity&&c.chat?.length-1===head&&c.chat?.[head]===native&&(own===undefined||own===head);};
+  const narrative=!!h.getVariables?.({type:'chat'})?.booksea?.activeExpedition?.narrative?.active;
+  root.innerHTML='<section style="border:1px solid #8e795c;border-radius:8px;padding:14px;background:#191c2b;color:#eee3cb"><strong>普罗泰利西翁</strong><div id="booksea-actions" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"></div></section>';
+  const actions=narrative?[['迷宫模式','maze'],['进入下一层','descend'],['离开迷宫','leave']]:[['打开迷宫','maze']];
+  const buttons=[];for(const [label,action]of actions){const b=document.createElement('button');b.type='button';b.textContent=label;b.style.cssText='font:inherit;min-height:40px;padding:6px 14px;background:#3e4051;color:#eee3cb;border:1px solid #8e795c;border-radius:5px';b.disabled=!current();b.onclick=async()=>{if(busy||!current())return;busy=true;buttons.forEach(x=>x.disabled=true);try{await reader.openBooksea(action);status.textContent='';}catch(error){status.textContent=error?.message||'暂时未能打开，请重试';busy=false;buttons.forEach(x=>x.disabled=!current());}};buttons.push(b);root.querySelector('#booksea-actions').append(b);}
+  status.textContent=current()?'':'这是较早的面板，请使用当前楼层或读者菜单。';retry.hidden=true;return;
+ }
  const sha=async b=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',b)),v=>v.toString(16).padStart(2,'0')).join('');
  async function start(){if(busy)return;busy=true;retry.hidden=true;status.textContent='书页正在展开……';
  try{

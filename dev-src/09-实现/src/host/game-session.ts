@@ -19,8 +19,10 @@ import type {SupplierPrompt} from '../game/supplier-agent';
 import {knockoutLines} from '../game/defeat-report';
 import type {PartyMember} from '../game/content';
 import {HOST_RULES} from '../compiler/rules';
+import {unwrapMessageExtra} from '../core/message-extra';
 export {HOST_RULES};
-export type SessionPort={id():string;messageId():number;read():Obj;write(v:Obj):Promise<void>;chat():Obj;updateChat(fn:(v:Obj)=>Obj):Promise<void>;env:CompileEnvironment;lodash:unknown;prepare?():Promise<void>;bind?(s:State):void;saveCurrent?(s:State):boolean;assertSave?(s:State):void;authorizedFrames?():string[];commitProgress?(mvu:Obj|undefined,fn:(v:Obj)=>Obj,s:State):Promise<void>;requireNarrativeReady?():void;enterNarrative?:(refs:ActorRef[],depth:number,id:string)=>Promise<void>;deliver(s:State):Promise<void>;lock<T>(key:string,fn:()=>Promise<T>):Promise<T>;supplierChat?(prompt:SupplierPrompt):Promise<string>;postNarrative?(kind:NarrativeMeta['kind'],runId:string,depth:number,summary:string):Promise<void>};
+export type NarrativeMessage=HandoffMessage&{finished:boolean;failed:boolean};
+export type SessionPort={id():string;messageId():number;read():Obj;write(v:Obj):Promise<void>;chat():Obj;updateChat(fn:(v:Obj)=>Obj):Promise<void>;env:CompileEnvironment;lodash:unknown;prepare?():Promise<void>;close?():void;bind?(s:State):void;saveCurrent?(s:State):boolean;assertSave?(s:State):void;authorizedFrames?():string[];commitProgress?(mvu:Obj|undefined,fn:(v:Obj)=>Obj,s:State):Promise<void>;attachNarrative?(meta:NarrativeMeta):Promise<void>;previewNarrative?(value:Obj):Promise<void>;readNarrativeMessages?():NarrativeMessage[];markNarrativeInterrupted?(messageId:number,runId:string):Promise<void>;markNarrativeCompleted?(messageId:number,runId:string):Promise<void>;requireNarrativeReady?():void;enterNarrative?:(refs:ActorRef[],depth:number,id:string)=>Promise<void>;deliver(s:State):Promise<void>;lock<T>(key:string,fn:()=>Promise<T>):Promise<T>;supplierChat?(prompt:SupplierPrompt):Promise<string>;postNarrative?(kind:NarrativeMeta['kind'],runId:string,depth:number,summary:string):Promise<void>};
 /** 补给员一句回复的最长等待；超时会停止该次生成。 */
 export const SUPPLIER_CHAT_TIMEOUT_MS=90000;
 /** 读者「彩蛋设置 → 独立API」写入的同源存储。
@@ -46,14 +48,35 @@ export function sessionPort(globals:any):SessionPort{
  if(!globals.navigator?.locks?.request)throw Error('当前页面缺少安全上下文的跨窗口锁；请通过HTTPS或本机localhost访问酒馆，避免不安全写入。');
  const timeline=createMessageTimeline(globals);
  const id=()=>`${c().characterId}:${c().getCurrentChatId()}`,pinned=id(),messageId=()=>h.getLastMessageId();
- const assert=()=>{if(id()!==pinned)throw Error('请回到此趟所属聊天');};
+  let closed=false;
+  const assert=()=>{if(closed)throw Error('书海窗口已关闭，旧任务已取消');if(id()!==pinned)throw Error('请回到此趟所属聊天');};
  const read=()=>{assert();return timeline.readVars();};
  const save=async()=>{assert();await c().saveChat();};
- const api={getVariables:(o:Obj)=>o.type==='chat'?timeline.chat():h.getVariables(o),updateVariablesWith:(fn:(v:Obj)=>Obj,o:Obj)=>o.type==='chat'?timeline.updateChat(fn):h.updateVariablesWith(fn,o),generateRaw:(config:Obj)=>h.generateRaw(withIndependentApi(globals,config,'booksea_compile')),stopGenerationById:h.stopGenerationById};
+  const api={getVariables:(o:Obj)=>{assert();return o.type==='chat'?timeline.chat():h.getVariables(o);},updateVariablesWith:(fn:(v:Obj)=>Obj,o:Obj)=>{assert();return o.type==='chat'?timeline.updateChat(fn):h.updateVariablesWith((v:Obj)=>{assert();return fn(v);},o);},generateRaw:(config:Obj)=>{assert();return h.generateRaw(withIndependentApi(globals,config,'booksea_compile'));},stopGenerationById:h.stopGenerationById};
  const narrativeApi={...api,getLastMessageId:()=>h.getLastMessageId(),getChatMessages:(range:unknown)=>h.getChatMessages(range),triggerSlash:(command:string)=>timeline.ownedAppend(()=>h.triggerSlash(command))};
- return {id,messageId,read,chat:timeline.chat,lodash:globals._,prepare:timeline.prepare,authorizedFrames:timeline.authorizedFrames,bind(s){s.hostSave=timeline.stamp();},saveCurrent:s=>timeline.valid(s.hostSave),assertSave:s=>{if(!s.hostSave)throw Error('远征缺少楼层绑定，请重新打开入口');timeline.assertFrame(s.hostSave);},async commitProgress(mvu,fn,s){s.hostSave=await timeline.commit(mvu,fn,s.hostSave);},requireNarrativeReady:()=>requireNarrativeConnection(c()),
+  return {id,messageId,read,chat:timeline.chat,lodash:globals._,prepare:timeline.prepare,close(){closed=true;timeline.close();},authorizedFrames:timeline.authorizedFrames,bind(s){s.hostSave=timeline.stamp();},saveCurrent:s=>timeline.valid(s.hostSave),assertSave:s=>{if(!s.hostSave)throw Error('远征缺少楼层绑定，请重新打开入口');timeline.assertFrame(s.hostSave);},async commitProgress(mvu,fn,s){s.hostSave=await timeline.commit(mvu,fn,s.hostSave);},requireNarrativeReady:()=>requireNarrativeConnection(c()),
   async enterNarrative(refs,depth,runId){assert();await timeline.prepare();const current=read();await timeline.ownedAppend(()=>h.createChatMessages([{role:'user',message:entryNotice(refs,depth,runId),data:exitPromptData(current,{}),extra:{bookseaHandoff:{version:2,kind:'entry',contextId:pinned,runId}}}]));await save();await requestNarrativeOnce(narrativeApi,c(),'entry:'+runId);},
   async write(v){assert();await h.replaceVariables(v,{type:'message',message_id:messageId()});await save();},
+   async attachNarrative(meta){assert();if(meta.contextId!==pinned)throw Error('正文交接属于另一聊天');const owned={...structuredClone(meta),messageId:messageId()};await timeline.annotate({bookseaHandoff:owned},v=>({...v,bookseaPromptHandoff:structuredClone(owned)}));},
+  readNarrativeMessages(){
+   assert();const ctx=c(),native=Array.isArray(ctx.chat),rows=native?ctx.chat:h.getChatMessages(`0-${messageId()}`),processor=ctx.streamingProcessor;
+   return rows.map((row:any,index:number)=>{
+    const id=native?index:Number(row.message_id),swipe=row.swipe_info?.[row.swipe_id??0],extra=unwrapMessageExtra(swipe?.extra??row.extra),role=row.is_system||row.role==='system'?'system':row.is_user===true||row.role==='user'?'user':'assistant';
+    const interrupted=(extra.bookseaNarrativeReply as Obj|undefined)?.status==='interrupted',streaming=processor?.messageId===id&&(!processor.isFinished||processor.isStopped||processor.abortController?.signal?.aborted);
+    return {message_id:id,role,message:String(row.mes??row.message??''),extra,finished:!!(swipe?.gen_finished??row.gen_finished)&&!streaming,failed:!!(row.is_error||row.error||extra.error||extra.api_error||interrupted)};
+   });
+  },
+  async markNarrativeInterrupted(ownerId,runId){
+   assert();if(messageId()<=ownerId)return;await timeline.prepare();
+   const native=c().chat?.[messageId()],row=native??h.getChatMessages(messageId())?.[0];if(!row||row.is_user||row.is_system||row.role==='user'||row.role==='system')return;
+   await timeline.annotate({bookseaNarrativeReply:{version:1,contextId:pinned,runId,ownerMessageId:ownerId,status:'interrupted'}},v=>v);
+  },
+  async markNarrativeCompleted(ownerId,runId){
+   assert();if(messageId()<=ownerId)return;await timeline.prepare();
+   const native=c().chat?.[messageId()],row=native??h.getChatMessages(messageId())?.[0];if(!row||row.is_user||row.is_system||row.role==='user'||row.role==='system')return;
+   await timeline.annotate({bookseaNarrativeReply:{version:1,contextId:pinned,runId,ownerMessageId:ownerId,status:'completed'}},v=>v);
+  },
+  previewNarrative:timeline.previewNarrative,
   async deliver(s){
    assert();if(!s.hostSave){await timeline.prepare();s.hostSave=timeline.stamp();}else timeline.assertFrame(s.hostSave);
    try {

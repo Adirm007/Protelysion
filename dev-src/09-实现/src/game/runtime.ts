@@ -24,7 +24,8 @@ const isQuality=(value:unknown):value is GraphicsQualityInput=>['auto','desktop'
 const normalizeQuality=(value:unknown):GraphicsQuality=>value==='mobile'?'mobile':'desktop';
 
 export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;onNarrative?:(s:State)=>void;supplierMemory?:RuntimeSupplierMemory;onMemorySettings?:()=>void},win:Window=window){
- let stale=false;
+ let stale=false,visible=true,handoff=false;
+ let visibilityRenderer:((visible:boolean)=>void)|undefined;
  const memory=options.supplierMemory;
  /** 把这一步里发生的补给员事件交给长期记忆，并同步“第几任”与开场白（杀害会在这里换一任）。 */
  function memorySync(){if(!memory||!state)return;try{memory.observe(state,drainSupplierLedger(state));state.supplierMemoryEpoch=memory.epoch();state.supplierGreeting=memory.greeting();}catch(e){console.warn('Booksea supplier memory skipped',e);}}
@@ -85,7 +86,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
   });
  }
  function input(raw:string|{type:string;payload?:Record<string,unknown>}){
-  if(!validSession())return;
+  if(!visible||handoff||!validSession())return;
   const {type,payload:p={}}=typeof raw==='string'?JSON.parse(raw):raw;
   if ((type==='target'||type==='confirmTargets') && !state?.selected) return;
   if(heldFrame&&!['pause','settings','handoff'].includes(type))return;
@@ -139,13 +140,26 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  /** 0.40 补给员对话：异步等 LLM；回到同一趟、同一位补给员、同一句的序号才写回（否则丢弃）。 */
  function askSupplier(req:SupplierTalkRequest){
   const chat=options.supplierChat,runId=state?.run.id;
-  const current=()=>!disposed&&!stale&&!!state&&state.run.id===runId;
+  const current=()=>!disposed&&!stale&&!handoff&&!!state&&state.run.id===runId;
   if(!chat){if(state)supplierTalkFailed(state,req.thingId,req.serial,'这里联系不上她');return;}
   // 记忆检索有自己的时限与兜底；任何失败都退回不带记忆的原提示词，对话照常进行。
   const prompt=memory?memory.augment(req).catch(()=>req.prompt):Promise.resolve(req.prompt);
   void prompt.then(p=>chat(p)).then(raw=>{if(!current())return;supplierTalkReply(state!,req.thingId,req.serial,raw);memorySync();checkpoint();publish();},error=>{if(!current())return;supplierTalkFailed(state!,req.thingId,req.serial,String((error as Error)?.message??error));save();publish();});
  }
  const api={
+  /** Godot registers one callback. A newly attached renderer immediately learns
+   * whether this retained window is visible, including during asynchronous boot. */
+  registerVisibility(callback:(visible:boolean)=>void){visibilityRenderer=callback;callback(visible&&!handoff);},
+  setVisible(next:boolean){if(disposed)return;visible=next;if(!next&&state){state.paused=true;heldFrame=undefined;save();publish();}sound.setVisible(next&&!handoff);visibilityRenderer?.(next&&!handoff);},
+  async pause(){if(disposed||!state)return;state.paused=true;heldFrame=undefined;if(!handoff&&validSession())checkpoint();else save();publish();await writes;},
+  isPlaying:()=>!!state&&state.mode!=='ended'&&state.run.status==='active'&&!state.narrative?.active&&!handoff&&!stale&&!disposed,
+  /** Freeze synchronously, before the host can append its user message. Waiting
+   * for queued commits then yields the freshest complete state and save stamp. */
+  async captureForNarrative(){if(disposed||stale||!state||state.mode==='ended'||state.run.status!=='active'||state.narrative?.active)return undefined;handoff=true;state.paused=true;heldFrame=undefined;save();publish();sound.setVisible(false);visibilityRenderer?.(false);await writes;return state?structuredClone(state):undefined;},
+  /** A cancelled send has not changed the original numeric scene. It remains
+   * paused, but the next user message must still be able to capture it. */
+  cancelNarrativeCapture(){if(disposed||stale||!state||state.narrative?.active)return;handoff=false;state.paused=true;save();publish();sound.setVisible(visible);visibilityRenderer?.(visible);},
+  acceptNarrative(copy:State){if(disposed||!state||state.run.id!==copy.run.id)return;state=structuredClone(copy);state.paused=true;handoff=true;save();},
   attach(callback:(s:string)=>void){renderer=callback;frames.reset();publish();},
   input,inspect:()=>snapshot(),graphicsQuality:()=>graphicsQuality,
   art(id:string,png:string){if(!ui||!/^[A-Za-z0-9_:-]{1,100}$/.test(id)||typeof png!=='string'||!png.startsWith('iVBORw0KGgo')||png.length>16_000_000)return false;ui.setArt(id,'data:image/png;base64,'+png);return true;},
@@ -166,6 +180,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  };
  Object.assign(win,{BookseaPlay:api});save();updateVeil();
  const clock=win.setInterval(()=>{
+  if(!visible||handoff)return;
   if(!validSession())return;
   if(heldFrame&&!state?.paused&&!win.document.hidden){if(now()<holdUntil)return;heldFrame=undefined;publish();}
   if(state&&frames.readyFor(state.region.id)&&!state.paused&&!win.document.hidden&&(state.mode==='battle'||state.mode==='explore')){
@@ -180,5 +195,5 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  },50);
  const saver=win.setInterval(save,1500),hide=()=>{if(win.document.hidden&&state&&state.mode!=='ended'){state.paused=true;checkpoint();publish();}},leave=()=>{save();void memory?.flush(state??undefined);};
  win.document.addEventListener('visibilitychange',hide);win.addEventListener('pagehide',leave);
- return {...api,dispose(){save();void memory?.flush(state??undefined);disposed=true;veil?.dispose();ui?.dispose();sound.dispose();audioFeedback=undefined;win.clearInterval(clock);win.clearInterval(saver);win.document.removeEventListener('visibilitychange',hide);win.removeEventListener('pagehide',leave);renderer=null;frames.reset();}};
+ return {...api,dispose(){save();void memory?.flush(state??undefined);disposed=true;visibilityRenderer=undefined;veil?.dispose();ui?.dispose();sound.dispose();audioFeedback=undefined;win.clearInterval(clock);win.clearInterval(saver);win.document.removeEventListener('visibilitychange',hide);win.removeEventListener('pagehide',leave);renderer=null;frames.reset();}};
 }

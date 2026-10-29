@@ -264,7 +264,7 @@ export function closeSupplier(s:State){
  delete s.supplierState;s.mode='explore';s.notice='';
 }
 /* ---- 0.40 正文模式：迷宫进度缓存在存档里，正文按层推进；切回迷宫时沿用缓存的队伍状态、层数用正文推进到的层数 ---- */
-export type NarrativeState={active:boolean;startDepth:number;depth:number;since:number};
+export type NarrativeState={active:boolean;startDepth:number;depth:number;since:number;transition?:'user-message';messageId?:number};
 export type NarrativeFloor={depth:number;theme:string;themeName:string;subtitle:string;scene:string;sceneIndex:number;level:number;quality:string;bossFloor:boolean;monsters:{name:string;role:string;level:number}[]};
 /** 任意层的主题 / 场景 / 敌怪等级 / 战利品品质 / 本主题敌怪（与正式地图同一主题序列，不生成地图）。 */
 export function narrativeFloor(depth:number,seed:number):NarrativeFloor{
@@ -276,10 +276,29 @@ export function narrativeFloor(depth:number,seed:number):NarrativeFloor{
 export function canStartNarrative(s:State){return s.mode==='explore'&&s.run.status==='active'&&!s.strayWarning&&!s.exitAsk&&!s.narrative?.active&&activeParty(s).length>0;}
 export function startNarrative(s:State):boolean{if(!canStartNarrative(s))return false;storeWorld(s);s.narrative={active:true,startDepth:s.depth,depth:s.depth,since:Date.now()};s.paused=true;note(s,'切换到正文模式：迷宫进度已缓存。');return true;}
 export function narrativeDescend(s:State):number{if(!s.narrative?.active)throw Error('当前不在正文模式');s.narrative.depth++;return s.narrative.depth;}
+function releaseNarrativeEncounter(s:State){
+ storeWorld(s);const battle=s.battle;
+ if(battle){for(const p of activeParty(s)){const u=battle.units.find(u=>u.id===p.id);if(u){p.current={...u.current};p.persistent=persistentUnit(u,battle.clock.timeMs);}}s.seed=battle.seed;s.world=undefined;}
+ s.mode='explore';s.run.battleActive=false;s.battle=null;s.encounterId='';s.selected=null;s.selectedTargets=[];s.bossPhases=[];
+ delete s.eventState;delete s.eventDefinition;delete s.eventPick;delete s.supplierState;s.shopPage=false;s.strayWarning=false;s.exitAsk=false;
+}
+/** This encounter was handed to prose; it is neither a numeric victory nor a
+ * second opportunity to collect its rewards when the player returns. */
+export function handoffNarrativeEncounter(s:State){
+ if(!s.narrative?.active||s.narrative.depth!==s.depth||!['battle','event','supplier'].includes(s.mode))return;
+ const id=s.mode==='battle'?s.encounterId:s.mode==='event'?s.eventState?.thingId:s.supplierState?.thingId;
+ const thing=s.region.things.find(t=>t.id===id);if(thing)thing.used=true;
+ releaseNarrativeEncounter(s);s.origin={x:s.x,z:s.z};
+}
 /** 切回迷宫模式。 */
 export function exitNarrative(s:State){
  const n=s.narrative;if(!n?.active)return;(s.narrativeSpans??=[]).push({from:n.startDepth,to:n.depth});delete s.narrative;
- if(n.depth!==s.depth){const from=s.depth;newDepth(s,n.depth);if(s.depthLog&&n.depth>from)s.depthLog.down+=n.depth-from-1;}
+ if(n.depth!==s.depth){
+  // Prose has already left this encounter behind. Carry its paid resources and
+  // lasting effects forward, but never attach its battle/choice to the new map.
+  releaseNarrativeEncounter(s);
+  const from=s.depth;newDepth(s,n.depth);s.origin={x:s.x,z:s.z};if(s.depthLog&&n.depth>from)s.depthLog.down+=n.depth-from-1;
+ }
  note(s,'回到迷宫模式：第 '+s.depth+' 层。');
 }
 /** 正文模式里离开迷宫：按正文推进到的层数记账，然后全员撤离、照常结算缓存存档里的所得。 */

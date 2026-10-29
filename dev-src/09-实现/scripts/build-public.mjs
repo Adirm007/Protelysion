@@ -7,11 +7,13 @@ import {gzipSync,gunzipSync} from 'node:zlib';
 import {build} from 'esbuild';
 import {makeExternalRegex,makeExternalHtml,makeLocalRegex} from './public-loader.mjs';
 import {currentReaderCore} from './reader-handoff.mjs';
+import {currentReaderInstall} from './reader-install.mjs';
 const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.42.1-20261027-skill-display';
+const revision='protelysion-0.43.0-20261029-script-runtime';
+const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
 const template=JSON.parse(await readFile(path.join(project,'17-宿主可玩联调/entry-template.json'),'utf8'));
@@ -45,7 +47,7 @@ await writeFile(path.join(repo,'LICENSE'),license);await writeFile(path.join(rep
 await put('M-ART-terms.txt',await readFile(path.join(root,'licenses/M-ART-terms.txt')));
 await put('credits.html','<!doctype html><meta charset="utf-8"><title>普罗泰利西翁 · 许可与署名</title><style>body{max-width:850px;margin:40px auto;padding:20px;font:16px/1.8 system-ui;background:#191c2b;color:#eee}a{color:#d9cba7}pre{white-space:pre-wrap}</style><h1>普罗泰利西翁 · 许可与署名</h1><pre>'+escape(notice)+'</pre><pre>'+escape(await readFile(path.join(audioRoot,'CREDITS.txt'),'utf8'))+'</pre><p><a href="LICENSE-CC-BY-NC-4.0.txt">原创部分CC BY-NC 4.0</a> · <a href="Godot-LICENSES.txt">Godot许可</a> · <a href="NotoSansSC-OFL.txt">字体OFL</a> · <a href="Player-CREDITS.txt">行走精灵说明</a> · <a href="M-ART-terms.txt">M-ART官方规则记录</a></p>');
 const generator=(await readFile(new URL('public-loader.mjs',import.meta.url),'utf8')).replaceAll('export function ','function ');
-await put('loader.html','<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 安装</title><style>body{max-width:820px;margin:40px auto;padding:20px;font:17px/1.8 system-ui;background:#191c2b;color:#eee}button,input{font:inherit;padding:12px;max-width:100%}input{width:95%}a{color:#dbc494}</style><h1>普罗泰利西翁 · 单正则安装</h1><p>先更新两个带new的读者文件；保留现有酒馆助手、MVU与EJS扩展。迷宫本体只需下面这一条书海正则，不需要另装游戏脚本。</p><label>外链目录 <input id="base"></label><p><button id="download">下载《书海》外链加载正则</button></p><p id="status" role="status"></p><p><a href="./">独立试玩（不读写宿主）</a> · <a href="credits.html">许可与署名</a> · <a href="https://github.com/Adirm007/Protelysion/tree/main/install">更新后的读者文件</a></p><script>'+generator.replace(/<\/script/gi,'<\\/script')+'\nconst template='+JSON.stringify(template)+',css='+JSON.stringify(css)+';document.getElementById("base").value=new URL("./",location.href).href;document.getElementById("download").onclick=()=>{try{const item=makeExternalRegex(document.getElementById("base").value,template,css),blob=new Blob([JSON.stringify(item,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="普罗泰利西翁-书海外链加载正则.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);document.getElementById("status").textContent="已生成，请在酒馆导入。匹配书海标签的游戏正则只启用一份。";}catch(e){document.getElementById("status").textContent=e.message;}};<\/script></html>');
+await put('loader.html','<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 安装</title><style>body{max-width:820px;margin:40px auto;padding:20px;font:17px/1.8 system-ui;background:#191c2b;color:#eee}button,input{font:inherit;padding:12px;max-width:100%}input{width:95%}a{color:#dbc494}</style><h1>普罗泰利西翁 · 兼容入口安装</h1><p>命定之诗集成版会随读者核心自动载入常驻脚本，无需另装。下面的手动外链正则用于兼容旧入口；需要配套读者核心、酒馆助手、MVU与EJS扩展。已有集成入口时无需重复安装。</p><label>外链目录 <input id="base"></label><p><button id="download">下载《书海》外链加载正则</button></p><p id="status" role="status"></p><p><a href="./">独立试玩（不读写宿主）</a> · <a href="credits.html">许可与署名</a> · <a href="https://github.com/Adirm007/Protelysion/tree/main/install">更新后的读者文件</a></p><script>'+generator.replace(/<\/script/gi,'<\\/script')+'\nconst template='+JSON.stringify(template)+',css='+JSON.stringify(css)+';document.getElementById("base").value=new URL("./",location.href).href;document.getElementById("download").onclick=()=>{try{const item=makeExternalRegex(document.getElementById("base").value,template,css),blob=new Blob([JSON.stringify(item,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="普罗泰利西翁-书海外链加载正则.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);document.getElementById("status").textContent="已生成，请在酒馆导入。匹配书海标签的游戏正则只启用一份。";}catch(e){document.getElementById("status").textContent=e.message;}};<\/script></html>');
 await put('index.html',makeExternalHtml(base,css,'standalone'));await put('.nojekyll','');
 const publicManifest={revision,scope:{themes:48,species:433,tierTemplates:3031,themeSpecies:432,commonSpecies:1},player:{provider:'user-supplied',asset:'chibi_sprite_4dir_fixed.png',cell:[192,304],framesPerDirection:4,mapActors:1},pck:manifest.files['game.pck'],pckParts,wasm:manifest.files['game.wasm'],wasmParts,files};
 const manifestData=JSON.stringify(publicManifest,null,2)+'\n';await writeFile(path.join(site,'release-manifest.json'),manifestData);
@@ -93,25 +95,41 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 `);
-await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\n');
+await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.42.1 · 2026-10-27 技能效果显示修复**
+**版本：0.43.0 · 2026-10-29 读者常驻脚本与书海衔接**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
 ## 游玩 / 安装
 
 - 独立试玩：https://adirm007.github.io/Protelysion/ （不会读写宿主，不调用LLM）
-- 单正则安装：https://adirm007.github.io/Protelysion/loader.html
-- \`install/\`：已更新的读者正则、读者核心和书海外链正则。必须已有酒馆助手、MVU及EJS提示词模板扩展。
+- 命定之诗集成版：启用读者核心后，自动正则按当前核心载入常驻脚本与轻量信件，玩家无需另装读者脚本。需要酒馆助手、MVU及EJS提示词模板扩展。
+- 手动兼容安装：https://adirm007.github.io/Protelysion/loader.html
+- 数字固定版：从对应 \`v<数字版本>\` 的不可变 Release 下载 \`protelysion-fixed.regex.json\`。刷新不会升级，可在读者中检查并确认更新；固定版和跟随版只启用一份。[发行与验证说明](docs/fixed-releases.md)。
 
-1. 导入\`读者对话渲染0917 (new).json\`，替换/停用原读者正则，不同时启用两版。
-2. 将当前世界书的读者核心条目内容替换为\`读者核心本体 (new).txt\`，保留原条目设置并启用。此核心已包含书海进/出场条件，不再同时启用旧的独立书海交接条目。TXT是可直接粘贴的多行EJS；原核心中字符串或正则的合法反斜杠转义需原样保留。
-3. 导入\`普罗泰利西翁-书海外链加载正则.json\`，匹配书海占位标签的正则只启用这一份。
-4. **读者大厅 → 彩蛋设置 → 进入普罗泰利西翁**。有草稿时先保存；按钮只填入并发送“进入普罗泰利西翁”。也可自行写过渡剧情：沿用原读者膝枕模块的matchChatMessages方法匹配用户输入，只要包含“进入普罗泰利西翁”就触发，前后可自由加文字或换行。触发后的EJS负责场景和入口标签，正则随即加载游戏。离场时用户消息同样仅为“离开普罗泰利西翁”，结算事实和防重复标识通过消息元数据交接。
-5. 首次选择“完整下载”或“轻装启程”；之后直接进入书间。完整模式预先保存全部音频，轻装模式在首次播放时下载音频。
-6. 勾选1—4名同行者，点击“整备队伍”；每张角色卡上的“角色详情”可查看实际属性、技能、费用和转换结果。也可直接“进入书海”，程序会先整备尚未就绪的成员。旧远征保留原快照，不清空角色或聊天。
+1. 集成版直接打开右侧“读者”入口，再进入 **彩蛋设置 → 进入普罗泰利西翁**；夜梦尚未发言也能打开菜单。
+2. 首次选择“完整下载”或“轻装启程”；之后直接进入书间。完整模式预先保存全部音频，轻装模式在首次播放时下载音频。
+3. 勾选1—4名同行者，点击“整备队伍”；角色详情可查看实际属性、技能、费用和转换结果。也可直接“进入书海”，程序会先整备尚未就绪的成员。旧远征保留原快照。
+4. “返回聊天”收起常驻窗口并暂停书海的规则、画面与声音；重新打开保留当前现场。游玩期间发送普通消息，会先保存当前迷宫或战斗断点，再由正文接续；保留原消息文字，不补发消息、不额外触发生成。正文后可选择迷宫模式、正文深入下一层或离开结算。
+
+### 兼容旧入口的手动安装
+
+\`install/\` 中的 \`读者对话渲染0917 (new).json\` 保留旧文件名，内容现由读者仓当前生成的外链版同步；来源版本与摘要见 \`reader-source.json\`。手动兼容入口按消息载入，常驻体验随命定之诗核心脚本提供。
+
+1. 导入该读者正则，停用已有读者渲染正则，避免重复渲染。
+2. 用 \`读者核心本体 (new).txt\` 替换现有读者世界书条目内容，保留条目设置并启用；核心已包含书海交接，不再同时启用旧独立交接条目。
+3. 导入 \`普罗泰利西翁-书海外链加载正则.json\`，匹配书海标签的游戏正则只启用一份。
+4. 在旧读者大厅点击书海入口，或发送含“进入普罗泰利西翁”的过渡剧情；可带前后文字、引号和换行。正文模式与离场继续使用配套世界书交接。
+
+## 0.43.0 读者常驻脚本与书海衔接
+
+- 读者菜单独立于消息楼层，信件保留轻量显示与操作入口；播放器跨消息更新保留。
+- 书海按需加载，普通收起与复开保留同一游戏实例，收起期间暂停渲染、规则与音频。
+- 游玩中正常发言自动从当前现场切到正文，记录位置、敌我状态、已付行动与待结算所得；返回迷宫同步正文最新 HP/MP/SP 和原背包数量，避免重复扣费或发奖。
+- 切聊天、删楼与停用核心时取消旧任务并清理窗口；保留消息快照与聊天回退规则。
+- 保留上游数字固定版、签名发布验证与同提交镜像下载机制。
 
 ## 0.42.1 技能效果显示修复
 
@@ -347,7 +365,7 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 \`\`\`bash
 git init -b main
 git add .
-git commit -m "Release Protelysion 0.42.1"
+git commit -m "Release Protelysion 0.43.0"
 git remote add origin https://github.com/Adirm007/Protelysion.git
 git push -u origin main
 \`\`\`
@@ -372,13 +390,15 @@ PCK与WASM无损gzip并按最多16 MiB分片，低于GitHub单文件限制；浏
 await writeFile(path.join(repo,'README.md'),instructions.replaceAll('\\`','`'));
 await mkdir(path.join(repo,'docs'),{recursive:true});
 for(const name of ['mcp-rpg-ui-022-20260922.md','mcp-controls-mobile-rollback-023-20260922.md','mcp-seven-fixes-024-20260923.md','mcp-exit-mimic-0241-20260923.md','mcp-supplier-0242-20260923.md','mcp-dialogue-battle-audio-0243-20260924.md','mcp-p5-map-optimization-report.md','mcp-skill-display-20261027.md'])await copyFile(path.join(project,'docs',name),path.join(repo,'docs',name));
-const readerCore=await currentReaderCore();
 // 本地导入的读者核心可能被作者手动修改过：只有文件不存在、或自上次生成后未被改动时才覆盖；发布仓库 install/ 始终写入生成版。
 const importCore=path.join(imports,'读者核心本体 (new).txt'),importStamp=path.join(project,'09-实现/verification/reader-core-import.sha256');
 let keepImportCore=false;
 try{const existing=await readFile(importCore,'utf8');let stamp='';try{stamp=(await readFile(importStamp,'utf8')).trim();}catch(error){if(error.code!=='ENOENT')throw error;}keepImportCore=existing!==readerCore&&sha(existing)!==stamp;}catch(error){if(error.code!=='ENOENT')throw error;}
 for(const dest of [imports,path.join(repo,'install')]){
- await copyFile(path.join(project,'02-宿主参考-只读/读者对话渲染0917 (new).json'),path.join(dest,'读者对话渲染0917 (new).json'));
+ // Keep the established import filename, but source its contents from the current reader build.
+ await writeFile(path.join(dest,'读者对话渲染0917 (new).json'),readerInstall.regex);
+ const preservedLocal=dest===imports&&keepImportCore,installedCore=preservedLocal?await readFile(importCore):Buffer.from(readerCore);
+ await writeFile(path.join(dest,'reader-source.json'),JSON.stringify({...readerInstall.source,core:{bytes:installedCore.length,sha256:sha(installedCore),...(preservedLocal?{preservedLocal:true}:{})}},null,2)+'\n');
  if(dest===imports&&keepImportCore){console.warn('本地导入/读者核心本体 (new).txt 已被手动修改，保留不覆盖。');continue;}
  await writeFile(path.join(dest,'读者核心本体 (new).txt'),readerCore);
  if(dest===imports)await writeFile(importStamp,sha(readerCore)+'\n');

@@ -57,8 +57,8 @@ test('new reader regex metadata is preserved and integration is idempotent',()=>
  const before=readFileSync(readerPath,'utf8');execFileSync(process.execPath,['scripts/integrate-new-reader.mjs']);assert.equal(readFileSync(readerPath,'utf8'),before);
  assert.equal((html.match(/data-dlb="eggbooksea"/g)??[]).length,1);assert.match(html,/if\(act==='eggbooksea'\)/);assert.match(html,/10 项 · 进入彩蛋页/);
 });
-test('new reader original core remains intact; entire EJS and inline JS have valid syntax',()=>{
- const backup=readFileSync('verification/release-audit-20260922/before/02-宿主参考-只读/读者核心本体 (new).txt','utf8').replace(/\r\n/g,'\n');assert.ok(core.startsWith(backup.trimEnd()));
+test('canonical reader core remains intact outside its owned handoff block; EJS and inline JS have valid syntax',()=>{
+ const canonical=readFileSync('templates/reader-core.ejs','utf8').replace(/\r\n/g,'\n'),start=canonical.indexOf('<%_ /* BOOKSEA_READER_HANDOFF_BEGIN */ _%>');assert.ok(start>0);assert.ok(core.startsWith(canonical.slice(0,start)));assert.ok(core.includes('BOOKSEA_NARRATIVE_BEGIN'));
  new vm.Script('(async function(){'+ejsCode(core)+'})');
  const scripts=[...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m=>m[1]!).filter(Boolean);assert.ok(scripts.length>0);for(const s of scripts)new vm.Script(s);
  assert.ok(core.includes(entry.trim()));assert.ok(core.includes(failure.trim()));assert.ok(core.includes(success.trim()));
