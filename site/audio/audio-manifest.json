@@ -539,9 +539,9 @@
     },
     "dialogue.write": {
       "variants": [
-        "rm2k-refer-book-writing"
+        "a2-paper-writing"
       ],
-      "gainDb": -18,
+      "gainDb": -5,
       "cooldownMs": 0,
       "pitchVariation": 0
     },
@@ -10533,6 +10533,45 @@
     }
   },
   "sfx": {
+    "a2-paper-writing": {
+      "id": "a2-paper-writing",
+      "title": "Paper Scratch Pencil drawing line",
+      "artist": "johannesschmidt",
+      "pack": "writing-paper",
+      "member": null,
+      "page": "https://freesound.org/people/johannesschmidt/sounds/339741/",
+      "url": "https://cdn.freesound.org/previews/339/339741_5670420-hq.mp3",
+      "license": "CC-BY-4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0/",
+      "sourceArchiveSHA256": "e4f31a8cd32f9280f2807a808c749e61e671cfcf2a2ce666e693d6e391cdf9da",
+      "sourceSha256": "e4f31a8cd32f9280f2807a808c749e61e671cfcf2a2ce666e693d6e391cdf9da",
+      "files": {
+        "wav": "sfx/a2-paper-writing.wav"
+      },
+      "duration": 0.8149886621315193,
+      "sampleRate": 44100,
+      "channels": 1,
+      "decodedBytes": 143764,
+      "mix": {
+        "gainDb": 0,
+        "peakDb": -6.0,
+        "rmsDb": -22.043
+      },
+      "sha256": {
+        "sfx/a2-paper-writing.wav": "7d8d6b0fae87903eb2388424dd7f5d33d78e407b4e5d771a3f68ad41854d9860"
+      },
+      "bytes": {
+        "sfx/a2-paper-writing.wav": 71926
+      },
+      "processing": {
+        "format": "44.1kHz mono PCM16",
+        "sourceOffsetSeconds": 0.3,
+        "peakNormalizedDb": -6,
+        "filters": "highpass=f=180,lowpass=f=7800",
+        "loopCrossfadeSeconds": 0.035,
+        "tail": "short anti-click fade; original BGM untouched"
+      }
+    },
     "rm2k-attack1": {
       "id": "rm2k-attack1",
       "pack": "rm2k_sounds",
@@ -12261,30 +12300,6 @@
       },
       "processing": "44.1 kHz mono PCM16"
     },
-    "rm2k-refer-book-writing": {
-      "id": "rm2k-refer-book-writing",
-      "pack": "rm2k_sounds",
-      "member": "Refer Book.wav",
-      "artist": "User-supplied RM2K sound pack",
-      "license": "Not specified in supplied folder",
-      "files": {
-        "wav": "sfx/rm2k-refer-book-writing.wav"
-      },
-      "duration": 0.18,
-      "mix": {
-        "peakDb": -3.093,
-        "gainDb": -0.907,
-        "method": "sample peak; target -4 dBFS before cue gain"
-      },
-      "sha256": {
-        "sfx/rm2k-refer-book-writing.wav": "d3c66a2a1b0d2ffff281c2eebd57de9edf20ac638a461f4f186a353b2a4575a7"
-      },
-      "sourceSha256": "5bcf49915d7544fb4330aee55440bed44ad3562e86eed1a2dbef389023874c82",
-      "bytes": {
-        "sfx/rm2k-refer-book-writing.wav": 15954
-      },
-      "processing": "44.1 kHz mono PCM16; short faded grain"
-    },
     "rm2k-roar": {
       "id": "rm2k-roar",
       "pack": "rm2k_sounds",
@@ -12814,7 +12829,7 @@
       "processing": "44.1 kHz mono PCM16"
     }
   },
-  "revision": "booksea-audio-rm2k-20261031",
+  "revision": "booksea-audio-rm2k-20261031-writing-original",
   "effectSources": {
     "rm2k_sounds": {
       "source": "D:\\音效包\\rm2k_sounds",

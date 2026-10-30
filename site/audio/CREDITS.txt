@@ -58,7 +58,8 @@ Changes: selected/cropped, mono PCM conversion, peak normalization and short fad
 Only selected sounds are shipped as part of this game. No Bilibili or RPG Maker RTP sound was extracted. Full per-file provenance is in audio-manifest.json.
 
 RM2K replacement / 2026-10-31
-All active SFX cues use the user-supplied D:\音效包\rm2k_sounds WAV files.
+All active SFX cues except dialogue.write use the user-supplied D:\音效包\rm2k_sounds WAV files.
+dialogue.write preserves the original johannesschmidt pencil recording, CC BY 4.0, unchanged (gain -5 dB).
 The supplied folder contains no license statement; prior CC0/CC-BY SFX attribution below/above describes historical assets only.
 Processing: 44.1 kHz mono PCM16; short faded movement/writing grains; sample-peak playback gain.
 BGM and its original credits are unchanged. Per-cue mapping: 21-音频制作/rm2k-cue-map.json.
