@@ -1,0 +1,458 @@
+{
+  "source": "D:\\音效包\\rm2k_sounds",
+  "revision": "rm2k-20261031",
+  "mapping": {
+    "ui.select": [
+      "Cursor1",
+      "Cursor2"
+    ],
+    "ui.move": [
+      "Cursor1",
+      "Cursor2"
+    ],
+    "ui.confirm": [
+      "Decision1"
+    ],
+    "ui.cancel": [
+      "Cansel1"
+    ],
+    "ui.error": [
+      "Buzzer1"
+    ],
+    "cast.fail": [
+      "Buzzer1"
+    ],
+    "book.open": [
+      "Refer Book"
+    ],
+    "book.flip": [
+      "Refer Book"
+    ],
+    "dialogue.write": [
+      "Refer Book"
+    ],
+    "book.close": [
+      "Close1"
+    ],
+    "chest.open": [
+      "Open2"
+    ],
+    "reward": [
+      "Item1",
+      "Item2"
+    ],
+    "door": [
+      "Open1"
+    ],
+    "step.concrete": [
+      "Movement"
+    ],
+    "step.grass": [
+      "Movement"
+    ],
+    "step.snow": [
+      "Movement"
+    ],
+    "step.wood": [
+      "Movement"
+    ],
+    "step.carpet": [
+      "Movement"
+    ],
+    "step.metal": [
+      "Movement"
+    ],
+    "step.soft": [
+      "Movement"
+    ],
+    "step.paper": [
+      "Movement"
+    ],
+    "step.glass": [
+      "Movement"
+    ],
+    "attack.slash": [
+      "Sword1",
+      "Sword2"
+    ],
+    "release.slash": [
+      "Sword1",
+      "Sword2"
+    ],
+    "impact.slash": [
+      "Sword3",
+      "Kill1"
+    ],
+    "release.pierce": [
+      "Bow1",
+      "Bow2"
+    ],
+    "impact.pierce": [
+      "Kill2",
+      "Kill3"
+    ],
+    "attack.heavy": [
+      "Attack1",
+      "Attack2"
+    ],
+    "release.heavy": [
+      "Attack1",
+      "Attack2"
+    ],
+    "impact.heavy": [
+      "Blow5",
+      "Blow6"
+    ],
+    "attack.paper": [
+      "Refer Book"
+    ],
+    "release.paper": [
+      "Refer Book"
+    ],
+    "enemy.paper": [
+      "Refer Book"
+    ],
+    "impact.paper": [
+      "Damage1"
+    ],
+    "attack.machine": [
+      "Shot1",
+      "Shot2"
+    ],
+    "release.machine": [
+      "Shot1",
+      "Shot2"
+    ],
+    "enemy.machine": [
+      "Shot1",
+      "Shot2"
+    ],
+    "impact.machine": [
+      "Blow3",
+      "Blow4"
+    ],
+    "hit.metal": [
+      "Blow3",
+      "Blow4"
+    ],
+    "enemy.metal": [
+      "Blow3",
+      "Blow4"
+    ],
+    "attack.beast": [
+      "Bite"
+    ],
+    "impact.beast": [
+      "Bite"
+    ],
+    "impact.insect": [
+      "Bite"
+    ],
+    "enemy.insect": [
+      "Bite"
+    ],
+    "release.beast": [
+      "Roar"
+    ],
+    "enemy.beast": [
+      "Roar"
+    ],
+    "reaction.beast": [
+      "Monster1",
+      "Monster2"
+    ],
+    "attack.stone": [
+      "Earth1",
+      "Earth2"
+    ],
+    "release.stone": [
+      "Earth1",
+      "Earth2"
+    ],
+    "enemy.stone": [
+      "Earth1",
+      "Earth2"
+    ],
+    "impact.stone": [
+      "Earth3",
+      "Earth4"
+    ],
+    "hit.stone": [
+      "Earth3",
+      "Earth4"
+    ],
+    "attack.wood": [
+      "Knock"
+    ],
+    "release.wood": [
+      "Knock"
+    ],
+    "enemy.wood": [
+      "Knock"
+    ],
+    "impact.wood": [
+      "Blow1",
+      "Blow2"
+    ],
+    "hit.wood": [
+      "Blow1",
+      "Blow2"
+    ],
+    "attack.glass": [
+      "Glass"
+    ],
+    "impact.glass": [
+      "Glass"
+    ],
+    "hit.glass": [
+      "Glass"
+    ],
+    "release.glass": [
+      "Flash1",
+      "Flash2"
+    ],
+    "enemy.glass": [
+      "Flash1",
+      "Flash2"
+    ],
+    "attack.slime": [
+      "Water1",
+      "Water2"
+    ],
+    "release.slime": [
+      "Water1",
+      "Water2"
+    ],
+    "enemy.slime": [
+      "Water1",
+      "Water2"
+    ],
+    "impact.slime": [
+      "Water3",
+      "Water4"
+    ],
+    "hit.slime": [
+      "Water3",
+      "Water4"
+    ],
+    "attack.spirit": [
+      "Dark1",
+      "Dark2"
+    ],
+    "release.spirit": [
+      "Dark1",
+      "Dark2"
+    ],
+    "enemy.spirit": [
+      "Dark1",
+      "Dark2"
+    ],
+    "impact.spirit": [
+      "Dark3",
+      "Dark4"
+    ],
+    "hit.spirit": [
+      "Dark3",
+      "Dark4"
+    ],
+    "attack.insect": [
+      "Sonic1",
+      "Sonic2"
+    ],
+    "release.insect": [
+      "Sonic1",
+      "Sonic2"
+    ],
+    "hit.flesh": [
+      "Damage1",
+      "Damage2"
+    ],
+    "party.hurt": [
+      "Damage1",
+      "Damage2"
+    ],
+    "hit.paper": [
+      "Blow1"
+    ],
+    "critical": [
+      "Kill10",
+      "Kill11"
+    ],
+    "shield": [
+      "Barrier"
+    ],
+    "guard.block": [
+      "Barrier"
+    ],
+    "shield.break": [
+      "Glass"
+    ],
+    "heal": [
+      "Recovery1",
+      "Recovery2"
+    ],
+    "status": [
+      "Up",
+      "Power"
+    ],
+    "buff": [
+      "Up",
+      "Power"
+    ],
+    "debuff": [
+      "Down",
+      "Poison"
+    ],
+    "miss": [
+      "Evasion1",
+      "Evasion2"
+    ],
+    "release.fire": [
+      "Flame1",
+      "Flame2"
+    ],
+    "impact.fire": [
+      "Flame3"
+    ],
+    "magic.fire": [
+      "Flame1",
+      "Flame2"
+    ],
+    "release.ice": [
+      "Cold1",
+      "Cold2"
+    ],
+    "impact.ice": [
+      "Cold3"
+    ],
+    "magic.ice": [
+      "Cold1",
+      "Cold2"
+    ],
+    "release.lightning": [
+      "Thunder1",
+      "Thunder2"
+    ],
+    "impact.lightning": [
+      "Thunder3"
+    ],
+    "magic.lightning": [
+      "Thunder1",
+      "Thunder2"
+    ],
+    "release.water": [
+      "Water1",
+      "Water2"
+    ],
+    "impact.water": [
+      "Water3"
+    ],
+    "magic.water": [
+      "Water1",
+      "Water2"
+    ],
+    "release.wind": [
+      "Wind1",
+      "Wind2"
+    ],
+    "impact.wind": [
+      "Wind3"
+    ],
+    "magic.wind": [
+      "Wind1",
+      "Wind2"
+    ],
+    "release.earth": [
+      "Earth1",
+      "Earth2"
+    ],
+    "impact.earth": [
+      "Earth3"
+    ],
+    "magic.earth": [
+      "Earth1",
+      "Earth2"
+    ],
+    "release.light": [
+      "Holy1",
+      "Holy2"
+    ],
+    "impact.light": [
+      "Holy3"
+    ],
+    "magic.light": [
+      "Holy1",
+      "Holy2"
+    ],
+    "release.dark": [
+      "Dark1",
+      "Dark2"
+    ],
+    "impact.dark": [
+      "Dark3"
+    ],
+    "magic.dark": [
+      "Dark1",
+      "Dark2"
+    ],
+    "release.energy": [
+      "Flash1",
+      "Flash2"
+    ],
+    "impact.energy": [
+      "Flash3"
+    ],
+    "magic.energy": [
+      "Flash1",
+      "Flash2"
+    ],
+    "release.mental": [
+      "Numbness1",
+      "Numbness2"
+    ],
+    "impact.mental": [
+      "Numbness3"
+    ],
+    "portal": [
+      "Teleport1",
+      "Teleport2"
+    ],
+    "encounter": [
+      "Fight1"
+    ],
+    "boss.enter": [
+      "Fight2"
+    ],
+    "boss.phase": [
+      "Power"
+    ],
+    "down": [
+      "Fall1",
+      "Fall2"
+    ],
+    "flee": [
+      "Escape"
+    ],
+    "victory": [
+      "Success1"
+    ],
+    "defeat": [
+      "Failure1"
+    ],
+    "low.hp": [
+      "Buzzer2"
+    ],
+    "enemy.intent": [
+      "Attack1",
+      "Attack2"
+    ],
+    "enemy.flesh": [
+      "Attack1",
+      "Attack2"
+    ],
+    "cast.channel": [
+      "Holy1",
+      "Holy2"
+    ]
+  }
+}

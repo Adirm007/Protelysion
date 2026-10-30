@@ -800,8 +800,8 @@
       "sha256": "190fec2f4d0dcebc04fe9a9b80e475f5016c4c4853651cef6c86849d87b834e1"
     },
     "scripts/build-public.mjs": {
-      "bytes": 61787,
-      "sha256": "1e027f39b374fcdcbeb9e45bf32584201b1936c21a2f74059516ffc58601ff8e"
+      "bytes": 62184,
+      "sha256": "c228ce781567907427b8d1bba6dcb938c12a12bc842f0d99f74217d1f5317ef4"
     },
     "scripts/build.mjs": {
       "bytes": 1927,
@@ -1316,12 +1316,12 @@
       "sha256": "f6ea18822fd232eb3e39ef902136b01a146d3abc7331b94acdf84778d46d03d8"
     },
     "package.json": {
-      "bytes": 1038,
-      "sha256": "77df0e1bc8c527b0bf73aed7b34e2891adf472c6c0b6ccf9c91b6c6a69d47dd9"
+      "bytes": 1066,
+      "sha256": "ee83ff18ada033bb25eb86ad42ce30b13735b02fba02abb38ac35ffd308f2be7"
     },
     "package-lock.json": {
-      "bytes": 17865,
-      "sha256": "9a65f45f727d03de12e7bd9e5cb97e20f89ad43cb56854d7bcaca7c69af25551"
+      "bytes": 18462,
+      "sha256": "7930614d5857bfb6bd4a2ed81616e110862ac2f765202b10841ef2ce776611fd"
     },
     "tsconfig.json": {
       "bytes": 277,

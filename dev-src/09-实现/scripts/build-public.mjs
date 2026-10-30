@@ -12,7 +12,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.43.0-20261029-script-runtime';
+const revision='protelysion-0.43.1-20261031-rm2k-sfx';
 const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
@@ -98,7 +98,7 @@ jobs:
 await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.43.0 · 2026-10-29 读者常驻脚本与书海衔接**
+**版本：0.43.1 · 2026-10-31 RM2K 音效替换**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
