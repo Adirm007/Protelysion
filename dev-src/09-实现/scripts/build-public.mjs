@@ -12,7 +12,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.43.2-20261031-original-writing';
+const revision='protelysion-0.43.3-20261102-stray-rear-spawn';
 const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
@@ -98,7 +98,7 @@ jobs:
 await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.43.2 · 2026-10-31 保留补给员纸笔书写声**
+**版本：0.43.3 · 2026-11-02 「?」后方登场修正**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
@@ -122,6 +122,12 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 2. 用 \`读者核心本体 (new).txt\` 替换现有读者世界书条目内容，保留条目设置并启用；核心已包含书海交接，不再同时启用旧独立交接条目。
 3. 导入 \`普罗泰利西翁-书海外链加载正则.json\`，匹配书海标签的游戏正则只启用一份。
 4. 在旧读者大厅点击书海入口，或发送含“进入普罗泰利西翁”的过渡剧情；可带前后文字、引号和换行。正文模式与离场继续使用配套世界书交接。
+
+## 0.43.3 「?」从后方登场
+
+- 先决定是否登场，待玩家走出安全后方空间后出现；普通距离 5 格，无字书签 10 格（两倍）。
+- 出生点来自实际走过的路线，保证前往下一层的方向位于追兵前方；无合格位置则延后。
+- 登场后继续实时走最短路追击，可以抄近道。足迹只用于选出生点，等待状态随存档保存。
 
 ## 0.43.0 读者常驻脚本与书海衔接
 

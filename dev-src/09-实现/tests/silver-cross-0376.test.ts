@@ -10,17 +10,18 @@ import {nativeAbility} from '../src/compiler/adaptive';
 import {validateCompiled} from '../src/compiler/engine';
 import {STRAY_ID,STRAY_SPAWN_DISTANCE,STRAY_THREAD} from '../src/game/monsters/stray';
 import {RELIC_CATALOG} from '../src/game/relic-catalog';
-import {startExpedition,spawnStray,strayStep,view,tick,chooseSkill,chooseTarget,craftSilverCross,toggleCrossWard,threadsAvailable,CROSS_KEY,CROSS_ALLY_ID,type State} from '../src/game/expedition';
+import {startExpedition,dismissWarning,strayStep,view,tick,chooseSkill,chooseTarget,craftSilverCross,toggleCrossWard,threadsAvailable,CROSS_KEY,CROSS_ALLY_ID,type State} from '../src/game/expedition';
+import {spawnTrailingStray} from './stray-fixture';
 import {addReward} from '../src/core/run';
 import {bagThreadCount,bagHasSilverCross,craftSilverCrossInBag,settleRunRewards} from '../src/core/settlement';
 import {knockoutLines,foeInfo} from '../src/game/defeat-report';
 
 const unit=(b:Battle,id:string)=>b.units.find(u=>u.id===id)!;
 
-test('「?」刷新距离 18 格；无字书签改为 36 格；暧昧的线只多一句', ()=>{
- assert.equal(STRAY_SPAWN_DISTANCE,18);
+test('「?」刷新距离 5 格；无字书签为两倍距离 10 格；暧昧的线只多一句', ()=>{
+ assert.equal(STRAY_SPAWN_DISTANCE,5);
  const bookmark=Object.values(RELIC_CATALOG).find(r=>r.name==='无字书签')!;
- assert.match(bookmark.description,/36 格/);assert.equal((bookmark as unknown as {hooks:{strayDistance:number}}).hooks.strayDistance,36);
+ assert.match(bookmark.description,/10 格/);assert.equal(bookmark.hooks?.strayDistance,STRAY_SPAWN_DISTANCE*2);
  assert.ok(STRAY_THREAD.description.endsWith('如果收集九个的话…'));
 });
 
@@ -85,7 +86,7 @@ test('银十字：宿主背包扣线并放入银十字，跨趟累计的线能�
  const after=craftSilverCrossInBag(m,9);assert.equal(bagThreadCount(after),0);assert.ok(bagHasSilverCross(after));
 });
 
-function strayFight(s:State){spawnStray(s);for(let i=0;i<80&&s.mode==='explore';i++)strayStep(s);assert.equal(s.mode,'battle');}
+ function strayFight(s:State){spawnTrailingStray(s);dismissWarning(s);for(let i=0;i<80&&s.mode==='explore';i++)strayStep(s);assert.equal(s.mode,'battle');}
 function toAllyMenu(s:State){for(let i=0;i<400&&!view(s).battle.ready;i++)tick(s);assert.ok(view(s).battle.ready);}
 
 test('银十字（战斗）：不足四人时召来「?」助战，每趟一次；满四人不可用', ()=>{
@@ -105,7 +106,7 @@ test('银十字（战斗）：不足四人时召来「?」助战，每趟一次�
 });
 
 test('银十字（探索）：举起后不再遭遇「?」，放下后恢复；当前的追兵立即消失', ()=>{
- const s:State=startExpedition(playtestParty(),19);s.paused=false;s.crossHeld=true;spawnStray(s);s.strayWarning=false;
+ const s:State=startExpedition(playtestParty(),19);s.paused=false;s.crossHeld=true;spawnTrailingStray(s);dismissWarning(s);
  assert.ok(s.region.things.some(t=>t.hunter&&!t.used));
  toggleCrossWard(s);assert.ok(s.crossWard);assert.ok(!s.region.things.some(t=>t.hunter&&!t.used),'追兵消失');
  toggleCrossWard(s);assert.ok(!s.crossWard);

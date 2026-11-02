@@ -92,9 +92,9 @@ test('高压训练：下一场敌方伤害 ×1.5 并在战后清除；镜厅：�
  const t=fresh(29);runEvent(t,'E035',0);assert.ok(t.battleMods!.some(m=>m.enemyDouble));
 });
 
-test('杀害补给员后，下一次个位 9 楼层「?」必定出现并消费标记', ()=>{
+test('杀害补给员后，下一次个位 9 楼层「?」必定获得后方登场资格并消费标记', ()=>{
  const s=fresh(2);s.strayGuaranteedOnce=true;
  // 从第 1 层无法上行，改用内部下行：走楼梯到 9 层太慢，这里直接用 skipNext 标志 + 事件“岔路”逐层下到 9
  let guard=0;while(s.depth<9&&guard++<12){s.eventJournal={};runEvent(s,'E020',0);}
- assert.equal(s.depth,9);assert.ok(s.region.things.some(t=>t.hunter),'必定出现');assert.equal(s.strayGuaranteedOnce,false);
+ assert.equal(s.depth,9);assert.ok(s.strayTrail?.pending,'必定等待后方登场');assert.ok(!s.region.things.some(t=>t.hunter),'入层时不在前方强刷');assert.equal(s.strayGuaranteedOnce,false);
 });

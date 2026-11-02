@@ -1,4 +1,4 @@
-/** 特殊单位「?」（0.35；0.39 起刷新率 33%、去掉检定必成功）：个位为 9 的楼层 33% 出现在玩家 18 格外，按最短路径与玩家同速追逐。
+/** 特殊单位「?」（0.35；0.39 起刷新率 33%、去掉检定必成功）：个位为 9 的楼层 33% 待登场，从玩家走过的后方 5 格外出现，按最短路径与玩家同速追逐。
  *  面板比队伍最高等级高 1 级；无 / 精属性对她无效；百分比伤害全额反转为治疗、真实伤害全额反射（先于抗性）；
  *  敌方无法给她挂任何效果；检定按常规掷骰（0.39 去掉了“检定默认成功”）；复制队伍里所有持有“百分比伤害 / 真实伤害”技能成员的全部主动与被动技能，
  *  没人持有则只有投掷飞刀。击败必掉盲盒与经验，小概率掉「暧昧的线」。 */
@@ -18,7 +18,7 @@ const STRAY_THEME:ThemeDesign={id:'T15',name:'纸页天穹·留白',scenes:['未
 export const STRAY_THREAD={name:'暧昧的线',quality:'神话' as MaterialQuality,effect:'可以转为任何想要的素材，也许就连源质也……',description:'尚未成型，排布成字的笔画，因此，也有可以成为任何名作的可能性。如果收集九个的话…'};
 export const STRAY_THREAD_CHANCE=.06;
 export const STRAY_SPAWN_CHANCE=.33;
-export const STRAY_SPAWN_DISTANCE=18;
+export const STRAY_SPAWN_DISTANCE=5;
 /** 她的步频 = 玩家按住方向键时的步频（Godot 侧 walk_timer 0.16s/格）：玩家站着不动她也照追。 */
 export const STRAY_STEP_MS=160;
 export const strayFloor=(depth:number)=>depth%10===9;

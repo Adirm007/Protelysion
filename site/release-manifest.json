@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.43.2-20261031-original-writing",
+  "revision": "protelysion-0.43.3-20261102-stray-rear-spawn",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 3095663,
-      "sha256": "3498ab6db58f115d457337a52be2ce20d59a6db4d14e3406a41ddaddcb69718f"
+      "bytes": 3096405,
+      "sha256": "bc7367e0ce9aa1966698ffe79d8cd1888dd3ef58d83fb8d2b00b721d3cb68318"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

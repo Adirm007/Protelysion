@@ -5,8 +5,8 @@ import {createBattle,applyBattleEffects,assertPassive,isAlive,type Battle} from 
 import {validateAction,type ActionSpec,type EffectSpec} from '../src/compiler/contract';
 import {bareMitigation,contentCard,strike,playtestParty,FOES} from '../src/game/content';
 import {STRAY_ID,STRAY_NAME,STRAY_THREAD,carriesTargetDamage,strayKit,strayFloor} from '../src/game/monsters/stray';
-import {startExpedition,spawnStray,strayStep,flee,view,tick,tickExploration,dismissWarning,move,type State} from '../src/game/expedition';
-import {walkable} from '../src/game/region';
+import {startExpedition,strayStep,flee,view,tick,tickExploration,dismissWarning,move,type State} from '../src/game/expedition';
+import {spawnTrailingStray} from './stray-fixture';
 import {ScoreDirector, validateAudioManifest} from '../src/audio/policy';
 import type {AudioManifest} from '../src/audio/types';
 import {flat} from '../src/game/monsters/ir';
@@ -75,12 +75,11 @@ test('「?」战斗规则：百分比伤害全额转治疗、真实伤害先于�
  assert.ok(!her().statuses?.some(s=>s.definition.name==='诅咒'),'敌方挂不上效果');
 });
 
-test('「?」遭遇：刷新在最短路径 18 格外、随玩家步伐沿最短路径追近、追上即战、普通逃跑无效、等级 = 队伍最高 + 1', ()=>{
+test('「?」遭遇：从已走过的后方 5 格登场、沿最短路径追近、追上即战、普通逃跑无效、等级 = 队伍最高 + 1', ()=>{
  const s:State=startExpedition(playtestParty(),19);
- spawnStray(s);const t=s.region.things.find(t=>t.hunter)!;assert.ok(t,'应刷新');
- const bfs=(sx:number,sz:number)=>{const d=new Map<string,number>([[sx+','+sz,0]]);const q:[number,number][]=[[sx,sz]];while(q.length){const [x,z]=q.shift()!;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]] as const){const k=(x+dx)+','+(z+dz);if(walkable(s.region,x+dx,z+dz)&&!d.has(k)){d.set(k,d.get(x+','+z)!+1);q.push([x+dx,z+dz]);}}}return d;};
- const d0=bfs(s.x,s.z).get(t.x+','+t.z)!;assert.ok(d0>=18||d0===Math.max(...bfs(s.x,s.z).values()),'距离 '+d0);
- let last=d0,steps=0;while(s.mode==='explore'&&steps<40){strayStep(s);steps++;const d=bfs(s.x,s.z).get(t.x+','+t.z)!;assert.ok(d<=last||s.mode!=='explore','不得变远');last=d;}
+ const t=spawnTrailingStray(s);dismissWarning(s);
+ const d0=s.x-t.x;assert.equal(d0,5);
+ let last=d0,steps=0;while(s.mode==='explore'&&steps<40){strayStep(s);steps++;const d=s.x-t.x;assert.ok(d<=last||s.mode!=='explore','不得变远');last=d;}
  assert.equal(s.mode,'battle');assert.ok(steps>=d0&&steps<=d0+6,'走 '+steps+' 步追上（起始 '+d0+'）');
  const top=Math.max(...s.party.map(p=>p.card.numeric.level));
  const her=s.battle!.units.find(u=>u.side==='enemy')!;assert.equal(her.level,top+1);assert.equal(her.name,'?');
@@ -91,7 +90,7 @@ test('「?」遭遇：刷新在最短路径 18 格外、随玩家步伐沿最短
 });
 
 test('「?」自主追击：玩家原地不动，她也按 160ms/格 沿最短路径追上来', ()=>{
- const s:State=startExpedition(playtestParty(),19);spawnStray(s);const t=s.region.things.find(t=>t.hunter)!;const x0=t.x,z0=t.z;
+ const s:State=startExpedition(playtestParty(),19);const t=spawnTrailingStray(s);const x0=t.x,z0=t.z;
  assert.equal(view(s).warning,'有什么在接近…');tickExploration(s,5000);assert.ok(t.x===x0&&t.z===z0,'弹框未关：她不动');const px=s.x;move(s,1,0);move(s,-1,0);move(s,0,1);move(s,0,-1);assert.equal(s.x,px,'弹框未关：玩家也不动');dismissWarning(s);assert.equal(view(s).warning,'');
  tickExploration(s,50);assert.ok(t.x===x0&&t.z===z0,'50ms 不够一步');
  tickExploration(s,110);assert.ok(t.x!==x0||t.z!==z0,'满 160ms 走一步');
@@ -100,7 +99,7 @@ test('「?」自主追击：玩家原地不动，她也按 160ms/格 沿最短�
 });
 
 test('「?」掉落：击败必掉符合其等级的盲盒，并可能掉「暧昧的线」', ()=>{
- const s:State=startExpedition(playtestParty(),19);spawnStray(s);
+ const s:State=startExpedition(playtestParty(),19);spawnTrailingStray(s);dismissWarning(s);
  for(let i=0;i<60&&s.mode==='explore';i++)strayStep(s);
  assert.equal(s.mode,'battle');
  const her=s.battle!.units.find(u=>u.side==='enemy')!;
@@ -112,7 +111,7 @@ test('「?」掉落：击败必掉符合其等级的盲盒，并可能掉「暧�
 });
 
 test('「?」实时镜像：战斗中玩家单位新得到的技能会被她同步写下', ()=>{
- const s:State=startExpedition(playtestParty(),19);spawnStray(s);
+ const s:State=startExpedition(playtestParty(),19);spawnTrailingStray(s);dismissWarning(s);
  for(let i=0;i<60&&s.mode==='explore';i++)strayStep(s);assert.equal(s.mode,'battle');
  const her=s.battle!.units.find(u=>u.side==='enemy')!,p=s.battle!.units.find(u=>u.side==='ally')!;
  const before=Object.keys(her.actions).length;

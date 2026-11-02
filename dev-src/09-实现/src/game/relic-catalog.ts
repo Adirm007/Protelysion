@@ -44,7 +44,7 @@ export const RELIC_LIST:RelicDef[]=[
  R(5,'采集者之袋','素材掉落率 ×2，全队伤害 ×0.5。',2,'team',{hooks:{materialRate:2},passive:passive([mod('采集者之袋',dmgMods(.5))])}),
  R(6,'赞助契约','所有来源的 FP 收益 +20%，全队伤害与速度 −20%。',2,'team',{hooks:{fpMul:1.2},passive:passive([mod('赞助契约',[{stat:'speed',multiplier:.8},...dmgMods(.8)])])}),
  R(7,'灰烬护符','免疫火属性伤害，受到的水属性伤害 ×3。',2,'holder',{passive:passive([rule('immune_element','火'),mod('灰烬护符',[{stat:'element',element:'水',multiplier:3}])])}),
- R(8,'无字书签','来访者「?」难以追踪锁定你：她每 4 步才走 1 步，刷新距离改为 36 格。',3,'team',{hooks:{strayStepDiv:4,strayDistance:36}}),
+ R(8,'无字书签','来访者「?」难以追踪锁定你：她每 4 步才走 1 步，从已走过的后方 10 格外出现（普通距离的 2 倍）。',3,'team',{hooks:{strayStepDiv:4,strayDistance:10}}),
  R(9,'盾墙誓约','防御 ×1.5；每场战斗的前两次行动只能选择防御。',2,'holder',{passive:passive([mod('盾墙誓约',[{stat:'armor_physical',multiplier:1.5},{stat:'armor_energy',multiplier:1.5},{stat:'armor_mental',multiplier:1.5}]),rule('guard_first','2')])}),
  R(10,'荆棘之心','受到伤害时把等量伤害反射给来源（不超过自身最大 HP，且仍受来源防御与抗性影响）；战斗中无法恢复 HP。',3,'holder',{passive:withLib([rule('no_heal','*')],{actions:{thorns:act([{op:'damage',amounts:{physical:{...flat(0),expression:[{read:'event',key:'actual'},{read:'max_resource',subject:'caster',key:'hp'},{operator:'min'}]},energy:flat(0),mental:flat(0),true:flat(0)},element:'none',hitChance:1,hitRule:'guaranteed',critChance:0,critMultiplier:1,targeting:EVENT_SOURCE} as EffectSpec],'enemy')}},[trig('thorns','damage_received','thorns')])}),
  R(11,'奇偶天平','每层奇数场战斗全队全属性 ×1.3，偶数场 ×0.7。',2,'team',{hooks:{layerParity:true}}),

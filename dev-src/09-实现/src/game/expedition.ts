@@ -38,6 +38,8 @@ export type State={version:2;regionSeed?:number;monsterContentVersion?:string;me
  lastFight?:FightRecord;knockouts?:Knockout[];
  /** 「?」刚刷出：弹框未关闭前，玩家与她都不能移动，探索时钟不走。 */
  strayWarning?:boolean;
+ /** 本层实际走过的位置及待登场资格，随存档保存；足迹只用于选出生点，追击仍走最短路。 */
+ strayTrail?:{regionId:string;pending:boolean;cells:{x:number;z:number}[]};
  /** 站在入口互动后弹出的返程确认。 */
  exitAsk?:boolean;
  /** 0.40 补给员对话：按补给员实例记录对话与本次遭遇已给额度；本趟杀害次数；对话能力由运行时按宿主是否有 LLM 设置。生成的遗物 / 道具定义随存档保存。 */
@@ -86,7 +88,7 @@ export function craftSilverCross(s:State){
 }
 export function toggleCrossWard(s:State){
  if(s.mode!=='explore'||!s.crossHeld)return;s.crossWard=!s.crossWard;
- if(s.crossWard){s.region.things=s.region.things.filter(t=>!t.hunter||t.used);s.strayWarning=false;}
+ if(s.crossWard){s.region.things=s.region.things.filter(t=>!t.hunter||t.used);s.strayWarning=false;if(s.strayTrail)s.strayTrail.pending=false;}
  note(s,s.crossWard?'银十字微微发亮。':'银十字的光暗了下去。');
 }
 function crossAction():ActionSpec{return {target:'self',cost:{hp:{flat:0,maxFraction:0},mp:{flat:0,maxFraction:0},sp:{flat:0,maxFraction:0}},castMs:0,recoveryFactor:1,perBattleUses:0,effects:[{op:'modify',name:'银十字',duration:{clock:'round',value:1},modifiers:[{stat:'evade',flat:0}]}],category:'item',name:'银十字',description:'队伍不足四人时，「?」会前来助战。每趟迷宫一次。',targeting:{side:'self',selection:'all',count:1,life:'alive'},copyable:false,source:{id:CROSS_KEY,kind:'item'}} as ActionSpec;}
@@ -210,12 +212,41 @@ function applyBattleOpeners(s:State,mods:BattleMod[]){
  const enemyAttrs=s.layerMods?.enemyAttrs;if(enemyAttrs)cast('沉睡的守卫',attrs(enemyAttrs),enemyIds);
  for(const m of mods){if(m.enemyDamage)cast('高压训练',(['damage_physical','damage_energy','damage_mental','damage_true'] as const).map(stat=>({stat,multiplier:m.enemyDamage!})),enemyIds);if(m.member&&m.memberDamage)cast('训练假人',[...(['damage_physical','damage_energy','damage_mental','damage_true'] as const).map(stat=>({stat,multiplier:m.memberDamage!})),{stat:'speed',multiplier:m.memberSpeed??1}],allyIds.filter(id=>id===m.member));}
 }
-export function move(s:State,dx:number,dz:number){if(s.mode!=='explore'||s.paused||s.strayWarning||s.exitAsk||Math.abs(dx)+Math.abs(dz)!==1)return;const x=s.x+dx,z=s.z+dz;if(!walkable(s.region,x,z))return;const enemy=s.region.things.find(t=>t.kind==='enemy'&&!t.used&&t.x===x&&t.z===z);if(enemy&&(s.escapeMs??0)<=0){enterBattle(s,enemy);return;}s.x=x;s.z=z;s.steps++;const adjacent=s.region.things.find(t=>!t.used&&t.kind!=='enemy'&&near(s,t));if(adjacent)s.notice='E / 交互：'+adjacent.name;
- const heal=relicHooks(s).stepsHeal;if(heal.steps>0){s.stepsSinceHeal=(s.stepsSinceHeal??0)+1;if(s.stepsSinceHeal>=heal.steps){s.stepsSinceHeal=0;const b=ensureWorld(s);for(const u of b.units)if(u.side==='ally'&&isAlive(u))u.current.hp=Math.min(u.max.hp,u.current.hp+Math.round(u.max.hp*heal.fraction));storeWorld(s);}}}
+export function move(s:State,dx:number,dz:number){if(s.mode!=='explore'||s.paused||s.strayWarning||s.exitAsk||Math.abs(dx)+Math.abs(dz)!==1)return;const x=s.x+dx,z=s.z+dz;if(!walkable(s.region,x,z))return;const enemy=s.region.things.find(t=>t.kind==='enemy'&&!t.used&&t.x===x&&t.z===z);if(enemy&&(s.escapeMs??0)<=0){enterBattle(s,enemy);return;}const trail=strayTrail(s);s.x=x;s.z=z;s.steps++;trail.cells.push({x,z});if(trail.cells.length>s.region.width*s.region.height)trail.cells.shift();const adjacent=s.region.things.find(t=>!t.used&&t.kind!=='enemy'&&near(s,t));if(adjacent)s.notice='E / 交互：'+adjacent.name;
+ const heal=relicHooks(s).stepsHeal;if(heal.steps>0){s.stepsSinceHeal=(s.stepsSinceHeal??0)+1;if(s.stepsSinceHeal>=heal.steps){s.stepsSinceHeal=0;const b=ensureWorld(s);for(const u of b.units)if(u.side==='ally'&&isAlive(u))u.current.hp=Math.min(u.max.hp,u.current.hp+Math.round(u.max.hp*heal.fraction));storeWorld(s);}}trySpawnStray(s);}
 /** 网格最短路径距离表（四邻域 BFS，只走可行走格）。 */
 function distanceMap(r:Region,sx:number,sz:number){const dist=new Map<string,number>();const queue:[number,number][]=[[sx,sz]];dist.set(sx+','+sz,0);while(queue.length){const [x,z]=queue.shift()!;const d=dist.get(x+','+z)!;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]] as const){const nx=x+dx,nz=z+dz,k=nx+','+nz;if(!walkable(r,nx,nz)||dist.has(k))continue;dist.set(k,d+1);queue.push([nx,nz]);}}return dist;}
-/** 「?」：出现在玩家最短路径 18 格外（没有恰好 18 格的位置时取最接近且不少于 18 的格；再没有则取最远格）。 */
-export function spawnStray(s:State){const dist=distanceMap(s.region,s.x,s.z);const cells=[...dist.entries()].filter(([k])=>!s.region.things.some(t=>!t.used&&t.x+','+t.z===k));if(!cells.length)return;const want=Math.max(STRAY_SPAWN_DISTANCE,relicHooks(s).strayDistance);const exact=cells.filter(([,d])=>d===want),far=cells.filter(([,d])=>d>=want).sort((a,b)=>a[1]-b[1]);const pool=exact.length?exact:far.length?far.filter(([,d])=>d===far[0]![1]):[cells.sort((a,b)=>b[1]-a[1])[0]!];const [key]=pool[Math.floor(rng(s)*pool.length)]!;const [x,z]=key.split(',').map(Number) as [number,number];s.region.things.push({id:s.region.id+'-stray',kind:'enemy',x,z,name:STRAY_NAME,used:false,foes:[STRAY_ID],hunter:true});s.strayWarning=true;note(s,'有什么在接近…');}
+function strayTrail(s:State){
+ if(!s.strayTrail||s.strayTrail.regionId!==s.region.id)s.strayTrail={regionId:s.region.id,pending:false,cells:[{x:s.x,z:s.z}]};
+ const trail=s.strayTrail,last=trail.cells.at(-1);
+ // 位移 / 旧档首次移动不补造脚印；跨层则同时清除上层待登场资格。
+ if(!last||last.x!==s.x||last.z!==s.z)trail.cells=[{x:s.x,z:s.z}];
+ return trail;
+}
+/** 进层只确定资格；有合格的后方足迹才实体化，不再随机刷到前方或回退到最近 / 最远格。 */
+export function spawnStray(s:State){
+ if(s.crossWard||s.region.things.some(t=>t.hunter))return;
+ strayTrail(s).pending=true;trySpawnStray(s);
+}
+function trySpawnStray(s:State){
+ const trail=s.strayTrail;
+ if(!trail?.pending||trail.regionId!==s.region.id||s.crossWard||s.mode!=='explore'||s.paused||s.strayWarning||s.exitAsk)return;
+ const stairs=s.region.things.find(t=>t.kind==='stairs'&&!t.used);if(!stairs)return;
+ const fromPlayer=distanceMap(s.region,s.x,s.z),toStairs=distanceMap(s.region,stairs.x,stairs.z),remaining=toStairs.get(s.x+','+s.z);
+ if(remaining===undefined)return;
+ const want=Math.max(STRAY_SPAWN_DISTANCE,relicHooks(s).strayDistance),occupied=new Set(s.region.things.filter(t=>!t.used).map(t=>t.x+','+t.z));
+ let chosen:{x:number;z:number}|undefined,best=Infinity;
+ for(let i=trail.cells.length-2;i>=0;i--){
+  const cell=trail.cells[i]!,key=cell.x+','+cell.z,d=fromPlayer.get(key);
+  if(d===undefined||d<want||d>=best||occupied.has(key))continue;
+  // 玩家必须位于该点到楼梯的最短路上。同速前进时，追兵到沿途任一点都至少晚 d 步，不能出生即封路。
+  if(toStairs.get(key)!==d+remaining)continue;
+  chosen=cell;best=d;if(d===want)break;
+ }
+ if(!chosen)return;
+ s.region.things.push({id:s.region.id+'-stray',kind:'enemy',...chosen,name:STRAY_NAME,used:false,foes:[STRAY_ID],hunter:true});
+ trail.pending=false;s.strayWarning=true;note(s,'有什么在接近…');
+}
 /** 关闭「有什么在接近…」弹框：之后双方才开始移动。 */
 export function dismissWarning(s:State){s.strayWarning=false;}
 /** 入口返程确认：yes 全员返程，否则继续探索。 */
@@ -223,7 +254,7 @@ export function answerExit(s:State,yes:boolean){if(!s.exitAsk)return;s.exitAsk=f
 /** 「?」沿最短路径追一步；追上即开战。由 tickExploration 按 STRAY_STEP_MS 定时驱动，与玩家是否移动无关。 */
 export function strayStep(s:State){const t=s.region.things.find(t=>t.hunter&&!t.used);if(!t||s.mode!=='explore')return;const dist=distanceMap(s.region,s.x,s.z);const here=dist.get(t.x+','+t.z);if(here===undefined)return;let best:[number,number]|null=null,bestD=here;for(const [dx,dz] of [[1,0],[-1,0],[0,1],[0,-1]] as const){const nx=t.x+dx,nz=t.z+dz,d=dist.get(nx+','+nz);if(d===undefined||d>=bestD)continue;if(s.region.things.some(o=>o!==t&&!o.used&&['enemy','chest','mimic'].includes(o.kind)&&o.x===nx&&o.z===nz))continue;bestD=d;best=[nx,nz];}if(best){t.x=best[0];t.z=best[1];}if(t.x===s.x&&t.z===s.z)enterBattle(s,t);}
 function regionOptions(s:State):RegionOptions{const h=relicHooks(s);return {chestRate:h.chestRate,chestForce:h.chestForce,groupEnemies:h.groupEnemies,extraGroups:h.extraGroups,eliteBoost:h.eliteBoost,supplierForced:h.supplierForced};}
-function newDepth(s:State,depth:number){storeWorld(s);s.depthLog??={start:1,maximum:s.depth,up:0,down:0,visits:s.visit+1};const descending=depth>s.depth;if(descending)s.depthLog.down++;else s.depthLog.up++;s.depth=depth;s.visit++;s.depthLog.maximum=Math.max(s.depthLog.maximum,depth);s.depthLog.visits++;s.region=makeRegion(depth,s.visit,s.regionSeed??s.seed,regionOptions(s));s.x=s.region.spawn.x;s.z=s.region.spawn.z;
+function newDepth(s:State,depth:number){storeWorld(s);s.depthLog??={start:1,maximum:s.depth,up:0,down:0,visits:s.visit+1};const descending=depth>s.depth;if(descending)s.depthLog.down++;else s.depthLog.up++;s.depth=depth;s.visit++;s.depthLog.maximum=Math.max(s.depthLog.maximum,depth);s.depthLog.visits++;s.region=makeRegion(depth,s.visit,s.regionSeed??s.seed,regionOptions(s));s.x=s.region.spawn.x;s.z=s.region.spawn.z;s.strayTrail=undefined;s.strayWarning=false;
  const h=relicHooks(s);s.layerFights=0;s.layerMods={};if(descending&&h.fpPerDescend)adjustFp(s,h.fpPerDescend,'遗物：每下一层');if(h.potionsPerLayer)s.potions+=h.potionsPerLayer;
  if(s.skipNextFloorFights){s.skipNextFloorFights=false;for(const t of s.region.things)if(t.kind==='enemy'&&!t.foes.some(id=>FOES[id]?.role==='Boss'))t.used=true;note(s,'逃票：这一层的敌人没注意到你们。');}
  const chance=s.strayGuaranteedOnce?1:Math.max(STRAY_SPAWN_CHANCE,h.straySpawn);if(strayFloor(depth)&&!s.crossWard){const rolled=rng(s)<chance;if(s.strayGuaranteedOnce)s.strayGuaranteedOnce=false;if(rolled)spawnStray(s);}if(!s.run.unlocks.includes('depth-'+depth))s.run.unlocks.push('depth-'+depth);if(depth%5===0&&!s.run.unlocks.includes('anchor-'+depth))s.run.unlocks.push('anchor-'+depth);for(const p of activeParty(s))s.world=dispatchBattleEvent(ensureWorld(s),'new_region',p.id);storeWorld(s);note(s,`抵达${THEMES[s.region.theme]!.name} · 第${depth}层。`);}
