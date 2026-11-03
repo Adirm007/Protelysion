@@ -27,6 +27,7 @@ import {isInterludeAction} from '../compiler/interlude';
 import {MONSTER_BY_ID} from './monsters/catalog';
 import {MONSTER_CONTENT_VERSION,monsterNumbers} from './monsters/numbers';
 import {MATERIAL_DROP_CHANCE,VALUE_CRYSTAL,VALUE_CRYSTAL_CHANCE,isMythicLevel,levelQuality,materialEffect,materialFor} from './monsters/materials';
+import {recordBestiary,type BestiaryLedgerEntry} from './bestiary';
 export type State={version:2;regionSeed?:number;monsterContentVersion?:string;mechanicsVersion?:2;source?:'host';hostContext?:string;hostSave?:{frame:string;revision:number};writeback?:'pending'|'synced'|'done'|'error';inventory?:Record<string,{owner:ActorRef;name:string;actorId:string;remaining:number;used:number}>;relics?:string[];ownedRelics?:{id:string;owner:string;stacks:number}[];bossPhases?:string[];seed:number;mode:'explore'|'battle'|'event'|'supplier'|'ended';supplierState?:{thingId:string;talk?:boolean};paused:boolean;depth:number;visit:number;region:Region;x:number;z:number;party:PartyMember[];run:Run;battle:Battle|null;world?:Battle;encounterId:string;origin:{x:number;z:number};selected:string|null;selectedTargets?:string[];potions:number;notice:string;history:string[];steps:number;fights:number;eventDefinition?:EventDefinition;eventState?:{id:string;thingId:string;offers:string[];results:EventResult[];owner:string;choice:string};eventJournal?:Record<string,string>;flags?:string[];explorationMs?:number;escapeMs?:number;depthLog?:{start:number;maximum:number;down:number;up:number;visits:number};encounters?:{depth:number;region:string;enemies:{name:string;level:number;count:number}[];outcome:string}[];settings?:{animationSpeed:number;shake:boolean;flash:boolean;music:number;effects:number;graphicsQuality?:'auto'|'desktop'|'mobile'};favorites?:string[];actionPage?:number;actionCategory?:string;
  /** 0.36 遗物 / 事件 / 商店 */
  battleMods?:BattleMod[];layerMods?:LayerMods;runMods?:LayerMods;layerFights?:number;fpDebt?:number;bag?:Record<string,number>;bell?:number;strayGuaranteedOnce?:boolean;sealedSkills?:Record<string,string[]>;stepsSinceHeal?:number;skipNextFloorFights?:boolean;shopPage?:boolean;smoke?:boolean;
@@ -48,6 +49,8 @@ export type State={version:2;regionSeed?:number;monsterContentVersion?:string;me
  supplierTalks?:Record<string,TalkSession>;supplierKills?:number;supplierTalkReady?:boolean;supplierSerial?:number;customRelics?:Record<string,RelicDef>;customItems?:Record<string,CustomItemSpec>;
  /** 0.42 补给员长期记忆：规则发生时记下的事件（宿主记忆服务取走）；当前是第几任补给员与她的开场白（运行时按宿主记忆设置，试玩时为空）。 */
  supplierLedger?:SupplierLedgerEntry[];supplierMemoryEpoch?:number;supplierGreeting?:string;
+ /** 0.44 敌役图鉴：开战 / 战胜时记下的事实，运行时取走并入图鉴存档。 */
+ bestiaryLedger?:BestiaryLedgerEntry[];
  eventPick?:{kind:'relic'|'member'|'skills'|'confirm';mode:string;options:{id:string;label:string;description:string}[];max:number;selected:string[];owner?:string;payload?:Record<string,unknown>};};
 const ref=(p:PartyMember):ActorRef=>p.ref??{kind:'partner',name:p.id};
 export const activeParty=(s:State)=>s.party.filter(p=>s.run.participants.find(q=>actorKey(q.ref)===actorKey(ref(p)))?.status==='active');
@@ -201,6 +204,7 @@ function openBattle(s:State,thing:Thing){
  if(mods.some(m=>m.enemyDouble))for(const e of [...enemies])enemies.push({...structuredClone(e),id:'enemy-'+enemies.length});
  s.smoke=false;s.battle=createBattle([...allies,...enemies],s.seed);note(s,'遭遇 '+thing.foes.map(id=>FOES[id]!.name).join('、')+'。');
  s.lastFight={depth:s.depth,region:s.region.name,theme:THEMES[s.region.theme]!.name,foes:enemies.map((e,i)=>({id:thing.foes[i%thing.foes.length]!,name:e.name,level:e.combatLevel}))};
+ {const seen=new Map<string,number>();s.lastFight.foes.forEach(f=>seen.set(f.id,Math.max(seen.get(f.id)??0,f.level)));for(const [id,level] of seen)recordBestiary(s,'seen',id,level);}
  applyBattleOpeners(s,mods);offerCross(s);
 }
 /** 0.36 开战修正：奇偶天平、事件“下 N 场”修正、本层敌人全属性。 */
@@ -446,6 +450,7 @@ function endBattle(s:State){exitTeleported(s);if(s.run.status!=='active')return;
    if(anyDefeated&&hooks.fpPerVictory)grantFp(s,hooks.fpPerVictory,'债主账本');
    if(anyDefeated&&hooks.ashFp){const n=b.units.filter(u=>u.side==='enemy').reduce((k,u)=>k+(u.statuses??[]).filter(x=>x.definition.polarity==='negative').length,0);if(n)grantFp(s,n*hooks.ashFp,'灰烬骨灰');}
    if(anyDefeated)battleDrops(s,thing,b,boss);for(const id of thing.foes)if(!s.run.unlocks.includes('enemy:'+id))s.run.unlocks.push('enemy:'+id);
+   {const down=new Map<string,{count:number;level:number}>();for(const u of b.units){const m=/^enemy-(\d+)$/.exec(u.id);if(u.side!=='enemy'||u.owner||u.escaped||!u.defeated||isAlive(u)||!m)continue;const id=thing.foes[Number(m[1])%thing.foes.length];if(!id)continue;const x=down.get(id)??{count:0,level:0};x.count++;x.level=Math.max(x.level,u.level);down.set(id,x);}for(const [id,x] of down)recordBestiary(s,'defeat',id,x.level,x.count);}
    // 经验倍率：学徒笔记 × 事件
    const expMul=hooks.expMul*(s.battleMods??[]).filter(m=>m.fights>0&&m.expMul).reduce((n,m)=>n*m.expMul!,1);
    if(expMul!==1)for(const [i,p] of s.run.participants.entries()){const before=runBefore.participants[i]?.experience??0,gained=p.experience-before;if(gained>0){const extra=Math.round(gained*expMul)-gained;p.experience+=extra;const last=p.battles[p.battles.length-1];if(last)last.experience+=extra;}}

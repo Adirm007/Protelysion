@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.43.3-20261102-stray-rear-spawn",
+  "revision": "protelysion-0.44.0-20261103-bestiary",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 3096405,
-      "sha256": "bc7367e0ce9aa1966698ffe79d8cd1888dd3ef58d83fb8d2b00b721d3cb68318"
+      "bytes": 3132446,
+      "sha256": "59033d01edbf7b195b4a9531ff0231d9a2c188c09a4a88f3dc698d67fa20646d"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

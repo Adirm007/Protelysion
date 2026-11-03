@@ -208,8 +208,8 @@
       "sha256": "ce753ddd0fa4eb92c1f4ff2f19ea84463f4329f7739e1692f2918bdbe8d84cf6"
     },
     "src/distribution/entry.ts": {
-      "bytes": 10065,
-      "sha256": "640997bf09e0f9824488e0de778d9c5445b0f70e224eaa971824cd3b74c59fd9"
+      "bytes": 10815,
+      "sha256": "5e1f63798b937dd092177dc9b04309182e906c731e0eee340106f27c32f4a5cf"
     },
     "src/distribution/fixed-release.ts": {
       "bytes": 1037,
@@ -226,6 +226,10 @@
     "src/flow.ts": {
       "bytes": 2229,
       "sha256": "43515bebede20b2960993f1f82259ec8675a1e03d10341868bb1d7b426572bcd"
+    },
+    "src/game/bestiary.ts": {
+      "bytes": 23168,
+      "sha256": "aa76b7076402563c88dcbda79089b07ad2563a90698b3a16507e5e979200e9fb"
     },
     "src/game/combat-ai.ts": {
       "bytes": 9545,
@@ -248,8 +252,8 @@
       "sha256": "4203483363bd16c648a30aa62d0130ed112ad6169e09c521a65519d97eddc1c1"
     },
     "src/game/expedition.ts": {
-      "bytes": 101873,
-      "sha256": "d9828a53d82fa95a6d778e3dd7021bbfb78b3feaa1a6914f20aed49b73901c49"
+      "bytes": 104161,
+      "sha256": "60d1dbe867325230f8b4a544de532a167d6bacf1b19d9e06e08376f21818ae3d"
     },
     "src/game/floor-pack.ts": {
       "bytes": 1142,
@@ -448,8 +452,8 @@
       "sha256": "ea92a6cf73f793348fa0829188206a63736c7ce3b9e33ac5a4ba80ac39495ad0"
     },
     "src/game/monsters/mimic.ts": {
-      "bytes": 1051,
-      "sha256": "2ee0e569737ea775a69980224091cbde7201d878fad8348b5ebd7be87e9d3db7"
+      "bytes": 1058,
+      "sha256": "1f7040c03f678c0b067bf1e7f52573a0f6387ca5fd539090d13a390a4973a0ea"
     },
     "src/game/monsters/numbers.ts": {
       "bytes": 3214,
@@ -460,8 +464,8 @@
       "sha256": "f2f2503b665d73f7866bcde96d4b591cbf429d4204e08504eefcd6211a47de66"
     },
     "src/game/monsters/stray.ts": {
-      "bytes": 10297,
-      "sha256": "e53d5fc8fd69784f0a09fb44e9f76b9076a976c36b7f2c6f78d37a189430d5ec"
+      "bytes": 10329,
+      "sha256": "7bb2acf07ff05bde944e9708f99e217fff56f9eb4aff0cd2bcb14b67d8283eab"
     },
     "src/game/monsters/theme-malice.ts": {
       "bytes": 44487,
@@ -472,8 +476,8 @@
       "sha256": "5db79ffab6f1ab794976318296bdce0aba1ef4e97e5157bef2b75fff1bafd1c5"
     },
     "src/game/relic-catalog.ts": {
-      "bytes": 18260,
-      "sha256": "2dcf205384b259af9ef4f75b2b3f4fe61cffb38c6dae67915e4c01eeeab4780b"
+      "bytes": 18299,
+      "sha256": "f43bec2e9cba3cfe2b7b3461a40bf11c60a074ff8f5f7be802ba799cd6990bc4"
     },
     "src/game/relics.ts": {
       "bytes": 3964,
@@ -488,8 +492,8 @@
       "sha256": "1bc83553ecbf1ab27b2e41071e7d7e937eee3b2256290a6c2ef3c4389f4b78c8"
     },
     "src/game/runtime.ts": {
-      "bytes": 17236,
-      "sha256": "3df09734ba329d818f3379aeb936e09677fe7a4b491a24f6f37575f9de0d1577"
+      "bytes": 18137,
+      "sha256": "333f7789067a3da869887f31475f184ea7be8349b3b844c1e4d50831a9a46436"
     },
     "src/game/supplier-agent.ts": {
       "bytes": 27159,
@@ -506,6 +510,10 @@
     "src/host/avatars.ts": {
       "bytes": 3669,
       "sha256": "b7d40b0074ef9e7768d6d6544a4d2a49e9a7c207ad0ee3352d1d598200e42b47"
+    },
+    "src/host/bestiary-host.ts": {
+      "bytes": 1789,
+      "sha256": "cdb9baf2472636b9ab3a1cef26a6e2ab05904eb61339eb1d0c13c8d62ba8b066"
     },
     "src/host/chat-cache.ts": {
       "bytes": 1506,
@@ -584,8 +592,8 @@
       "sha256": "6ae3b2404520908d757c4b7cbe23985e99285d637369db207e8cfb48b5eb4d16"
     },
     "src/host-game-entry.ts": {
-      "bytes": 15402,
-      "sha256": "e64eb7bfda81dffb2e8cb969e0d7b333edb8b0ca6a9508cc17df103b5900b70a"
+      "bytes": 16234,
+      "sha256": "02ae066fa0f9d574dc079c23dbb61100bc8af14bf691ef5aa6cfd7675d5bb63d"
     },
     "src/main.ts": {
       "bytes": 12452,
@@ -691,13 +699,21 @@
       "bytes": 20901,
       "sha256": "5b93a4d52777fb090622971c205404638488b2543df92fe203c64c6d63c03794"
     },
+    "src/ui/bestiary-art.ts": {
+      "bytes": 4168,
+      "sha256": "29ab9a499cd441cc30cc5ddf419bbb8c63196fdce972e98ca27a6d2e6e515bae"
+    },
+    "src/ui/bestiary-panel.ts": {
+      "bytes": 27354,
+      "sha256": "e4974e3ab42d8769abd397c537df6b984206d8da11457a4cde9be1dae0e61b5c"
+    },
     "src/ui/character-sheet.ts": {
       "bytes": 6299,
       "sha256": "05bede66bdd8ecfd60723c0caff2a7f8c37aa1dc33cf697407cb9dbb9ecc67ad"
     },
     "src/ui/expedition-ui.ts": {
-      "bytes": 25929,
-      "sha256": "088bacf0b897f0520e6c81971e76b6761726d36f50b8f18e3cc089640e30316d"
+      "bytes": 26619,
+      "sha256": "cb1c240986daaa0126c758ef5bdd6687e114c4ae01218bbbf2dc18d6d149e6d0"
     },
     "src/ui/game-dom.ts": {
       "bytes": 793,
@@ -744,8 +760,8 @@
       "sha256": "90d40f57a3787dca78ae735d10a6a20d9c5c6895db04f8316ef7f6fb5872dcc9"
     },
     "src/ui/theme.ts": {
-      "bytes": 37794,
-      "sha256": "d68f036183e642650502f48514e51f682ea53511a02575f1d1c51d340da18be7"
+      "bytes": 38419,
+      "sha256": "5c5404c6b4b0a904e3d97ff0f29b96efabec706ac27917e87429e8fd208d6bd5"
     },
     "src/ui/typewriter.ts": {
       "bytes": 2442,
@@ -800,8 +816,8 @@
       "sha256": "190fec2f4d0dcebc04fe9a9b80e475f5016c4c4853651cef6c86849d87b834e1"
     },
     "scripts/build-public.mjs": {
-      "bytes": 62205,
-      "sha256": "5f3d48021a9bcc59fac74fff7e8c86d7022b906d68f25ae24b1411473971906f"
+      "bytes": 62733,
+      "sha256": "b9fa21faf3e70b6758942d6423b3c59993f6fc8e5a0e1e0caf58b75a28da7106"
     },
     "scripts/build.mjs": {
       "bytes": 1927,
@@ -974,6 +990,10 @@
     "tests/battle-clock.test.ts": {
       "bytes": 3719,
       "sha256": "f2f3e49ae542e9bd8b97ab169009039a3f3edd39eb1b809f34151f65f64c7c12"
+    },
+    "tests/bestiary-044.test.ts": {
+      "bytes": 14791,
+      "sha256": "27695df399d56a079f2dfb3858812daa3e60733f197761dd28ea783dc7543675"
     },
     "tests/blueprint-compiler.test.ts": {
       "bytes": 17825,
@@ -1224,8 +1244,8 @@
       "sha256": "83b2f9f4a4707d9154aee379589b3fe2f9680e7cbd545fb3329bdffbc9828a4d"
     },
     "tests/relics-events-036.test.ts": {
-      "bytes": 9471,
-      "sha256": "4ac656b2e2a49be161c1742cbcc02331fb4e4101fbe4f8f4567c65a7ff9ea01a"
+      "bytes": 9565,
+      "sha256": "362627d09dd11db89773dde0e83f342a2f2a7a68048a337aabdf2f89a8108a9b"
     },
     "tests/return-0377.test.ts": {
       "bytes": 3844,
@@ -1256,16 +1276,24 @@
       "sha256": "f58512e599746bfe1f61c8c07d1a2d31fdf7d2740700857557b7122486b708e1"
     },
     "tests/silver-cross-0376.test.ts": {
-      "bytes": 11796,
-      "sha256": "2a278b39e71b03889a48e31d8b9ce498c79c75818c9ed58c7275195d48afcdc8"
+      "bytes": 11865,
+      "sha256": "8198b170ab661377f389062ceaa45d28f15271233e8bc1e7ac0348cb89343f52"
     },
     "tests/skill-display-view.test.ts": {
       "bytes": 1992,
       "sha256": "0e064f0cf601825278fe5f4e032e2040d0cdaae5fd6e92f0666e54dc0d45da57"
     },
     "tests/stray-035.test.ts": {
-      "bytes": 11860,
-      "sha256": "8001758de58cad6f89d4ef74e2cd8c35a2cd476d8ce15c926f282bbaf1f55df0"
+      "bytes": 11386,
+      "sha256": "5662921d04e4480ec5d5558400dbb68a4b24d68920f8a7540d120f76a4dec773"
+    },
+    "tests/stray-fixture.ts": {
+      "bytes": 996,
+      "sha256": "1eb94dcc8a5b96f6795cbd4d836fac4e8e77756a87a02569b126a2ed63eed23a"
+    },
+    "tests/stray-spawn.test.ts": {
+      "bytes": 8208,
+      "sha256": "5e26b5eb73f23d068c405a709457149e7f8aa2176587482204b8a3e57d647531"
     },
     "tests/supplier-browser-fixture.ts": {
       "bytes": 3631,
@@ -1316,12 +1344,12 @@
       "sha256": "f6ea18822fd232eb3e39ef902136b01a146d3abc7331b94acdf84778d46d03d8"
     },
     "package.json": {
-      "bytes": 1066,
-      "sha256": "01d32816a89be0b6e46e7d68f2d96b8474d60a76dc350db669b23761dea31341"
+      "bytes": 1038,
+      "sha256": "9488554bb3e97b6c4a6b731327a4479945f3223d6ce9d7d65f1534fba034dbce"
     },
     "package-lock.json": {
-      "bytes": 18462,
-      "sha256": "637f85eb168ad15cb8f821dde4435c16f8b99c82698ddf1892bdf490279652fa"
+      "bytes": 17865,
+      "sha256": "1400a1b4175dd3328ca2efc67d7fd94feabe933467f3f0c8b4d335036476a25c"
     },
     "tsconfig.json": {
       "bytes": 277,

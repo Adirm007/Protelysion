@@ -13,7 +13,7 @@ import type {MaterialQuality} from './materials';
 export const STRAY_ID='COMMON_STRAY';
 export const STRAY_NAME='?';
 export const STRAY_DESIGN:MonsterDesign={id:STRAY_ID,designId:STRAY_ID,theme:'T15',name:STRAY_NAME,role:'精英',cores:['shot','mirror'],motif:'未成之笔',build:'hunter'};
-const STRAY_THEME:ThemeDesign={id:'T15',name:'纸页天穹·留白',scenes:['未写的页','未写的页','未写的页'],subtitle:'尚未成字的笔画',lawNames:['无字','留白'],laws:['equivalence','reflection'],realm:'无字之页',element:'无'};
+export const STRAY_THEME:ThemeDesign={id:'T15',name:'纸页天穹·留白',scenes:['未写的页','未写的页','未写的页'],subtitle:'尚未成字的笔画',lawNames:['无字','留白'],laws:['equivalence','reflection'],realm:'无字之页',element:'无'};
 /** 专属素材：神话级消耗品，可带出迷宫；转化方式交给读者/宿主。 */
 export const STRAY_THREAD={name:'暧昧的线',quality:'神话' as MaterialQuality,effect:'可以转为任何想要的素材，也许就连源质也……',description:'尚未成型，排布成字的笔画，因此，也有可以成为任何名作的可能性。如果收集九个的话…'};
 export const STRAY_THREAD_CHANCE=.06;

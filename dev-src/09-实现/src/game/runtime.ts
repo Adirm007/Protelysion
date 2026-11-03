@@ -11,6 +11,7 @@ import {transferRelic,ringBell,dismissWarning,answerExit,craftSilverCross,toggle
 import {registerSupplierContent,supplierTalkSend,supplierTalkReply,supplierTalkFailed,supplierTalkBack,startNarrative} from './expedition';
 import type {SupplierPrompt} from './supplier-agent';
 import {drainSupplierLedger,type SupplierLedgerEntry} from './supplier-ledger';
+import {drainBestiaryLedger,type BestiaryService} from './bestiary';
 import type {SupplierTalkRequest} from './expedition';
 import {assertCurrentExpedition,restoreExpedition,view,move,interact,withdraw,eventChoice,supplierChoice,closeSupplier,chooseSkill,chooseTarget,flee,tick,tickExploration,useOutsideBattle,removeRelic,type State} from './expedition';
 
@@ -23,12 +24,16 @@ const isQuality=(value:unknown):value is GraphicsQualityInput=>['auto','desktop'
 // Device class never lowers fidelity. The legacy auto preference now means standard.
 const normalizeQuality=(value:unknown):GraphicsQuality=>value==='mobile'?'mobile':'desktop';
 
-export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;onNarrative?:(s:State)=>void;supplierMemory?:RuntimeSupplierMemory;onMemorySettings?:()=>void},win:Window=window){
+export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;onNarrative?:(s:State)=>void;supplierMemory?:RuntimeSupplierMemory;onMemorySettings?:()=>void;
+ /** 0.44 敌役图鉴：取走账本的服务、打开图鉴（可直接翻到某个物种）、战斗立绘到达时顺手存一张缩略图。 */
+ bestiary?:BestiaryService;onBestiary?:(id?:string)=>void;onArt?:(id:string,url:string)=>void},win:Window=window){
  let stale=false,visible=true,handoff=false;
  let visibilityRenderer:((visible:boolean)=>void)|undefined;
  const memory=options.supplierMemory;
  /** 把这一步里发生的补给员事件交给长期记忆，并同步“第几任”与开场白（杀害会在这里换一任）。 */
  function memorySync(){if(!memory||!state)return;try{memory.observe(state,drainSupplierLedger(state));state.supplierMemoryEpoch=memory.epoch();state.supplierGreeting=memory.greeting();}catch(e){console.warn('Booksea supplier memory skipped',e);}}
+ /** 把开战 / 战胜时记下的图鉴事实交给图鉴服务（没有服务时留在账本里，下次再交）。 */
+ function bestiarySync(){if(!options.bestiary||!state?.bestiaryLedger?.length)return;try{options.bestiary.observe(drainBestiaryLedger(state));}catch(e){console.warn('Booksea bestiary skipped',e);}}
  let state=options.initial??null,renderer:((s:string)=>void)|null=null,receipt=0,lastMode='title',writes=Promise.resolve(),disposed=false;
  let rendererMetrics:Record<string,unknown>={};
  const frames=new RendererFrameCodec();
@@ -38,7 +43,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  let graphicsQuality:GraphicsQuality=normalizeQuality(preference);
  if(state){assertCurrentExpedition(state);state.settings!.graphicsQuality=graphicsQuality;registerSupplierContent(state);state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;memorySync();}
  let audioFeedback: UIAudioFeedback | undefined;
- const ui=options.uiRoot?mountExpeditionUI(options.uiRoot,(type,payload)=>input({type,payload}),{portraits:options.portraits,onResources:options.onResources,...(options.onMemorySettings?{onMemory:options.onMemorySettings}:{}),feedback:{cue:name=>audioFeedback?.cue(name),writing:active=>audioFeedback?.writing(active)}}):undefined;
+ const ui=options.uiRoot?mountExpeditionUI(options.uiRoot,(type,payload)=>input({type,payload}),{portraits:options.portraits,onResources:options.onResources,...(options.onMemorySettings?{onMemory:options.onMemorySettings}:{}),...(options.onBestiary?{onBestiary:options.onBestiary}:{}),feedback:{cue:name=>audioFeedback?.cue(name),writing:active=>audioFeedback?.writing(active)}}):undefined;
  // Map-load veil (first descent, floor transitions, renderer reattach). Presentation only, never game state.
  const veil=options.uiRoot?mountLoadingVeil(options.uiRoot,win):undefined;
  const floorPacks=createFloorPackCache();
@@ -73,7 +78,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  function save(){if(state)setStored(options.storageKey,JSON.stringify(state));}
  function validSession(){if(stale||disposed)return false;if(state&&options.isCurrent&&!options.isCurrent(state)){stale=true;state.paused=true;save();options.onInvalidated?.();return false;}return true;}
  function checkpoint(){
-  save();if(!state||!options.checkpoint)return;
+  bestiarySync();save();if(!state||!options.checkpoint)return;
   const copy=structuredClone(state);state.writeback='pending';
   writes=writes.then(async()=>{
    if(stale||options.isCurrent&&!options.isCurrent(copy))throw Error('聊天楼层已回退，旧旅程写入已取消');
@@ -133,7 +138,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
    else if(type==='flee')flee(state);
    if(fromMenu&&state.mode==='explore')state.paused=true;
   }
-  memorySync();
+  memorySync();bestiarySync();
   if(['handoff','pause','interact','event','supplierChoice','supplierClose','supplierTalk','supplierTalkBack','outsideSkill','removeRelic','transferRelic','ringBell','craftCross','crossWard','dismissWarning','exitAnswer','flee','withdraw','continue'].includes(type)||(type==='target'||type==='confirmTargets')&&!state?.selected)checkpoint();else save();
   publish();sound.intent(type);
  }
@@ -162,7 +167,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
   acceptNarrative(copy:State){if(disposed||!state||state.run.id!==copy.run.id)return;state=structuredClone(copy);state.paused=true;handoff=true;save();},
   attach(callback:(s:string)=>void){renderer=callback;frames.reset();publish();},
   input,inspect:()=>snapshot(),graphicsQuality:()=>graphicsQuality,
-  art(id:string,png:string){if(!ui||!/^[A-Za-z0-9_:-]{1,100}$/.test(id)||typeof png!=='string'||!png.startsWith('iVBORw0KGgo')||png.length>16_000_000)return false;ui.setArt(id,'data:image/png;base64,'+png);return true;},
+  art(id:string,png:string){if(!ui||!/^[A-Za-z0-9_:-]{1,100}$/.test(id)||typeof png!=='string'||!png.startsWith('iVBORw0KGgo')||png.length>16_000_000)return false;const url='data:image/png;base64,'+png;ui.setArt(id,url);try{options.onArt?.(id,url);}catch{/* 图鉴缩略图只是附带的 */}return true;},
   presentation:()=>({holding:!!heldFrame}),
   rendered(mode:string,regionId?:string,metrics?:string){
    receipt++;lastMode=mode;
@@ -193,7 +198,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
    if(state.mode!==mode||participants!==state.run.participants.map(p=>p.status).join(','))checkpoint();publish();
   }
  },50);
- const saver=win.setInterval(save,1500),hide=()=>{if(win.document.hidden&&state&&state.mode!=='ended'){state.paused=true;checkpoint();publish();}},leave=()=>{save();void memory?.flush(state??undefined);};
+ const saver=win.setInterval(save,1500),hide=()=>{if(win.document.hidden&&state&&state.mode!=='ended'){state.paused=true;checkpoint();publish();}},leave=()=>{bestiarySync();save();void memory?.flush(state??undefined);void options.bestiary?.flush();};
  win.document.addEventListener('visibilitychange',hide);win.addEventListener('pagehide',leave);
- return {...api,dispose(){save();void memory?.flush(state??undefined);disposed=true;visibilityRenderer=undefined;veil?.dispose();ui?.dispose();sound.dispose();audioFeedback=undefined;win.clearInterval(clock);win.clearInterval(saver);win.document.removeEventListener('visibilitychange',hide);win.removeEventListener('pagehide',leave);renderer=null;frames.reset();}};
+ return {...api,dispose(){bestiarySync();save();void memory?.flush(state??undefined);void options.bestiary?.flush();disposed=true;visibilityRenderer=undefined;veil?.dispose();ui?.dispose();sound.dispose();audioFeedback=undefined;win.clearInterval(clock);win.clearInterval(saver);win.document.removeEventListener('visibilitychange',hide);win.removeEventListener('pagehide',leave);renderer=null;frames.reset();}};
 }

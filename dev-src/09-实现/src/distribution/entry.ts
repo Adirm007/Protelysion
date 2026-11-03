@@ -7,7 +7,11 @@ import {startExpedition} from '../game/expedition';
 import {installPlayerTheme,shellHeader,hero,modalFrame,bindModal,icons} from '../ui/theme';
 import {mountNarrativePanel} from './narrative-panel';
 import {narrativeState} from './narrative-panel';
+import {createBestiary,localBestiaryPort} from '../game/bestiary';
+import {bestiaryArtCache} from '../ui/bestiary-art';
+import {mountBestiaryPanel} from '../ui/bestiary-panel';
 const mb=(n:number)=>(n/1000000).toFixed(1)+' MB';
+const localStore=(win:Window)=>{try{return win.localStorage;}catch{return undefined;}};
 export type BootConfig={base:string;manifest:ReleaseManifest;mode?:'host'|'standalone';fixedRelease?:FixedRelease};
 type PersistentOptions={onUserNarrative?:()=>void};
 /** One reader-owned view, independent of the <booksea-game> message that opened it. */
@@ -73,9 +77,12 @@ async function bootPortal(root:HTMLElement,config:BootConfig,win:Window,autoResu
    store.installFetch();globals.BOOKSEA_ASSET_BASE=base.href;
    if(config.mode==='standalone'){
     installPlayerTheme(game);game.classList.add('bs-playing');game.innerHTML='<div class="bs-portal"><section id="stage" class="bs-stage"><canvas id="canvas" width="1280" height="720" tabindex="0"></canvas></section></div>';
-    const runtime=mountExpeditionRuntime({storageKey:'booksea-expedition-random-v2',uiRoot:el('stage'),onResources:menu.open,newGame:()=>startExpedition(playtestParty(),Date.now()>>>0),audio:{baseUrl:new URL('audio/',base).href,controlsRoot:el('stage')}},win);
-    cleanup=()=>runtime.dispose();
-    const Engine=await store.loadEngine(),engine=new Engine({executable:new URL('game',base).href,mainPack:new URL('game.pck',base).href,canvas:el('canvas'),canvasResizePolicy:0,focusCanvas:true});cleanup=()=>{runtime.dispose();engine.requestQuit();};game.hidden=false;await engine.startGame();
+    // 0.44 敌役图鉴：试玩页存在这台设备（localStorage），立绘缩略图同样存在本机。
+    const dex=createBestiary(localBestiaryPort(localStore(win)),{local:true}),dexArt=bestiaryArtCache(win),dexPanel=mountBestiaryPanel(win.document,dex,dexArt);
+    const runtime=mountExpeditionRuntime({storageKey:'booksea-expedition-random-v2',uiRoot:el('stage'),onResources:menu.open,newGame:()=>startExpedition(playtestParty(),Date.now()>>>0),audio:{baseUrl:new URL('audio/',base).href,controlsRoot:el('stage')},bestiary:dex,onBestiary:id=>dexPanel.show(el('stage'),id),onArt:(id,url)=>dexArt.capture(id,url)},win);
+    const closeDex=()=>{dexPanel.dispose();void dex.flush().finally(()=>dex.dispose());};
+    cleanup=()=>{runtime.dispose();closeDex();};
+    const Engine=await store.loadEngine(),engine=new Engine({executable:new URL('game',base).href,mainPack:new URL('game.pck',base).href,canvas:el('canvas'),canvasResizePolicy:0,focusCanvas:true});cleanup=()=>{runtime.dispose();engine.requestQuit();closeDex();};game.hidden=false;await engine.startGame();
    }else{app=mountHostGame(game,globals,{loadEngine:()=>store.loadEngine(),autoResume,onUserNarrative:options.onUserNarrative});cleanup=app.dispose;if(!visible)await app.setVisible(false);}
    el('resource-setup').hidden=true;game.hidden=false;root.classList.add('bs-playing');started=true;
   }catch(error){cleanup();game.replaceChildren();game.hidden=true;status.textContent=/空间|quota/i.test(String(error))?'空间不足，请清理后重试。':'下载暂时中断，点击重试。';}

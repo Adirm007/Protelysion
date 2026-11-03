@@ -7,6 +7,7 @@ import {mountGameViewport} from './game-viewport';
 import {RPG_STYLE} from './rpg-style';
 import {TITLE_ART} from './art-title';
 import {applyHostAvatar} from './host-avatar';
+import {dexIdForArt} from '../game/bestiary';
 
 const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C9 4.3 5.6 4.2 3 5.2v13.6c2.6-1 6-.9 9 1 3-1.9 6.4-2 9-1V5.2c-2.6-1-6-.9-9 1Z"/><path d="M12 6.2v13.6M6 9.2c1.4-.3 2.8-.2 4 .4M6 12.6c1.4-.3 2.8-.2 4 .4M14 9.6c1.2-.6 2.6-.7 4-.4"/></svg>';
 const FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
@@ -17,7 +18,7 @@ import type {GameView, BattleCue} from '../presentation/battle-cues';
 type TitleView = {mode: string; canContinue: boolean};
 /** Short in-world prompt shown while standing next to something; only things that need one. */
 const NEARBY_TIPS: Record<string, string> = {camp: '椅子可以坐'};
-export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, options: {portraits?: Record<string, string>; onResources?: () => void; onMemory?: () => void; feedback?: UIAudioFeedback} = {}) {
+export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, options: {portraits?: Record<string, string>; onResources?: () => void; onMemory?: () => void; onBestiary?: (id?: string) => void; feedback?: UIAudioFeedback} = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView!, {el, button} = gameDom(doc), viewport = mountGameViewport(stage, win);
   if (!doc.getElementById('booksea-rpg-style')) {const css = el('style'); css.id = 'booksea-rpg-style'; css.textContent = RPG_STYLE; doc.head.append(css);}
   const ui = el('div', 'rpg-ui'), hud = el('div', 'rpg-hud'), place = el('span', 'rpg-place'), menuButton = button('☰', () => send('pause'), 'rpg-menu-button'), toast = el('div', 'rpg-toast'), nearbyTip = el('div', 'rpg-nearby'), explore = el('div', 'rpg-explore-actions'), pad = el('div', 'rpg-pad'), battle = el('section'), shade = el('div', 'rpg-menu-shade'), panel = el('section', 'rpg-window'), header = el('div', 'rpg-window-header'), title = el('h2'), tabs = el('nav', 'rpg-menu-tabs'), body = el('div', 'rpg-menu-body'), audioRoot = el('div', 'rpg-audio'), footer = el('div', 'rpg-menu-footer');
@@ -73,6 +74,8 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
         if (id === 'battle' && v.mode !== 'battle') continue;
         const b = button(name!, () => {tab = id!; menuKey = ''; renderMenu(v);}); b.setAttribute('aria-pressed', String(id === tab)); tabs.append(b);
       }
+      // 0.44 敌役图鉴：一个直接打开图鉴面板的页签（面板盖在手记之上，关掉回到原页）。
+      if (options.onBestiary) {const dex = button('图鉴', () => options.onBestiary?.(), 'rpg-tab-launch'); dex.setAttribute('aria-label', '打开敌役图鉴'); tabs.append(dex);}
       if (tab === 'party') {
         for (const p of v.party) {
           const card = el('section', 'rpg-member' + (p.status === 'active' ? '' : ' is-away')), art = el('div', 'rpg-member-art'), info = el('div', 'rpg-member-info'), top = el('div', 'rpg-member-top'), bars = el('div', 'rpg-member-bars'), actions = el('div', 'rpg-member-actions');
@@ -109,6 +112,8 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
           if (u.counters?.length) s.append(el('p', '', '公开计数：' + u.counters.join('、')));
           for (const effect of u.statuses) s.append(el('p', '', effect.name + ' · ' + effect.description));
           for (const ability of u.monsterAbilities) {const d = el('details'); d.append(el('summary', '', ability.name), el('p', '', ability.description)); s.append(d);}
+          const dexId = u.side === 'enemy' && u.artId ? dexIdForArt(u.artId) : undefined;
+          if (dexId && options.onBestiary) {const open = button('查看图鉴', () => options.onBestiary?.(dexId), 'rpg-dex-link'); open.setAttribute('aria-label', '在图鉴中查看' + u.name); s.append(open);}
         }
         if (v.battle.fields.length) section('场地效果', v.battle.fields.map(f => '持续效果 · 剩余 ' + Math.max(0, Math.ceil(f.remaining))).join('\n'));
       } else if (tab === 'settings') {
