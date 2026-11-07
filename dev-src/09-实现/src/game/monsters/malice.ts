@@ -44,9 +44,9 @@ export function typeless(c:Ctx,amount:Partial<ReturnType<typeof flat>>,opts:{gua
 export const enemyRule=(rule:Extract<EffectSpec,{op:'rule'}>['rule'],key:string,duration=permanent):EffectSpec=>({op:'rule',rule,key,duration,targeting:ALL_ENEMIES});
 export const selfRule=(rule:Extract<EffectSpec,{op:'rule'}>['rule'],key:string,duration=permanent,extra:Partial<Extract<EffectSpec,{op:'rule'}>>={}):EffectSpec=>({op:'rule',rule,key,duration,targeting:self,...extra});
 
-/* ───────────── F1 真多段：每段全额，段数随形态增加 ───────────── */
+/* ───────────── F1 连击：每段全额，段数随形态增加 ───────────── */
 const multihit:Malice={family:'F1',name:'连击',passive:false,
- summary:{seed:'2段真多段（每段60%）',full:'4段真多段（每段55%），逐段可闪避',unbound:'8段真多段（每段45%），每段命中叠加流血'},
+ summary:{seed:'2段连击（每段60%）',full:'4段连击（每段55%），逐段可闪避',unbound:'8段连击（每段45%），每段命中叠加流血'},
  counter:{seed:['evade','shield'],full:['evade','shield','guard'],unbound:['shield','guard','control']},seals:{seed:[],full:[],unbound:[]},
  build:(c,form)=>{
   const hits=pick(form,2,4,8),factor=pick(form,.6,.55,.45);const d=damage({...c,power:c.power*factor},'physical',1,hits);d.powerMode='per_hit';
@@ -56,13 +56,13 @@ const multihit:Malice={family:'F1',name:'连击',passive:false,
 
 /* ───────────── F2 多次行动 ───────────── */
 const extraAction:Malice={family:'F2',name:'多动',passive:true,
- summary:{seed:'生命过半后每公共轮追加一次行动',full:'每公共轮追加一次行动',unbound:'每公共轮追加两次行动，残血时三次'},
+ summary:{seed:'生命过半后每轮追加一次行动',full:'每轮追加一次行动',unbound:'每轮追加两次行动，残血时三次'},
  counter:{seed:['control','burst'],full:['control','burst'],unbound:['control','burst','timer']},seals:{seed:[],full:[],unbound:[]},
  build:(c,form)=>{
   const a=passive(c,pick(form,'残喘多动','多动','狂动'));
   trigger(c,a,'m-extra','round','self',[{op:'atb',mode:'extra',value:pick(form,1,1,2),targeting:self}],form==='seed'?{conditions:[hpBelow(.5)]}:{});
   if(form==='unbound')trigger(c,a,'m-extra-low','round','self',[{op:'atb',mode:'extra',value:1,targeting:self}],{conditions:[hpBelow(.3)]});
-  a.description='每公共轮开始时追加行动次数；眩晕/冻结会吃掉整轮，速攻可在残血加动前结束。';return finish(c,a);
+  a.description='每轮开始时获得追加行动。';return finish(c,a);
  }};
 
 /* ───────────── F3 必中三档：必中≠穿防，穿防单独发放 ───────────── */
@@ -97,7 +97,7 @@ const charge:Malice={family:'F6',name:'蓄力',passive:false,
   const a=active(c,pick(form,'蓄力·重压','蓄力·霸王','蓄力·灭岚'),[d],{sp:2,cast:pick(form,3500,2200,1500),targeting:ALL_ENEMIES,tags:['ai:charge','ai:aoe']});
   a.refundOnInterrupt=0;a.recoveryFactor=1.5;
   if(form==='unbound')a.triggers=[{id:'m-charge-armor',event:'battle_start',scope:'self',action:child(c,'m-charge-armor',[selfRule('uninterruptible','*')],'self'),uses:1,cooldownMs:0}];
-  a.description=pick(form,'长读条（3.5秒）全体重击；读条期间任何打断都能取消它。','读条（2.2秒）全体必中重击；只有重击/控制类打断有效。','短读条（1.5秒）全体必中重击，读条不可打断：只能防御、护盾或在读条完成前打空。');
+  a.description=pick(form,'长读条（3.5秒）全体重击；读条期间任何打断都能取消它。','读条（2.2秒）全体必中重击；只有重击/控制类打断有效。','短读条（1.5秒）全体必中重击，读条不可打断。');
   return finish(c,a);
  }};
 
@@ -118,28 +118,28 @@ const undying:Malice={family:'F8',name:'不死',passive:true,
    const standKey=child(c,'m-laststand',[selfRule('undying','*',round(2)),stand],'self');
    a.effects.push(selfRule('death_guard','*',permanent,{uses:1,amount:flat(1),onTrigger:standKey,priority:-5}));
   }
-  a.description='免死与复活按顺序消耗；死守期间头顶倒计时两轮，倒计时结束必然倒下。速攻可在触发前打空，控制可吃掉死守的追加行动。';return finish(c,a);
+  a.description='倒下时会再次站起；濒死时死守两轮，头顶出现倒计时，倒计时结束必然倒下。';return finish(c,a);
  }};
 
 /* ───────────── F9 回血 ───────────── */
 const regen:Malice={family:'F9',name:'再生',passive:true,
- summary:{seed:'每公共轮回复5%最大生命',full:'每公共轮回复10%最大生命',unbound:'每公共轮回复20%最大生命；生命过半时改为回满'},
+ summary:{seed:'每轮回复5%最大生命',full:'每轮回复10%最大生命',unbound:'每轮回复20%最大生命；生命过半时改为回满'},
  counter:{seed:['no_heal','dot'],full:['no_heal','dot','burst'],unbound:['no_heal','burst']},seals:{seed:[],full:[],unbound:[]},
  build:(c,form)=>{
   const a=passive(c,pick(form,'再生','强再生','不朽再生'));
   trigger(c,a,'m-regen','round','self',[{op:'heal',resource:'hp',amount:pct('hp',pick(form,.05,.1,.2)),targeting:self}]);
   if(form==='unbound')trigger(c,a,'m-regen-full','round','self',[{op:'heal',resource:'hp',amount:pct('hp',1),targeting:self}],{conditions:[hpAbove(.5)]});
-  a.description='上半管只有爆发算数；虚弱/禁疗/持续伤害压回复。';return finish(c,a);
+  a.description='每轮持续回复生命。';return finish(c,a);
  }};
 
 /* ───────────── F10 限伤 ───────────── */
 const cap:Malice={family:'F10',name:'限伤',passive:true,
- summary:{seed:'每公共轮承伤不超过最大生命50%',full:'每公共轮承伤不超过35%',unbound:'每公共轮承伤不超过25%，且暴击无效'},
+ summary:{seed:'每轮承伤不超过最大生命50%',full:'每轮承伤不超过35%',unbound:'每轮承伤不超过25%，且暴击无效'},
  counter:{seed:['dot','percent'],full:['dot','percent'],unbound:['dot','percent','timer']},seals:{seed:['burst'],full:['burst'],unbound:['burst']},
  build:(c,form)=>{
   const mods:ModifierSpec[]=form==='unbound'?[{stat:'crit',flat:-1}]:[];
   const a=passive(c,pick(form,'限伤','厚限伤','铁限伤'),[aura(c,'m-cap','限伤',{reactions:[{kind:'damage_cap',fraction:pick(form,.5,.35,.25),reset:'round',channels:['physical','energy','mental','true']}],...(mods.length?{modifiers:mods}:{})})]);
-  a.description='限伤按公共轮结算：多段小额与持续伤害绕不过上限，但能把每轮打满；拖长回合会撞上倒计时类机制。';return finish(c,a);
+  a.description='每轮承受的伤害有上限，多段与持续伤害同样计入。';return finish(c,a);
  }};
 
 /* ───────────── F5 领域：改写玩家能按哪个键（不可驱散、开战即放） ───────────── */
@@ -165,7 +165,7 @@ export function phasePack(c:Ctx,style:'red'|'afterimage'):ActionSpec{
  if(c.stage>=5){effects.push(minion(c,'phase-adds',.3,2));notes.push('召唤两名衍生体');}
  if(c.stage>=6){effects.push({op:'heal',resource:'hp',amount:pct('hp',boss?1:.5),targeting:self});notes.push(boss?'生命回满（仅此一次，虚弱可挡）':'回复50%生命');}
  trigger(c,a,'phase-shift','damage_received','self',effects,{uses:1,cooldownMs:0,conditions:[hpBelow(.5)]});
- a.description='生命降至50%时进入'+(boss?'血色形态（立绘蒙红）':'重影形态')+'：'+notes.join('、')+'。每战一次，不可驱散；在血线前一口气打空可跳过。';
+ a.description='生命降至50%时进入'+(boss?'血色形态（立绘蒙红）':'重影形态')+'：'+notes.join('、')+'。每战一次，不可驱散。';
  return finish(c,a);
 }
 
@@ -178,7 +178,7 @@ const adds:Malice={family:'F11',name:'衍生',passive:true,
   c.lib.summons['m-adds']!.limit=pick(form,2,6,3);c.lib.summons['m-adds']!.duration=round(9);
   trigger(c,a,'m-adds-respawn','after_down','ally',[minion(c,'m-adds',.25,pick(form,1,2,1))],{uses:pick(form,3,3,4),cooldownMs:0});
   if(form==='unbound')trigger(c,a,'m-adds-avenge','after_down','ally',[{op:'atb',mode:'extra',value:1,targeting:self},buff(c,'m-adds-rage','逆援',{duration:round(3),stack:'stack',maxStacks:3,scaleWithStacks:true,modifiers:dmgMods(1.15)})],{uses:4,cooldownMs:0});
-  a.description='衍生体在本体倒下时一并消失；打杂兵会被增殖/逆援惩罚，优先打本体。';return finish(c,a);
+  a.description='衍生体在本体倒下时一并消失。';return finish(c,a);
  }};
 
 /* ───────────── F12 倒计时 / 短战检查 ───────────── */
@@ -192,12 +192,12 @@ const timer:Malice={family:'F12',name:'倒计时',passive:false,
    const exec=typeless(c,pct('hp',1,'target'),{guaranteed:true,execute:true,bypass:['shield']});exec.targeting=ALL_ENEMIES;const doom=child(c,'m-doom:exec',[exec]);
    const clock=buff(c,'m-doom','倒计时',{duration:round(8),dispellable:false,priority:70,tags:['monster:timer'],onExpire:doom});
    a.effects.push(clock);trigger(c,a,'m-doom-reset','damage_received','self',[clock],{uses:1,cooldownMs:0,conditions:[hpBelow(.75)]});
-   a.description='头顶倒计时八轮，到期全体处决（无视免死以外的保护）；生命降至75%以下时重置一次。唯一解：在到期前打空，或以不死类效果硬接。';
+   a.description='头顶倒计时八轮，到期处决全体敌人（只有免死类效果能挡下）；生命降至75%以下时倒计时重置一次。';
   }else{
    const exec=typeless(c,pct('hp',1,'target'),{guaranteed:true,execute:true});exec.targeting=EVENT_TARGET;
    const lethal=buff(c,'m-fall-lethal','坠落判决',{duration:permanent,dispellable:false,priority:70,tags:['monster:timer'],triggers:[{id:'m-fall-hit',event:'hit',scope:'self',action:child(c,'m-fall:exec',[exec]),uses:0,cooldownMs:0}]});
    const arm=buff(c,'m-fall-arm','坠落倒计时',{duration:round(3),dispellable:false,priority:70,tags:['monster:timer'],onExpire:child(c,'m-fall:arm',[lethal],'self')});
-   a.effects.push(arm);a.description='三轮后进入坠落判决：本怪的每次命中都会处决目标。这是短战检查：三轮内打空，或全程闪避。';
+   a.effects.push(arm);a.description='三轮后进入坠落判决：之后它的每次命中都会处决目标。';
   }
   return finish(c,a);
  }};
@@ -208,7 +208,7 @@ const reader:Malice={family:'F14',name:'读取',passive:{full:true},
  counter:{seed:['dispel','burst'],full:['timer','burst'],unbound:['control','burst']},seals:{seed:[],full:['undying'],unbound:[]},
  build:(c,form)=>{
   if(form==='seed'){const numb=status(c,'m-paralyze','麻痹',{duration:round(1),control:'stun',tags:['monster:status','monster:malice','malice:paralyze'],modifiers:[{stat:'evade',flat:-1},{stat:'reduction_physical',multiplier:1.3}]});const d=damage({...c,power:c.power*.8},'energy');return active(c,'电击五芒星',[d,numb],{mp:1,cast:700,tags:['ai:control']});}
-  if(form==='full'){const a=passive(c,'反魂');trigger(c,a,'m-unsong','round','self',[{op:'dispel',mode:'remove',polarity:'positive',count:1,includeUndispellable:true,targeting:ALL_ENEMIES}]);a.description='读取：每公共轮剥除全体敌人最强的一项增益（含不可驱散的保命类）。反读取：它只剥一项，用低价值增益垫在前面。';return finish(c,a);}
+  if(form==='full'){const a=passive(c,'反魂');trigger(c,a,'m-unsong','round','self',[{op:'dispel',mode:'remove',polarity:'positive',count:1,includeUndispellable:true,targeting:ALL_ENEMIES}]);a.description='每轮剥除全体敌人最强的一项增益（不可驱散的保命类也会被剥除）。';return finish(c,a);}
   return active(c,'模仿',[{op:'copy',mode:'skill',id:'*',selection:'used_latest',activate:true,duration:round(1),targeting:RANDOM_ENEMY(1)}],{mp:2,cast:600,tags:['ai:mimic']});
  }};
 
@@ -310,7 +310,7 @@ const twin:Malice={family:'G7',name:'双生',passive:true,
   const split:EffectSpec={op:'summon',template:'m-twin',count:1,mode:'clone',targeting:self};a.effects.push(split);
   const onDown:EffectSpec=form==='seed'?{...typeless(c,pct('hp',.1),{bypass:['shield','death_guard'],lethal:false}),targeting:self}:{op:'heal',resource:'hp',amount:pct('hp',scale(c,.3,.4)),targeting:self};
   trigger(c,a,'m-twin-down','after_down','ally',[onDown],{conditions:[condition('event_target','tag','monster:twin',1,'gte')]});
-  // 0.34：每 4 公共轮再分裂（round mod 4 == 0）。不与顶层共用同一个效果对象（bindLibrary 会就地改写 template 键）。
+  // 0.34：每 4 轮再分裂（round mod 4 == 0）。不与顶层共用同一个效果对象（bindLibrary 会就地改写 template 键）。
   if(form==='unbound')trigger(c,a,'m-twin-again','round','self',[{...split}],{conditions:[{kind:'expression',expression:[{read:'round'},{constant:4},{operator:'mod'}],value:0,compare:'eq'}]});
   a.description='它会分裂出与自己同形的分身；分身倒下时会影响本体。';return finish(c,a);
  }};

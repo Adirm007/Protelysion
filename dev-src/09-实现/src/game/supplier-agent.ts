@@ -7,6 +7,7 @@ import type {ActionSpec,EffectSpec,ModifierSpec} from '../compiler/contract';
 import type {RelicDef,RelicHooks} from './relic-catalog';
 import type {EventChoice,EventDefinition,EventResult} from './mechanism-content';
 import type {Reward} from '../core/run';
+import {needsLootSpec,lootSpecText,type LootDraft,type LootSpec} from './supplier-loot-spec';
 
 export const QUALITIES=['普通','优良','稀有','史诗','传说','神话'] as const;
 export type DealKind='relic'|'item'|'event'|'loot';
@@ -67,10 +68,10 @@ const OUTPUT_RULES=`【回复格式】
   遗物：{"type":"relic","price":整数FP,"quality":"品质","name":"不超过12字","flavor":"一句来历","effects":[{"kind":"效果键","value":数值}]}（effects 1～2 条）
   道具：{"type":"item","price":整数FP,"name":"不超过12字","flavor":"一句来历","count":1或2,"effect":{"kind":"效果键","value":数值,"resource":"hp|mp|sp","element":"属性"}}
   临时事件：{"type":"event","price":整数FP,"title":"不超过12字","body":"两三句描写","choices":[{"label":"选项文字","cost":{"kind":"hp|mp|sp","fraction":0.2}或{"kind":"fp","amount":100}或null,"result":{"kind":"效果键","amount":数值,"quality":"品质"}}]}（choices 2～3 个）
-  可带出战利品：{"type":"loot","price":整数FP,"quality":"品质","name":"不超过16字","itemType":"技能书|装备|饰品|消耗品|材料","effect":"它在正文里能做什么（一两句）","description":"外观或来历"}
+  可带出战利品：{"type":"loot","price":整数FP,"quality":"品质","name":"不超过16字","itemType":"技能书|武器|装备|饰品|消耗品|资产|材料","effect":"它在正文里能做什么（一两句）","description":"外观或来历"}
 - 程序真正卡住的只有两件事：一是绝对上限——品质最多比建议高两档（最高神话），数值超出那一档的上限会被压回；二是【本次遭遇剩余额度】为 0 的类型给不出去。
 - price 写多少就收多少（可以低于建议价，写 0 就是白送）；不写 price 时按建议价收。
-- 可带出战利品离开迷宫后进入主角背包，由正文自由演绎；技能类就写成“技能书”。`;
+- 可带出战利品离开迷宫后进入主角背包；技能类就写成“技能书”，研读时由正文生成。技能书以外的东西（武器、装备、消耗品、资产等），成交前程序会按世界书里的物品生成细则补写具体属性，你只需定好名字、品质、类型和大致用途。`;
 
 const clamp=(n:unknown,lo:number,hi:number,fallback=lo)=>{const v=Number(n);return Number.isFinite(v)?Math.min(hi,Math.max(lo,v)):fallback;};
 const round2=(n:number)=>Math.round(n*100)/100;
@@ -251,7 +252,8 @@ const grantQuality=(raw:unknown,cap:number,fallback=cap)=>Math.min(cap,raw==null
 export const hardTierFor=(capTier:number)=>Math.min(5,capTier+2);
 
 /** 把 LLM 的 deal 变成程序内容；任何不合规都返回 reason（不扣 FP、不给东西）。 */
-export function materializeDeal(raw:unknown,ctx:SupplierContext,serial:number):DealOutcome{
+const LOOT_TYPES=['技能书','武器','装备','饰品','消耗品','资产','材料'];
+export function materializeDeal(raw:unknown,ctx:SupplierContext,serial:number,spec?:LootSpec):DealOutcome{
  if(!raw||typeof raw!=='object')return {ok:false,reason:'没有成交'};
  const d=raw as Record<string,any>,kind=String(d.type??d.kind) as DealKind;
  if(!(kind in TALK_LIMITS))return {ok:false,reason:'她拿出来的东西程序认不出'};
@@ -308,8 +310,16 @@ export function materializeDeal(raw:unknown,ctx:SupplierContext,serial:number):D
   return {ok:true,deal:{kind,price,tier:t,label:`临时事件「${title}」`,event}};
  }
  const t=grantQuality(d.quality,hard,ctx.capTier),name=clean(d.name,16)||'补给员的纪念品';
- const itemType=['技能书','装备','饰品','消耗品','材料'].includes(String(d.itemType))?String(d.itemType):'饰品';
+ const itemType=LOOT_TYPES.includes(String(d.itemType))?String(d.itemType):'饰品';
  const loot:Extract<Reward,{kind:'gift'}>={kind:'gift',name,itemType,quality:QUALITIES[t]!,effect:clean(d.effect,120)||'用途不明，也许正文里会知道。',description:clean(d.description??d.flavor,120)||'补给员随手塞过来的东西。',count:1,source:'补给员'};
+ if(spec&&needsLootSpec(itemType))loot.spec=structuredClone(spec);
  const price=priced(priceFloor('loot',t,ctx.depth));
- return {ok:true,deal:{kind:'loot',price,tier:t,label:`可带出战利品「${QUALITIES[t]!}·${name}」（${itemType}）`,loot}};
+ return {ok:true,deal:{kind:'loot',price,tier:t,label:`可带出战利品「${QUALITIES[t]!}·${name}」（${loot.spec?.type||itemType}）${loot.spec?'：'+lootSpecText(loot.spec).slice(0,160):''}`,loot}};
+}
+/** 这句回复若会谈成一件需要按细则写属性的战利品，返回它的草稿（成交前先去写属性）；否则 undefined。 */
+export function lootDraftOf(raw:unknown,ctx:SupplierContext,serial:number):LootDraft|undefined{
+ const built=materializeDeal(raw,ctx,serial);
+ if(!built.ok||!built.deal.loot||ctx.fp<built.deal.price)return undefined;
+ const l=built.deal.loot;if(!needsLootSpec(l.itemType))return undefined;
+ return {name:l.name,quality:l.quality,itemType:l.itemType,effect:l.effect,description:l.description,theme:ctx.theme,depth:ctx.depth};
 }

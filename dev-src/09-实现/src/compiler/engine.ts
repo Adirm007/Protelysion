@@ -158,7 +158,8 @@ export function createCompilationEngine(model:ModelCompile,rules:Rules,options:E
      const baseAdaptation=prior.adaptation??{mode:prior.mapping.fidelity?.mode==='exact'?'original':'approximate',summary:prior.mapping.fidelity?.summary??prior.mapping.reason,method:'model'};
      const kept={mapping:healed.mapping,adaptation:healed.changed?{...baseAdaptation,summary:healed.mapping.fidelity?.summary??baseAdaptation.summary}:baseAdaptation} as AdaptedMapping;
      const policy=prior.adaptation?.policy??1;
-     if(options.blueprint&&((policy<2&&needsTargetRefresh(prior.mapping,entry.raw))||(policy<3&&needsHealRefresh(prior.mapping,text)))){pending.push(entry);keep.set(entry.sourceId,kept);}
+     // 0.45：旧策略编出的装备（效果名丢失、多条常驻词条只留一条）在重新整备时重编。
+     if(options.blueprint&&((policy<2&&needsTargetRefresh(prior.mapping,entry.raw))||(policy<3&&needsHealRefresh(prior.mapping,text))||(policy<4&&entry.sourceId.startsWith('/装备/')))){pending.push(entry);keep.set(entry.sourceId,kept);}
      else converted.set(entry.sourceId,kept);
     }
    }else{

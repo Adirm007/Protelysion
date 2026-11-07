@@ -7,7 +7,7 @@ import {blueprintPrompt,BLUEPRINT_REPLY_SCHEMA,type PromptEntry} from './prompt'
 import {hostSkillScale} from '../host-skill-scale';
 import {validateAction,type MappingSpec,type ActionSpec} from '../contract';
 import {assertExecutable,assertPassive} from '../../battle/executor';
-import {sourceCitation,sourceText} from '../source-text';
+import {sourceCitation,sourceText,keyedText} from '../source-text';
 import {fixedHeals,hasPercentHeal,type FixedHeal} from './heal-text';
 import {findStd} from './statuses';
 import {hostLevel,object,type Obj} from '../../core/actors';
@@ -27,7 +27,9 @@ function lowerOne(bp:Blueprint,i:number,entry:AbilityEntry,actor:BlueprintActor)
 }
 /** 把一组蓝图降级为单个 Mapping：至多一个被动作为主体，其余主动进入 actions。任何一步失败即抛出，由调用方回退。 */
 export function mappingFromParsed(entry:AbilityEntry,actor:BlueprintActor,parsed:ParsedEntry,method:'local'|'model'):AdaptedMapping{
- const all=[parsed.main,...parsed.extra].map(combatize);const lowered:{bp:Blueprint;low:Lowered}[]=[];const dropped:string[]=[];
+ let all=[parsed.main,...parsed.extra].map(combatize);const lowered:{bp:Blueprint;low:Lowered}[]=[];const dropped:string[]=[];
+ // 0.45：同一来源的多个被动条款（如装备的几条常驻词条）合并成一个被动主体，不再只留第一条。
+ const merged=mergePassives(all);if(merged){try{lowerOne(merged.bp,0,entry,actor);all=merged.list;}catch{/* 合并后无法降级时按原样逐条处理 */}}
  for(const [i,bp] of all.entries()){try{lowered.push({bp,low:lowerOne(bp,i,entry,actor)});}catch(err){if(i===0)throw err;dropped.push(`${bp.name??entry.name}：${(err as Error).message.slice(0,120)}`);}}
  const passives=lowered.filter(x=>x.low.disposition==='passive'),actives=lowered.filter(x=>x.low.disposition==='active');
  const head=passives[0]??actives[0];if(!head)throw Error('蓝图没有可执行动作');
@@ -48,6 +50,15 @@ export function mappingFromParsed(entry:AbilityEntry,actor:BlueprintActor,parsed
   fidelity:{mode:exact?'exact':'approximate',summary:described,clauses:[{original:citation.slice(0,3900),implementation:described}],changes}};
  return {mapping,adaptation:{mode:exact?'original':'approximate',summary:described.slice(0,3900),method,policy:COMPILE_POLICY}};
 }
+/** 把多个被动蓝图合并为一个（放在首位），主动保持原顺序；只有一个被动时返回 undefined。 */
+function mergePassives(list:Blueprint[]):{bp:Blueprint;list:Blueprint[]}|undefined{
+ const passives=list.filter(b=>b.kind==='passive');if(passives.length<2)return undefined;
+ const head=passives[0]!,bp:Blueprint={...structuredClone(head),steps:passives.flatMap(b=>structuredClone(b.steps)).slice(0,32)};
+ const triggers=passives.flatMap(b=>structuredClone(b.triggers??[])).slice(0,12);if(triggers.length)bp.triggers=triggers;else delete bp.triggers;
+ const changes=passives.flatMap(b=>b.changes??[]).slice(0,16);if(changes.length)bp.changes=changes;
+ if(passives.some(b=>b.fidelity&&b.fidelity!=='exact'))bp.fidelity='approximate';
+ return {bp,list:[bp,...list.filter(b=>b.kind!=='passive')]};
+}
 /** 本地解析蓝图；无法解析或降级失败时返回 undefined。 */
 export function localBlueprint(entry:AbilityEntry,source:Obj,rules:Rules):AdaptedMapping|undefined{
  if(entry.sourceId.startsWith('/种族/')||entry.sourceId.startsWith('/状态定义/'))return undefined;
@@ -62,7 +73,7 @@ export const BLUEPRINT_BATCH=6;
 export async function modelBlueprints(entries:AbilityEntry[],source:Obj,rules:Rules,model:BlueprintModel,batch=BLUEPRINT_BATCH,legacy:unknown[]=[]):Promise<Map<string,ParsedEntry>>{
  const actor=blueprintActor(source,rules),out=new Map<string,ParsedEntry>();
  for(let i=0;i<entries.length;i+=batch){
-  const group=entries.slice(i,i+batch),pe:PromptEntry[]=group.map(e=>({sourceId:e.sourceId,name:e.name,text:sourceText(e.raw)}));
+  const group=entries.slice(i,i+batch),pe:PromptEntry[]=group.map(e=>({sourceId:e.sourceId,name:e.name,text:keyedText(e.raw)}));
   let reply:unknown;try{reply=await model({prompt:blueprintPrompt(pe,{name:String(source.姓名??''),...actor}),schema:BLUEPRINT_REPLY_SCHEMA});}catch{continue;}
   // 兼容旧协议回复：mappings 信封交给调用方按原合同路径处理
   if(reply&&typeof reply==='object'&&!Array.isArray(reply)&&Array.isArray((reply as Obj).mappings)&&!Array.isArray((reply as Obj).entries)){legacy.push(...((reply as Obj).mappings as unknown[]));continue;}
@@ -114,6 +125,11 @@ export function finalizeModelBlueprint(bp:Blueprint,entry:AbilityEntry,actor:Blu
    if(!b.target&&!b.steps.some(x=>!x.target&&x.do==='revive')&&b.steps.some(x=>!x.target&&(stepNature(x)==='help'||stepNature(x)==='stance')))b.target={side:'ally'};
   }
  }else for(const x of b.steps)selfBuff(x);
+ // 0.45 施加给目标的负面/控制自定义状态被写成作用于自己时改回敌方（原文写明自身陷入的除外）。
+ if(b.kind==='active'){const text=sourceText(entry.raw);for(const x of b.steps){const st=x.status as {name?:string;polarity?:string;control?:string}|undefined;
+  if(x.do!=='status'||x.target?.side!=='self'||!st||typeof st!=='object'||!(st.polarity==='negative'||st.control))continue;
+  const nm=String(st.name??'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&');if(nm&&new RegExp('(?:自身|自己|使用者|施术者)[^，。]{0,8}(?:获得|陷入|进入)\\s*[\\[【]?'+nm).test(text))continue;
+  x.target={side:'enemy'};}}
  // 常驻被动（非触发）的顶层属性修正作用于自身，包括“受到伤害-X%”这类减益型写法。
  if(b.kind==='passive')for(const x of b.steps)if(!x.target&&x.do==='stat')x.target={side:'self'};
  // 原文写明每场限用一次而模型漏写时补上（仅主动；被动的次数由触发器 uses 表达）。

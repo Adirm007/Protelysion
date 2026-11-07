@@ -246,7 +246,7 @@ export function mountBestiaryPanel(doc: Document, service: BestiaryService, art?
     if (lore.rules?.length) {const ul = el('ul', 'bs-dex-rules'); for (const r of lore.rules) ul.append(el('li', '', r)); loreSec.append(ul);}
     blocks.push(loreSec);
     if (d.stats) {
-      const st = d.stats, statSec = section('战斗数值', `${TIER_LABELS[(d.tier ?? 1) - 1]} · Lv ${st.level}${st.level !== st.templateLevel ? `（${st.templateLevel} 级模板＋挑战成长）` : ''} · ${st.quality}`);
+      const st = d.stats, statSec = section('战斗数值', `${TIER_LABELS[(d.tier ?? 1) - 1]} · Lv ${st.level} · ${st.quality}`);
       const tiles = el('div', 'bs-dex-tiles');
       for (const [k, v, cls] of [...Object.entries(st.attributes).map(([k, v]) => [k, fmt(v), ''] as const), ['生命', fmt(st.max.hp), 'is-hp'], ['法力', fmt(st.max.mp), 'is-mp'], ['体力', fmt(st.max.sp), 'is-sp']] as const) {const t = el('div', 'bs-dex-tile ' + cls); t.append(el('b', '', v), el('span', '', k)); tiles.append(t);}
       const res = el('div', 'bs-dex-res');

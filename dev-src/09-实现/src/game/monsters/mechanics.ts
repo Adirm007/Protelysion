@@ -41,7 +41,7 @@ export const PASSIVES:Record<string,Mechanic>={
  carapace:{name:'硬壳',kind:'passive',summary:'每轮前两次受击减免一部分伤害',build:c=>passive(c,'硬壳',[aura(c,'p-carapace','硬壳',99,{reactions:[{kind:'block',fraction:grow(c,.25,.03,.45),uses:2,reset:'round'}]})])},
  swift:{name:'迅影',kind:'passive',summary:'有概率招架，闪避提升',build:c=>passive(c,'迅影',[aura(c,'p-swift','迅影',99,{modifiers:[{stat:'evade',flat:grow(c,.05,.02,.2)}],reactions:[{kind:'parry',fraction:.5,chance:grow(c,.15,.03,.35),uses:2,reset:'round'}]})])},
  riposte:{name:'应激反击',kind:'passive',summary:'受到伤害后立刻对来源反击一次',build:c=>{const a=passive(c,'应激反击');const d=damage({...c,power:c.power*.45},'physical');d.targeting=EVENT_SOURCE;trigger(c,a,'p-riposte','damage_received','self',[d],{uses:4});return finish(c,a);}},
- regrowth:{name:'再生',kind:'passive',summary:'每公共轮回复少量最大生命',build:c=>{const heal=child(c,'p-regrowth:tick',[{op:'heal',resource:'hp',amount:pct('hp',grow(c,.03,.005,.06)),targeting:self}],'self');return finish(c,passive(c,'再生',[aura(c,'p-regrowth','再生',99,{tick:{clock:'round',interval:1,count:99,action:heal}})]));}},
+ regrowth:{name:'再生',kind:'passive',summary:'每轮回复少量最大生命',build:c=>{const heal=child(c,'p-regrowth:tick',[{op:'heal',resource:'hp',amount:pct('hp',grow(c,.03,.005,.06)),targeting:self}],'self');return finish(c,passive(c,'再生',[aura(c,'p-regrowth','再生',99,{tick:{clock:'round',interval:1,count:99,action:heal}})]));}},
  vengeance:{name:'同族之怒',kind:'passive',summary:'同伴倒下时进入狂怒，伤害提升',build:c=>{const a=passive(c,'同族之怒');trigger(c,a,'p-vengeance','after_down','ally',[buff(c,'p-vengeance-rage','同族之怒',{duration:round(3),modifiers:dmgMods(1+grow(c,.15,.03,.35))})],{uses:2});return finish(c,a);}},
  crystallize:{name:'结晶',kind:'passive',summary:'受击时有概率凝出护盾',build:c=>{const a=passive(c,'结晶');const s=shield({...c,recovery:c.recovery*.5});s.targeting=self;trigger(c,a,'p-crystallize','damage_received','self',[s],{uses:4,chance:.4});return finish(c,a);}},
  lurker:{name:'潜伏',kind:'passive',summary:'开战时潜伏一轮并提升首击（五阶起完全隐匿，不可被选中）',build:c=>{const hidden=buff(c,'p-lurker','潜伏',{duration:round(1),...(c.stage>=5?{control:'hidden' as const}:{}),modifiers:[...dmgMods(1+grow(c,.2,.04,.5)),...(c.stage>=5?[]:[{stat:'evade' as const,flat:.3}])]});return finish(c,passive(c,'潜伏',[hidden]));}},
@@ -118,8 +118,8 @@ function battlefield(c:Ctx,key:string,name:string,summary:string,extra:Parameter
  status(c,key,c.m.motif+'·'+name,{polarity:'neutral',duration:{clock:'field',value:0},tags:['monster:law-field'],dispellable:false,priority:30,...extra});
  c.lib.fields[key]={name:c.m.motif+'·'+name,group:'monster:law',priority:10,stack:'strongest',targeting:ANY,status:key,duration:round(3),element:c.t.element};
  const declare=action([{op:'field',field:key}],'self');declare.name=c.m.motif+'·'+name+'·宣告';declare.category='law';declare.castMs=1000;declare.perBattleUses=1;declare.cost.mp.maxFraction=.5;declare.cost.sp.maxFraction=.5;declare.tags=['monster:law','ai:law'];
- declare.description='法则宣告：'+summary+'。对战场上双方所有单位生效（含施法者），3公共轮；最大MP和SP各50%，每战一次。';
- c.lib.actions['declare-'+key]=declare;const a=passive(c,name);a.grantedActions=['declare-'+key];a.description='登神来源·独有法则：'+summary+'。宣告后改写整个战场的规则，不区分敌我。';return finish(c,a);
+ declare.description='法则宣告：'+summary+'。对战场上双方所有单位生效（含施法者），3轮；最大MP和SP各50%，每战一次。';
+ c.lib.actions['declare-'+key]=declare;const a=passive(c,name);a.grantedActions=['declare-'+key];a.description='独有法则：'+summary+'。宣告后改写整个战场的规则，不区分敌我。';return finish(c,a);
 }
 export const LAWS:Record<string,Mechanic>={
  silence_law:{name:'静默律',kind:'law',summary:'全场法术费用提高五成',build:c=>battlefield(c,'l-silence','静默律','全场法力费用×1.5',{modifiers:[{stat:'cost_mp',multiplier:1.5}]})},
@@ -130,7 +130,7 @@ export const LAWS:Record<string,Mechanic>={
  echo_law:{name:'回响律',kind:'law',summary:'全场受击都会反弹',build:c=>battlefield(c,'l-echo','回响律','任何单位受击反弹20%实际伤害',{reactions:[{kind:'reflect',fraction:.2,basis:'actual',uses:2,reset:'round'}]})},
  frostland_law:{name:'冻土律',kind:'law',summary:'全场减速且治疗减半',build:c=>battlefield(c,'l-frostland','冻土律','全场速度×0.85、受疗×0.5',{modifiers:[{stat:'speed',multiplier:.85},{stat:'heal_received',multiplier:.5}]})},
  furnace_law:{name:'熔炉律',kind:'law',summary:'全场伤害放大',build:c=>battlefield(c,'l-furnace','熔炉律','全场承受伤害×1.3',{modifiers:[{stat:'vulnerability',multiplier:1.3}]})},
- toll_law:{name:'通行律',kind:'law',summary:'全场每轮都被抽取法力',build:c=>{const toll=child(c,'l-toll:tick',[{op:'resource',resource:'mp',mode:'burn',amount:pct('mp',.06),targeting:self}],'self');return battlefield(c,'l-toll','通行律','任何单位每公共轮失去6%最大法力',{tick:{clock:'round',interval:1,count:9,action:toll}});}},
+ toll_law:{name:'通行律',kind:'law',summary:'全场每轮都被抽取法力',build:c=>{const toll=child(c,'l-toll:tick',[{op:'resource',resource:'mp',mode:'burn',amount:pct('mp',.06),targeting:self}],'self');return battlefield(c,'l-toll','通行律','任何单位每轮失去6%最大法力',{tick:{clock:'round',interval:1,count:9,action:toll}});}},
  element_law:{name:'元素律',kind:'law',summary:'全场对主题属性的抗性被改写为弱点',build:c=>{const t=themeType(c.t)==='无'?'暗':themeType(c.t);return battlefield(c,'l-element','元素律','全场'+t+'属性承伤×1.5（含施法者自身）',{modifiers:[{stat:'element',element:t,multiplier:1.5}]});}},
 };
 

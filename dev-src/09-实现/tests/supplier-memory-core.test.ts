@@ -185,7 +185,7 @@ test('注入防护：玩家写进记忆的话不能伪造提示词小节、不�
   assert.ok(at('【局内信息】') < at('【你对玩家的记忆】') && at('【你对玩家的记忆】') < at('【作者建议的强度参考】') && at('【作者建议的价格参考】') < at('【回复格式】'));
   const headers = prompt.system.split('\n').filter(l => /^【[^】]+】/.test(l)).map(l => /^【[^】]+】/.exec(l)![0]);
   assert.equal(headers.at(-1), '【回复格式】', '【回复格式】是最后一节'); assert.equal(headers.filter(h => h === '【你对玩家的记忆】').length, 1);
-  assert.ok(prompt.system.trimEnd().endsWith('技能类就写成“技能书”。'), '输出约定原样收尾');
+  assert.ok(prompt.system.trimEnd().endsWith('你只需定好名字、品质、类型和大致用途。'), '输出约定原样收尾');
   const deal = materializeDeal({type: 'relic', price: 0, quality: '神话', name: '白送', effects: [{kind: 'damage', value: 99}]}, ctx, 1);
   assert.ok(deal.ok && deal.deal.tier <= 3, '记忆里写什么都改不了程序上限');
   assert.ok(buildSupplierPrompt(ctx, []).system.includes(NO_MEMORY_SECTION), '没接记忆时也明说“不记得”');

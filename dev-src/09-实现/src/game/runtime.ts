@@ -8,8 +8,9 @@ import {mountLoadingVeil,veilVariantForTheme} from '../ui/loading-veil';
 import {createFloorPackCache} from './floor-pack';
 import {RendererFrameCodec} from './renderer-frame';
 import {transferRelic,ringBell,dismissWarning,answerExit,craftSilverCross,toggleCrossWard} from './expedition';
-import {registerSupplierContent,supplierTalkSend,supplierTalkReply,supplierTalkFailed,supplierTalkBack,startNarrative} from './expedition';
+import {registerSupplierContent,supplierTalkSend,supplierTalkReply,supplierLootDraft,supplierTalkFailed,supplierTalkBack,startNarrative} from './expedition';
 import type {SupplierPrompt} from './supplier-agent';
+import type {LootDraft,LootSpec} from './supplier-loot-spec';
 import {drainSupplierLedger,type SupplierLedgerEntry} from './supplier-ledger';
 import {drainBestiaryLedger,type BestiaryService} from './bestiary';
 import type {SupplierTalkRequest} from './expedition';
@@ -24,7 +25,9 @@ const isQuality=(value:unknown):value is GraphicsQualityInput=>['auto','desktop'
 // Device class never lowers fidelity. The legacy auto preference now means standard.
 const normalizeQuality=(value:unknown):GraphicsQuality=>value==='mobile'?'mobile':'desktop';
 
-export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;onNarrative?:(s:State)=>void;supplierMemory?:RuntimeSupplierMemory;onMemorySettings?:()=>void;
+export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLElement;portraits?:Record<string,string>;onResources?:()=>void;audio?:GameAudioOptions|false;initial?:State;newGame?:()=>State;onLeave?:()=>void;onView?:(s:ReturnType<typeof view>|{mode:string;canContinue:boolean})=>void;checkpoint?:(s:State)=>Promise<void>;isCurrent?:(s:State)=>boolean;onInvalidated?:()=>void;supplierChat?:(prompt:SupplierPrompt)=>Promise<string>;
+ /** 0.45 按世界书物品生成细则给补给员的可带出战利品写属性（宿主才有）。 */
+ supplierLootSpec?:(draft:LootDraft)=>Promise<LootSpec|undefined>;onNarrative?:(s:State)=>void;supplierMemory?:RuntimeSupplierMemory;onMemorySettings?:()=>void;
  /** 0.44 敌役图鉴：取走账本的服务、打开图鉴（可直接翻到某个物种）、战斗立绘到达时顺手存一张缩略图。 */
  bestiary?:BestiaryService;onBestiary?:(id?:string)=>void;onArt?:(id:string,url:string)=>void},win:Window=window){
  let stale=false,visible=true,handoff=false;
@@ -149,7 +152,14 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
   if(!chat){if(state)supplierTalkFailed(state,req.thingId,req.serial,'这里联系不上她');return;}
   // 记忆检索有自己的时限与兜底；任何失败都退回不带记忆的原提示词，对话照常进行。
   const prompt=memory?memory.augment(req).catch(()=>req.prompt):Promise.resolve(req.prompt);
-  void prompt.then(p=>chat(p)).then(raw=>{if(!current())return;supplierTalkReply(state!,req.thingId,req.serial,raw);memorySync();checkpoint();publish();},error=>{if(!current())return;supplierTalkFailed(state!,req.thingId,req.serial,String((error as Error)?.message??error));save();publish();});
+  // 0.45 谈成技能书以外的可带出战利品时，先按世界书细则写好属性再成交；写不成就照旧只写大概。
+  const withSpec=async(raw:unknown)=>{
+   const draft=options.supplierLootSpec&&current()?supplierLootDraft(state!,req.thingId,req.serial,raw):undefined;
+   if(!draft)return {raw,extra:{}};
+   try{const spec=await options.supplierLootSpec!(draft);return {raw,extra:spec?{spec}:{}};}
+   catch(error){return {raw,extra:{specNote:String((error as Error)?.message??error)}};}
+  };
+  void prompt.then(p=>chat(p)).then(withSpec).then(({raw,extra})=>{if(!current())return;supplierTalkReply(state!,req.thingId,req.serial,raw,extra);memorySync();checkpoint();publish();},error=>{if(!current())return;supplierTalkFailed(state!,req.thingId,req.serial,String((error as Error)?.message??error));save();publish();});
  }
  const api={
   /** Godot registers one callback. A newly attached renderer immediately learns

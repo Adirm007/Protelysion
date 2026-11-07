@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.44.0-20261103-bestiary",
+  "revision": "protelysion-0.45.0-20261107-fidelity-loot",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 3132446,
-      "sha256": "59033d01edbf7b195b4a9531ff0231d9a2c188c09a4a88f3dc698d67fa20646d"
+      "bytes": 3143430,
+      "sha256": "3676e5ad5a8eac683aa1705fae573df81a641e70bb7f8418cd2b758832fbf14e"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

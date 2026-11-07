@@ -20,7 +20,8 @@ import {relicHooks,relicCapacity,relicSlotsUsed,pendingFp,adjustFp,scaleFp,grant
 import {makeRegion,themeFor,walkable,near,type Region,type Thing,type RegionOptions} from './region';
 import {decide} from './combat-ai';
 import {recordSupplier,type SupplierLedgerEntry,type SupplierLedgerKind} from './supplier-ledger';
-import {TALK_LIMITS,TALK_LOG_LIMIT,TALK_INPUT_LIMIT,DEAL_LABEL,buildSupplierPrompt,parseSupplierReply,materializeDeal,buildCustomItem,capTierFor,type TalkSession,type SupplierContext,type CustomItemSpec,type SupplierPrompt,type DealKind} from './supplier-agent';
+import type {LootDraft,LootSpec} from './supplier-loot-spec';
+import {TALK_LIMITS,TALK_LOG_LIMIT,TALK_INPUT_LIMIT,DEAL_LABEL,buildSupplierPrompt,parseSupplierReply,materializeDeal,lootDraftOf,buildCustomItem,capTierFor,type TalkSession,type SupplierContext,type CustomItemSpec,type SupplierPrompt,type DealKind} from './supplier-agent';
 import type {ActionSpec,EffectSpec} from '../compiler/contract';
 import {monsterKit} from './monsters/kits';
 import {isInterludeAction} from '../compiler/interlude';
@@ -386,12 +387,19 @@ export function supplierTalkSend(s:State,text:string):SupplierTalkRequest|undefi
  const context=supplierTalkContext(s);return {thingId:talk.thingId,serial:talk.serial,prompt:buildSupplierPrompt(context,talk.log),context,log:structuredClone(talk.log)};
 }
 /** LLM 回复：台词入记录；deal 经校验、额度与 FP 检查后才成交（即兴扣 FP）。过期回复（已离开、换了补给员、序号不对）不成交。 */
-export function supplierTalkReply(s:State,thingId:string,serial:number,raw:unknown){
+/** 0.45 这句回复会谈成一件技能书以外的可带出战利品时，返回它的草稿：先按世界书细则写好属性，再交给 supplierTalkReply 成交。 */
+export function supplierLootDraft(s:State,thingId:string,serial:number,raw:unknown):LootDraft|undefined{
+ const talk=s.supplierTalks?.[thingId];if(!talk||!talk.pending||talk.serial!==serial||openTalk(s)!==talk)return undefined;
+ const reply=parseSupplierReply(raw);if(!reply.deal)return undefined;
+ return lootDraftOf(reply.deal,supplierTalkContext(s),(s.supplierSerial??0)+1);
+}
+/** extra.spec：已按世界书细则写好的战利品属性；extra.specNote：没写成时的原因（照旧只写大概）。 */
+export function supplierTalkReply(s:State,thingId:string,serial:number,raw:unknown,extra:{spec?:LootSpec;specNote?:string}={}){
  const talk=s.supplierTalks?.[thingId];if(!talk||!talk.pending||talk.serial!==serial)return;
  talk.pending=false;const here=openTalk(s);
  const reply=parseSupplierReply(raw);talkLog(talk,{role:'supplier',text:reply.say});if(reply.mood)talk.mood=reply.mood;
  if(!reply.deal||here!==talk)return;
- const ctx=supplierTalkContext(s),built=materializeDeal(reply.deal,ctx,(s.supplierSerial??0)+1);
+ const ctx=supplierTalkContext(s),built=materializeDeal(reply.deal,ctx,(s.supplierSerial??0)+1,extra.spec);
  const miss=(kind:string,reason:string)=>ledger(s,thingId,'nodeal',{kind,reason});
  if(!built.ok){if(built.reason!=='没有成交'){talkLog(talk,{role:'system',text:'没有成交：'+built.reason});miss('交易',built.reason);}return;}
  const deal=built.deal;
@@ -403,7 +411,7 @@ export function supplierTalkReply(s:State,thingId:string,serial:number,raw:unkno
  else if(deal.item){s.customItems??={};s.customItems[deal.item.id]=deal.item.spec;registerSupplierContent(s);s.bag??={};s.bag[deal.item.id]=(s.bag[deal.item.id]??0)+deal.item.count;rebuildWorld(s);talk.grants.item+=deal.item.count;}
  else if(deal.event){const spot=[[1,0],[-1,0],[0,1],[0,-1],[1,1],[-1,1],[1,-1],[-1,-1]].map(([dx,dz])=>({x:s.x+dx!,z:s.z+dz!})).find(p=>walkable(s.region,p.x,p.z)&&!s.region.things.some(o=>!o.used&&o.x===p.x&&o.z===p.z))??{x:s.x,z:s.z};
   s.region.things.push({id:s.region.id+':'+deal.event.id,kind:'event',x:spot.x,z:spot.z,name:'补给员的「'+deal.event.title+'」',used:false,foes:[],customEvent:deal.event});talk.grants.event++;}
- else if(deal.loot){s.run=addReward(s.run,deal.loot);talk.grants.loot++;}
+ else if(deal.loot){s.run=addReward(s.run,deal.loot);talk.grants.loot++;if(!deal.loot.spec&&extra.specNote)talkLog(talk,{role:'system',text:'这件东西没能按世界书细则写出属性，只写了大概（'+extra.specNote.slice(0,60)+'）'});}
  const holder=owner?`（${s.party.find(p=>p.id===owner)?.name??owner}持有）`:'';
  talkLog(talk,{role:'system',text:`成交：${deal.label}${holder}，补给员收取 ${deal.price} FP`});ledger(s,thingId,'deal',{label:deal.label.replace(/：.*$/,''),price:deal.price,kind:DEAL_LABEL[deal.kind]});
  note(s,`补给员：${DEAL_LABEL[deal.kind]}成交（−${deal.price} FP）`);

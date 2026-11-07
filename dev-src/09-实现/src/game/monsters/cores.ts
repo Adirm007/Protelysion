@@ -23,7 +23,7 @@ function suppression(c:Ctx,key:string,kind:'silence'|'bind'|'sleep'|'freeze'|'st
 export function signature(c:Ctx,core:Core):ActionSpec{
  const s=c.stage,channel=coreChannel(core),a=action([damage(c,channel,1,core==='chain'?3:core==='shot'||core==='swarm'?2:1,CORE_TYPES[core])]);
  a.name=c.m.motif+'·'+coreName(core,s);a.category=channel==='physical'?'physical':'spell';a.tags=['monster:regular',core==='pounce'?'movement':'monster:'+core];
- a.description=`${c.m.name}以「${c.m.motif}」为核：${coreName(core,s)}。${COUNTERPLAY[core]}。持续与次数以效果详情为准。`;
+ a.description=`${c.m.name}以「${c.m.motif}」为核：${coreName(core,s)}。`;
  a.cost[channel==='physical'?'sp':'mp'].flat=SKILL_COST[s-1]!*c.n.challengeGrowth.resource;
  a.castMs=['cleave','ram','gravity','clock'].includes(core)?1000:500;
  const positive=(e:EffectSpec)=>{e.targeting=self;a.effects.push(e);};
@@ -99,7 +99,7 @@ export function combination(c:Ctx):ActionSpec{
  if(c.stage>=4){const e=suppression(c,'combo-control','stun');e.requiresHit='impact';e.conditions=[condition('target','tag',c.m.id+':primer')];a.effects.push(e);}
  a.effects.push(prepare);
  if(c.stage>=6)a.effects.push({op:'dispel',mode:'remove',polarity:'positive',count:1,requiresHit:'impact'});
- a.description='命中施加可驱散前兆；四阶起出招前已带该物种前兆者承受压制，五阶起有1公共轮硬控，六阶起另剥离1项护佑。多段总威力不重复。';
+ a.description='命中时留下可驱散的前兆'+(c.stage>=4?'；已带前兆的目标会被压制'+(c.stage>=5?'，陷入1轮控制':''):'')+(c.stage>=6?'；并剥除目标1项增益':'')+'。';
  return finish(c,a);
 }
 /** One regular passive counts as ONE skill with three disclosed clauses, not infinite free boss rules. */
@@ -116,16 +116,16 @@ export function body(c:Ctx):ActionSpec{
  }
  const e=status(c,'body',a.name,{polarity:'positive',duration:round(s===2?1:s===3?3:4),dispellable:s<6,modifiers,...(reactions.length?{reactions}:{})});delete (e as {opposedAttribute?:string}).opposedAttribute;a.effects.push(e);
  if(s>=5&&['brute','guard','swarm'].includes(c.m.build))a.effects.push({op:'rule',rule:'death_guard',key:'*',uses:1,amount:flat(1),duration:permanent});
- a.description='条款一：分层检定修正（不改五维）；条款二：依本体类型提供有限承伤/资源抵伤/反应；条款三：重型与群体本体传说起每战一次留1HP。限制明确，不保证击败更高等级或更快的冲突对手。';
+ a.description=(s===2?'开战时进入警觉：受到的物理伤害降低。':'开战时强化本体：命中与闪避提升'+(s>=6?(c.m.build==='guard'||c.m.build==='brute'?'，单轮承受的伤害有上限':c.m.build==='caster'?'，以法力分担伤害，单轮承受的伤害有上限':c.m.build==='spirit'?'，会反弹受到的伤害':c.m.build==='hunter'?'，有几率招架':c.m.build==='swarm'?'，可格挡数次攻击':''):'')+'。')+(s>=5&&['brute','guard','swarm'].includes(c.m.build)?'每战一次受到致命伤害时保留1点生命。':'');
  return finish(c,a);
 }
 export function defence(c:Ctx):ActionSpec{
  const a=action([shield(c),reduce(c),status(c,'resistance',c.m.motif+'·抵抗检定',{polarity:'positive',duration:round(3),modifiers:[{stat:'check_spirit',flat:c.stage>=6?6:c.stage===5?4:2}]})],'self');a.name=c.m.motif+'·逆压防线';a.tags=['monster:regular','ai:defence'];a.cost.sp.flat=SKILL_COST[c.stage-1]!*c.n.challengeGrowth.resource;a.perBattleUses=2;
- a.description='两条：限时全通道护盾；物理/能量/精神减伤。没有额外属性点，没有无限续盾。';return finish(c,a);
+ a.description='获得限时护盾，并降低受到的物理、能量与精神伤害；精神检定提升3轮。';return finish(c,a);
 }
 export function purge(c:Ctx):ActionSpec{
  const haste=status(c,'initiative',c.m.motif+'·先攻检定',{polarity:'positive',duration:round(3),modifiers:[initiative(c,c.stage>=6?8:5)]});haste.targeting=self;const a=action([{op:'dispel',mode:'remove',polarity:'positive',count:1},damage(c,'mental'),haste]);a.name=c.m.motif+'·剥离护佑';a.cost.mp.flat=SKILL_COST[c.stage-1]!*c.n.challengeGrowth.resource;a.perBattleUses=2;a.tags=['monster:regular','ai:purge'];return finish(c,a);
 }
 export function mythicBreak(c:Ctx):ActionSpec{
- const a=action([damage(c,coreChannel(c.m.cores[1]),1,1,CORE_TYPES[c.m.cores[1]]),{op:'source',mode:'suppress',kinds:['skill'],selection:'first',count:1,duration:round(1),requiresHit:'impact'}]);a.name=c.m.motif+'·有限断源';a.cost.sp.flat=SKILL_COST[c.stage-1]!*c.n.challengeGrowth.resource;a.perBattleUses=1;a.tags=['monster:regular','ai:break'];a.description='命中后封锁一项技能来源1公共轮；不删除原卡、不封锁系统普通攻击/道具，不跨等级速度仲裁。';return finish(c,a);
+ const a=action([damage(c,coreChannel(c.m.cores[1]),1,1,CORE_TYPES[c.m.cores[1]]),{op:'source',mode:'suppress',kinds:['skill'],selection:'first',count:1,duration:round(1),requiresHit:'impact'}]);a.name=c.m.motif+'·有限断源';a.cost.sp.flat=SKILL_COST[c.stage-1]!*c.n.challengeGrowth.resource;a.perBattleUses=1;a.tags=['monster:regular','ai:break'];a.description='命中后封印目标的一项技能1轮。';return finish(c,a);
 }

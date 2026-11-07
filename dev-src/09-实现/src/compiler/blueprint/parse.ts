@@ -34,7 +34,7 @@ function channelOf(t:string):string{
  if(phys)return 'physical';
  return '';
 }
-function typesOf(t:string):string[]{const out:string[]=[];if(/火|炎|焰|燃|爆炸|熔|烧伤/.test(t))out.push('火');if(/雷|电|光|等离子|神圣|圣|伽马/.test(t))out.push('光');if(/冰|霜|水|寒|潮|冻伤/.test(t))out.push('水');if(/暗|影|毒|腐蚀|诅咒|死灵|酸/.test(t))out.push('暗');if(/精神|灵魂|心灵|灵能/.test(t))out.push('精');return out.slice(0,3);}
+function typesOf(t:string):string[]{t=t.replace(/(?:力量|敏捷|体质|智力|精神)(?:属性)?(?:检定|判定|对抗|豁免)|(?:施加者|施法者|使用者|自身)的?(?:力量|敏捷|体质|智力|精神)(?:属性)?/g,'');if(/真实伤害/.test(t)&&!/火|炎|焰|雷|电|冰|霜|毒|腐蚀|诅咒|神圣|灵魂|心灵/.test(t))return ['无'];const out:string[]=[];if(/火|炎|焰|燃|爆炸|熔|烧伤/.test(t))out.push('火');if(/雷|电|光|等离子|神圣|圣|伽马/.test(t))out.push('光');if(/冰|霜|水|寒|潮|冻伤/.test(t))out.push('水');if(/暗|影|毒|腐蚀|诅咒|死灵|酸/.test(t))out.push('暗');if(/精神|灵魂|心灵|灵能/.test(t))out.push('精');return out.slice(0,3);}
 function magnitude(t:string){return /巨额|毁灭|极高|超高|海量|灰飞烟灭|巨大/.test(t)?2:/高额|大量|强力|重击|猛烈|致命一击/.test(t)?1.5:/微弱|少量|轻微|小范围|无害/.test(t)?.6:1;}
 function targetOf(t:string,tier:number):BPTarget|undefined{
  const q:BPTarget={side:'enemy'};let hit=false;
@@ -56,6 +56,7 @@ function turnsNear(t0:string,word:string):number|undefined{
 }
 function chanceIn(t:string):number|undefined{const m=t.match(/(\d+)%(?:的)?(?:几率|概率|机率)/)??t.match(/(?:几率|概率)(\d+)%/)??t.match(/(\d+)%\(d20/)??t.match(/(\d+)%触发/);if(m)return Number(m[1])/100;if(/概率性|有几率|有概率/.test(t))return .3;return undefined;}
 function saveIn(t:string):{attr:string;dc?:number}|undefined{
+ const named=t.match(/(力量|敏捷|体质|智力|精神)属性?(?:检定|判定|豁免)/),dcEq=t.match(/DC\s*[=:：为]?\s*(\d+)/);if(named&&dcEq&&!/DC\d+(?:力量|敏捷|体质|智力|精神)|(?:检定|判定)\(?DC\d/.test(t))return {attr:named[1]!,dc:Number(dcEq[1])};
  const m=t.match(/(力量|敏捷|体质|智力|精神)(?:检定|判定|对抗)\(?DC(\d+)\)?/)??t.match(/DC(\d+)(力量|敏捷|体质|智力|精神)(?:检定|判定|对抗)/)??t.match(/\(DC(\d+)(力量|敏捷|体质|智力|精神)(?:检定|判定)?\)/);
  if(m)return /^\d/.test(m[1]!)?{attr:m[2]!,dc:Number(m[1])}:{attr:m[1]!,dc:Number(m[2])};
  const o=t.match(/[【\[]?(力量|敏捷|体质|智力|精神)(?:对抗|检定|判定)[】\]]?/);if(o&&/失败|成功|对抗|需/.test(t))return {attr:o[1]!};
@@ -108,7 +109,7 @@ function mods(t:string,q:number):BPMod[]{
  const spd=t.match(/速度(?:提升|提高|增加|\+)(\d+)%/);if(spd)out.push({stat:'速度',pct:Number(spd[1])});
  const heal=t.match(/受到(?:的)?治疗(?:效果)?(?:提升|提高|增加|\+)(\d+)%/);if(heal)out.push({stat:'受到治疗',pct:Number(heal[1])});
  const vul=t.match(/(?<!自身)受到(?:的)?伤害(?:增加|提高|提升|\+)(\d+)%/);if(vul)out.push({stat:'受到伤害',pct:Number(vul[1])});
- const dmgUp=t.match(/(?:造成(?:的)?|攻击(?:\/技能)?(?:基础)?)?(物理|能量|精神|魔法)?(?:伤害|威力|数值效果)(?:的倍率)?(?:固定)?(?:提高|提升|增加|\+)\s*(\d+)%/);
+ const dmgUp=t.match(/(?:造成(?:的)?|攻击(?:\/技能)?(?:基础)?)?(物理|能量|精神|魔法)?(?:伤害|威力|数值效果)(?:增幅|加成|的倍率)?(?:固定)?(?:提高|提升|增加|\+)\s*(\d+)%/);
  if(dmgUp&&!/受到(?:的)?(?:[^，。]{0,4})?$/.test(t.slice(Math.max(0,(dmgUp.index??0)-6),dmgUp.index)))out.push({stat:(dmgUp[1]?dmgUp[1].replace('魔法','能量'):'')+'伤害',pct:Number(dmgUp[2])});
  const to=t.match(/伤害均?提升至(\d+)%/);if(to)out.push({stat:'伤害',pct:Number(to[1])-100});
  return out;
@@ -210,12 +211,14 @@ function sentence(s:string,st:State,ctx:ParseContext,q:number,kind:Kind,tagText:
  if(spec?.on==='lethal'&&!/幻影|替身|代偿|瞬移|传送/.test(s))spec=undefined;
  let bucket=spec?bucketFor(st,spec):st.steps;
  // 敌方自定义状态：“使对方陷入[X]状态(……)” / “为对方附加[X]，……”
- for(const g of [...s.matchAll(/(?:为|使|对)(?:对方|目标|敌方|敌人|其)(?:附加|陷入|施加)?\s*[\[【]([^\]】]{1,10})[\]】](?:状态|效果)?(\([^)]*\)|[，,][^；;。]*)?/g)]){
+ const failed=/(?:目标|对方|敌方|敌人)[^。；;]{0,40}(?:检定|判定|豁免)/.test(s)?[...s.matchAll(/失败(?:则|后|时)?(?:获得|陷入|进入|被施加|附加)\s*[\[【]([^\]】]{1,10})[\]】](?:状态|效果)?(\([^)]*\)|[，,][^；;。]*)?/g)]:[];
+ for(const g of [...s.matchAll(/(?:为|使|对)(?:对方|目标|敌方|敌人|其)(?:附加|陷入|施加)?\s*[\[【]([^\]】]{1,10})[\]】](?:状态|效果)?(\([^)]*\)|[，,][^；;。]*)?/g),...failed]){
   const nm=g[1]!;const body=g[2]??'';if(!body||st.flags.has('ecs:'+nm))continue;if(findStd(nm)&&!body.startsWith('('))continue;
   st.flags.add('ecs:'+nm);const ms=mods(body,q).map(m=>((m.add??m.pct??0)>0&&m.stat!=='受到伤害')?{...m,add:m.add!==undefined?-Math.abs(m.add):undefined,pct:m.pct!==undefined?-Math.abs(m.pct):undefined}:m);
   const vul=body.match(/(?:下次)?受到(?:的)?伤害\+(\d+)%/);if(vul&&!ms.some(m=>m.stat==='受到伤害'))ms.push({stat:'受到伤害',pct:Number(vul[1])});
   const cs:Record<string,unknown>={name:nm,polarity:'negative',...(ms.length?{mods:ms}:{})};
-  if(/无法(?:使用|进行)(?:任何)?\[?动作\]?|无法行动/.test(body))cs.control=/攻击/.test(body)?'stun':'no_action';
+  if(/无法行动|强控|无法(?:进行)?任何(?:动作|行动)/.test(body))cs.control='stun';
+  else if(/无法(?:使用|进行)\[?动作\]?/.test(body))cs.control=/攻击/.test(body)?'stun':'no_action';
   if(/位移/.test(body)&&!cs.control)cs.control='root';
   if(/可叠加/.test(body+s))cs.stackable=true;
   if(/受击后全部消耗|下次受到/.test(body+s))cs.consumeOn='damaged';
@@ -451,7 +454,7 @@ function sentence(s:string,st:State,ctx:ParseContext,q:number,kind:Kind,tagText:
  if(/所有被动技能暂时失效|被动(?:技能|能力)?(?:暂时)?失效/.test(s)&&!/永久/.test(s)&&flag('sealP'))push({do:'seal',what:'passives',turns:turnsNear(s,'')??2});
  if(/(?:删除|移除|抹除|削除)[^，。]{0,8}被动/.test(s)&&flag('delP')){const x:BPStep={do:'seal',what:/装备/.test(s)?'all':'passives',count:1,remove:/永久|删除|抹除|削除/.test(s)};const c=chanceIn(s);if(c!==undefined)x.chance=c;if(passive&&!spec)bucketFor(st,{on:'hit'}).push(x);else push(x);}
  if(/无法(?:进行)?(?:任何)?\[?(?:动作|行动)\]?|无法使用\[?动作\]?|禁止\[?动作\]?|失去抵抗力/.test(s)&&/敌|目标|对方|单位/.test(s)&&!stds.some(x=>['禁动','眩晕','击倒','时停'].includes(x.std.name))&&flag('noact')){
-  const x:BPStep={do:'status',status:/攻击/.test(s)&&/无法(?:进行)?(?:任何)?\[?动作\]?或\[?攻击/.test(s)?'眩晕':'禁动',turns:turnsNear(s,'')??(passive?1:2),...(/所有敌|全体敌|所有单位|所有在场敌方|范围内/.test(s)?{target:{side:'enemy',select:'all'} as BPTarget}:{})};
+  const x:BPStep={do:'status',status:/无法行动|强控/.test(s)||/攻击/.test(s)&&/无法(?:进行)?(?:任何)?\[?动作\]?或\[?攻击/.test(s)?'眩晕':'禁动',turns:turnsNear(s,'')??(passive?1:2),...(/所有敌|全体敌|所有单位|所有在场敌方|范围内/.test(s)?{target:{side:'enemy',select:'all'} as BPTarget}:{})};
   if(passive&&!spec){x.target={side:'enemy',select:'all'};bucketFor(st,{on:/所有在场敌方/.test(s)?'round':'miss'}).push(x);}else push(x);}
  if(/衣服脱落|衣物脱落|卸除(?:其)?装备|剥夺(?:其)?装备|解除武装|打落武器/.test(s)&&flag('disarm'))push({do:'seal',what:'equipment',turns:turnsNear(s,'')??2});
 
@@ -616,16 +619,41 @@ export function parseEntry(entry:{sourceId:string;name:string;raw:unknown},ctx:P
   if(!mainBp.steps.length&&!mainBp.triggers?.length)return undefined;
   delete mainBp.cost;delete mainBp.cooldown;
  }else if(equipment){
-  // 装备：常驻部分（攻防数值 + 被动条款）为主，主动条款拆为附加行动
-  const parts=norm.split(/[。；;\n]|(?:^|(?<=[:：，,]))\d\.(?!\d)/).map(s=>s.trim()).filter(Boolean);
-  const act=parts.filter(s=>EQUIP_ACTIVE.test(s)||dealsDamage(s)&&!hitContext(s)&&!/攻击力|威力\+/.test(s)&&!/使用该武器的攻击/.test(s));
-  const pas=parts.filter(s=>!act.includes(s));
-  const p=parseSection(pas.join('。'),ctx,q,'passive',tags,{equipment:true});notes.push(...p.notes);mainBp=p.bp;
-  const hdr=normalize(tags)+'。'+norm;const atk=hdr.match(/攻击(?:力)?(?:至少为)?:?(\d{2,})(?!%)/),def=hdr.match(/防御(?:力)?:?(\d{2,})(?!%)/),pen=norm.match(/(\d+)%穿透|穿透(\d+)%/);
+  // 装备：常驻部分（攻防数值 + 被动条款）为主，主动条款拆为附加行动。
+  // 0.45：“效果”写成“效果名: 效果”时逐条处理——常驻条款合并进主体，每条主动条款单独成为一个以效果名命名的主动。
+  const split=(x:string)=>x.split(/[。；;\n]|(?:^|(?<=[:：，,]))\d\.(?!\d)/).map(s=>s.trim()).filter(Boolean);
+  const isAct=(s:string)=>/消耗[:：]?\s*\[?(?:攻击|动作)\s*[:：]/.test(s)||EQUIP_ACTIVE.test(s)||dealsDamage(s)&&!hitContext(s)&&!/攻击力|威力\+|(?:额外|附加)(?:固定)?(?:真实)?伤害\s*\+/.test(s)&&!/使用该武器的攻击/.test(s);
+  const keyed=Object.entries(rec(raw.效果)).filter(([,v])=>typeof v==='string'||typeof v==='number').map(([k,v])=>({key:k.replace(/[\[【][^\]】]*[\]】]\s*$/,'').trim()||k,text:normalize(String(v))}));
+  const groups:{name?:string;text:string}[]=[];let parts:string[];
+  if(keyed.length){
+   const rest=[raw.描述,raw.效果描述,raw.主动,raw.被动].filter(x=>x!==undefined).map(x=>normalize(flat(x)));
+   parts=[...keyed.filter(c=>!isAct(c.text)).map(c=>c.text),...rest].flatMap(split);
+   for(const c of keyed.filter(c=>isAct(c.text)))groups.push({name:c.key,text:c.text});
+  }else{
+   const all=split(norm),act=all.filter(isAct);parts=all.filter(s=>!act.includes(s));if(act.length)groups.push({text:act.join('。')});
+  }
+  const p=parseSection(parts.join('。'),ctx,q,'passive',tags,{equipment:true});notes.push(...p.notes);mainBp=p.bp;
+  const pasText=parts.join('。');
+  const hdr=normalize(tags)+'。'+norm;const atk=hdr.match(/攻击(?:力)?(?:至少为)?:?(\d{2,})(?!%|\d|MP|SP)/),def=hdr.match(/防御(?:力)?:?(\d{2,})(?!%)/),pen=pasText.match(/(\d+)%穿透|穿透(?:率)?\+?(\d+)%/);
   const staff=/法杖|魔杖|法器|施法媒介|魔导|光束炮|能量炮/.test(norm+type+tags);
   const eq:BPMod[]=[];if(atk)eq.push({stat:staff?'能量伤害':'物理伤害',add:Number(atk[1])});if(def)eq.push({stat:'防御',add:Number(def[1])});if(pen)eq.push({stat:'穿透',pct:Number(pen[1]??pen[2])});
   if(eq.length)mainBp.steps.unshift({do:'stat',mods:eq,name:entry.name});
-  if(act.length){const a=parseSection(act.join('。'),ctx,q,'active',tags,{equipment:true});notes.push(...a.notes);if(a.bp.steps.length){if(!a.bp.perBattle&&/每场战斗(?:一|1)次|1次\/战斗|每场战斗限一次|一场战斗仅可使用一次/.test(act.join('')))a.bp.perBattle=1;if(!a.bp.perBattle&&!a.bp.cooldown)a.bp.cooldown=3;const req=norm.match(/(?:必须|需要)处于\[?([^\]\s]{1,12})\]?状态下才能使用/);if(req){a.bp.requires=[{kind:'has_status',status:req[1]}];if(!a.bp.steps.some(x=>x.do==='consume'))a.bp.steps.push({do:'consume',status:req[1]});}if(a.bp.steps.some(s=>s.do==='damage')&&atk&&!a.bp.steps.some(s=>s.do==='damage'&&s.power!==undefined)){const d=a.bp.steps.find(s=>s.do==='damage')!;const mult=act.join('').match(/(\d+)%的?(?:物理|能量)?伤害/);d.power=Number(atk[1])*(mult?Number(mult[1])/100:1);delete d.multiplier;}extra.push(a.bp);}}
+  // 额外固定伤害：每次命中追加一段不随属性成长的固定伤害
+  const bonus=pasText.match(/(?:额外|附加)(?:固定)?伤害\s*\+\s*(\d+)(?!%|\d)(?:\((真实|物理|能量|精神)(?:伤害)?\))?/);
+  if(bonus){const ch=bonus[2]==='真实'?'true':bonus[2]==='能量'?'energy':bonus[2]==='精神'?'mental':bonus[2]==='物理'?'physical':staff?'energy':'physical';(mainBp.triggers??=[]).push({on:'hit',steps:[{do:'damage',power:Number(bonus[1]),channel:ch,noScale:true,...(ch==='true'?{types:['无']}:{}),target:{side:'hit_target'}}]});}
+  // 每场 N 次的必中
+  const sure=pasText.match(/(?:每场(?:战斗)?|每战)(\d+|一|两|二|三)次[^。；;]{0,24}(?:绝对命中|必定命中|必中)/);
+  if(sure&&!mainBp.steps.some(x=>x.do==='sure_hit'))mainBp.steps.push({do:'sure_hit',uses:n(sure[1])??1,permanent:true,target:{side:'self'}});
+  for(const g of groups){
+   const a=parseSection(g.text,{...ctx,...(g.name?{name:g.name}:{})},q,'active',tags,{equipment:true});notes.push(...a.notes);if(!a.bp.steps.length)continue;
+   if(!a.bp.perBattle&&/每场战斗(?:一|1)次|1次\/战斗|每场战斗限一次|一场战斗仅可使用一次/.test(g.text))a.bp.perBattle=1;
+   const paid=!!a.bp.cost&&Object.values(a.bp.cost).some(v=>typeof v==='number'&&v>0);
+   if(!a.bp.perBattle&&!a.bp.cooldown&&!paid)a.bp.cooldown=3;
+   const req=g.text.match(/(?:必须|需要)处于\[?([^\]\s]{1,12})\]?状态下才能使用/);if(req){a.bp.requires=[{kind:'has_status',status:req[1]}];if(!a.bp.steps.some(x=>x.do==='consume'))a.bp.steps.push({do:'consume',status:req[1]});}
+   if(a.bp.steps.some(s=>s.do==='damage')&&atk&&!a.bp.steps.some(s=>s.do==='damage'&&s.power!==undefined)){const d=a.bp.steps.find(s=>s.do==='damage')!;const mult=g.text.match(/(\d+)%的?(?:物理|能量)?伤害/);d.power=Number(atk[1])*(mult?Number(mult[1])/100:1);delete d.multiplier;}
+   if(g.name)a.bp.name=g.name.slice(0,200);
+   extra.push(a.bp);
+  }
  }else{
   const passive=/被动/.test(type)||/^\/种族特性\//.test(entry.sourceId)||['要素','神位','神国'].includes(stage)||/^被动[.。:]/.test(norm)||/^被动/.test(type+norm.slice(0,3));
   // 叙述性的风格/不死类被动不逐词抽状态（“致命伤后衰弱沉睡”是自身状态，不是对敌控制），交给主题规则
@@ -645,6 +673,6 @@ export function parseEntry(entry:{sourceId:string;name:string;raw:unknown},ctx:P
   if(stage==='法则'){b.cost={...b.cost,mpPct:50,spPct:50};b.perBattle=1;}
  }
  for(const b of [mainBp,...extra])if(b.kind==='active'&&!b.cost&&!equipment&&!item){const physical=b.steps.some(s=>s.do==='damage'&&String(s.channel??'').startsWith('physical'));b.cost=physical?{sp:ctx.cost}:{mp:ctx.cost};}
- mainBp.name=entry.name.slice(0,200);for(const [i,b] of extra.entries())b.name=(entry.name+(i?'·'+(i+1):'·主动')).slice(0,200);
+ mainBp.name=entry.name.slice(0,200);for(const [i,b] of extra.entries())if(!b.name||b.name===entry.name)b.name=(entry.name+(i?'·'+(i+1):'·主动')).slice(0,200);
  return {main:mainBp,extra,notes:[...new Set(notes)]};
 }

@@ -25,12 +25,12 @@ export function authoredMonsterKit(m:MonsterDesign,t:ThemeDesign,displayLevel:nu
   const sourceId=`monster:${id}:t${s}:${key}`;a.source={id:sourceId,kind,...(kind==='skill'?{quality:QUALITY[s-1]!}:{}),tags:['monster:authored',id,m.theme,key]};
   const name=a.name??key;
   const mechanic=key.startsWith('passive-')||key.startsWith('unique-')||key.startsWith('malice-')||key.startsWith('arena-')||key==='phase'||key==='exclusive';
-  if(kind==='skill'&&s>=4&&!mechanic)a.description=(s===4?'微弱要素':s===5?'微弱权能':'微弱法则')+'['+m.motif+']：下列有限效果是品质词条投影，不是完整登神能力。'+(a.description??'效果与期限见结构化技能详情。');
+  if(kind==='skill'&&s>=4&&!mechanic)a.description=(s===4?'微弱要素':s===5?'微弱权能':'微弱法则')+'['+m.motif+']：'+(a.description??'');
   skills.push({sourceId,name,sourceFingerprint:MONSTER_CONTENT_VERSION+':'+sourceId,mapping:{sourceId,disposition:passive?'passive':'active',reason:'名录内显式设计；非模型运行中生成。'+(a.description??''),action:a}});
   if(kind==='skill'&&!mechanic)regular.push(name);else if(kind!=='system'&&kind!=='skill')ascended.push(name);
  };
  const basicContext=context(m,t,n);basicContext.power=20*n.challengeGrowth.attack;
- const basic=action([damage(basicContext,coreChannel(m.cores[0]),1,1,CORE_TYPES[m.cores[0]])]);basic.name=m.motif+'·普通攻击';basic.category='command';basic.copyable=false;basic.castMs=0;basic.description='宿主普攻威力20+关联属性×10×生命层级系数；零费用，不是编译失败的代替技能。';
+ const basic=action([damage(basicContext,coreChannel(m.cores[0]),1,1,CORE_TYPES[m.cores[0]])]);basic.name=m.motif+'·普通攻击';basic.category='command';basic.copyable=false;basic.castMs=0;basic.description='零消耗的普通攻击。';
  add('attack',basic,'system');
  // 独有机制表：每只怪物的被动 / 独有主动 / 权能 / 独有法则 / 神国原型，层级越高手段越多（主动与被动同时增加）。
  const d:MonsterMechanics=MONSTER_MECHANICS[id]??{passives:[],actives:[],authority:'',law:'',earlyPassive:false};

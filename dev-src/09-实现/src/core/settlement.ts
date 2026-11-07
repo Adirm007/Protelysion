@@ -33,10 +33,17 @@ export function hostReward(reward: Reward): { name: string; item: Obj } {
       效果: { 兑换: `仅在读者入口由程序扣券后增加${reward.faceValue}FP；获得时不自动兑换。` }, 描述: `来自${reward.source}的未兑换券。`,
     } };
   }
-  if (reward.kind === 'gift') return { name: reward.name, item: {
-    品质: reward.quality, 类型: reward.itemType, 数量: reward.count, 标签: ['书海', '补给员', `来源:${reward.source}`],
-    效果: { 说明: reward.effect }, 描述: reward.description,
-  } };
+  if (reward.kind === 'gift') {
+    // 按世界书细则写过属性的：带着格式化的类型、标签与效果，拿到就能直接用；用途与来历写进描述。
+    if (reward.spec) return { name: reward.name, item: {
+      品质: reward.quality, 类型: reward.spec.type || reward.itemType, 数量: reward.count, 标签: ['书海', '补给员', `来源:${reward.source}`, ...reward.spec.tags],
+      效果: { ...reward.spec.effects }, 描述: `${reward.description}${/[。！？]$/.test(reward.description) ? '' : '。'}${reward.effect}`,
+    } };
+    return { name: reward.name, item: {
+      品质: reward.quality, 类型: reward.itemType, 数量: reward.count, 标签: ['书海', '补给员', `来源:${reward.source}`],
+      效果: { 说明: reward.effect }, 描述: reward.description,
+    } };
+  }
   if (reward.kind === 'material') return { name: reward.name, item: {
     品质: reward.quality, 类型: '材料', 数量: reward.count, 标签: ['书海', '怪物素材', `主题:${reward.theme}`, `区域:${reward.region}`, `来源:${reward.monsterId}`],
     效果: { 素材: reward.effect }, 描述: reward.description,
@@ -73,7 +80,7 @@ function bagName(bag:Obj,h:{name:string;item:Obj}):string{
  for(let i=2;;i++)if(same(bag[alt+i]))return alt+i;
 }
 export function rewardLabel(r:Reward):string{return r.kind==='box'?`${r.quality}·${r.style}·${r.contentType}盲盒`:r.kind==='material'||r.kind==='gift'?`${r.quality}·${r.name}`:`${rewardFP(r)} FP`;}
-export function rewardDetail(r:Reward):string{return r.kind==='box'?`打开后获得${r.style}主题随机${r.quality}${r.contentType}*1。`:r.kind==='material'?`${r.effect}。${r.description}`:r.kind==='gift'?`${r.itemType}：${r.effect}。${r.description}`:'成功撤离时直接计入命运点数，无需兑换。';}
+export function rewardDetail(r:Reward):string{return r.kind==='box'?`打开后获得${r.style}主题随机${r.quality}${r.contentType}*1。`:r.kind==='material'?`${r.effect}。${r.description}`:r.kind==='gift'?(r.spec?`${r.spec.type||r.itemType}：${[...r.spec.tags,...Object.entries(r.spec.effects).map(([k,v])=>k+'：'+v)].join('；')}。${r.description}`:`${r.itemType}：${r.effect}。${r.description}`):'成功撤离时直接计入命运点数，无需兑换。';}
 export function settleRunRewards(mvu:Obj,rewards:Reward[]):Obj {
  const next=structuredClone(mvu),bag=object(actorAt(next,{kind:'player'}).背包);let fp=0;
  for(const reward of rewards){

@@ -18,7 +18,7 @@ export type Adaptation={mode:'original'|'approximate'|'replacement';summary:stri
 /** 编译策略修订号。2=0.38.1：增益/治疗默认可选同伴、敌我两用、正面状态与净化不再当成攻击。
  * 3=0.38.2：原文固定值治疗照原值编（amount / hotAmount），只有原文是百分比才编成百分比。
  * 旧修订号的模型结果在“重新整备”时按需重编（见 engine.ts needsTargetRefresh / needsHealRefresh）。 */
-export const COMPILE_POLICY=3;
+export const COMPILE_POLICY=4;
 export type AdaptedMapping={mapping:MappingSpec;adaptation:Adaptation};
 export const amount=(flat=0,attribute:AmountSpec['attribute']='none',factor=0):AmountSpec=>({flat,attribute,factor,scale:factor?'host_tier':'flat',maxResource:'none',maxFraction:0});
 export function action(effects:EffectSpec[],target:ActionSpec['target']='self'):ActionSpec{return {target,cost:{hp:{flat:0,maxFraction:0},mp:{flat:0,maxFraction:0},sp:{flat:0,maxFraction:0}},castMs:0,recoveryFactor:1,perBattleUses:0,effects};}

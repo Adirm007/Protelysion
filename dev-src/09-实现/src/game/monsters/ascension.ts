@@ -3,9 +3,9 @@ import type {Doctrine} from './catalog';
 import {action,child,condition,damage,finish,flat,minion,pct,permanent,round,self,status,themeType,type Ctx} from './ir';
 const TARGET={side:'event_source',selection:'all',life:'alive'} as const;
 const VICTIM={side:'event_target',selection:'all',life:'any'} as const;
-function named(c:Ctx,name:string,a:ActionSpec){a.name=name;a.description='登神来源：不使用普通技能品质。法则/权能遵守显式最大资源费用与每战次数；仲裁仍为等级→有效速度→种子随机。';return finish(c,a);}
+function named(c:Ctx,name:string,a:ActionSpec){a.name=name;a.description=a.description||'登神长阶赋予的力量。';return finish(c,a);}
 export function elements(c:Ctx):ActionSpec{
- const a=action([{op:'modify',name:c.m.motif+'·要素适性',duration:permanent,modifiers:[{stat:'check_spirit',flat:2}]}],'self');a.activation='battle_start';a.description='要素适性只提高精神检定；对主题属性的耐性由该怪物的分层抗性表承担，不再叠加隐藏倍率。';
+ const a=action([{op:'modify',name:c.m.motif+'·要素适性',duration:permanent,modifiers:[{stat:'check_spirit',flat:2}]}],'self');a.activation='battle_start';a.description='常驻：精神检定+2。';
  return named(c,c.m.motif+'·'+c.t.element+'与形态要素',a);
 }
 export function authority(c:Ctx):ActionSpec{
@@ -43,7 +43,7 @@ const ATTACKING:ConditionSpec={kind:'expression',expression:[{read:'event',key:'
 export function law(c:Ctx,doctrine:Doctrine,label:string):ActionSpec{
  const a=action([],'self');a.activation='battle_start';a.name=c.m.motif+'·'+label;
  const active=action([]);active.name=a.name+'·宣告';active.category='law';active.targeting={side:'enemy',selection:'all',life:'alive'};active.tags=['monster:law','ai:law'];active.cost.mp.maxFraction=.5;active.cost.sp.maxFraction=.5;active.perBattleUses=1;active.castMs=1100;
- active.description='最大MP和SP各50%，每战1次；当前战场全体敌人、公共轮期限；宣告冲击为各目标最大HP的25%，不是普通技能威力。';
+ active.description='消耗最大MP与SP各50%，每战一次：对全体敌人造成其最大生命25%的真实伤害，并留下3轮法则前兆（受到伤害+20%）。';
  const mark=status(c,'law-mark',a.name+'·法则前兆',{tags:['monster:primer',c.m.id+':law-mark'],duration:round(3),modifiers:[{stat:'vulnerability',multiplier:1.20}]});
  active.effects.push(mark);
  const selfRule=(rule:'immune_concept'|'guaranteed_hit'|'guaranteed_evade'|'death_guard',key='*',uses=1):EffectSpec=>({op:'rule',rule,key,uses,duration:permanent,targeting:self,...(rule==='death_guard'?{amount:flat(1)}:{})});
@@ -117,7 +117,7 @@ export function divinity(c:Ctx):ActionSpec{
  const immunity=c.t.element==='冰'?'freeze':c.t.element==='火'?'fear':c.t.element==='暗'?'charm':'confusion';
  const a=action([{op:'rule',rule:'immune_status',key:immunity,duration:permanent},{op:'rule',rule:'death_guard',key:'*',uses:1,amount:flat(1),duration:permanent}],'self');a.activation='battle_start';a.name=c.m.motif+'·神位';
  trigger(c,a,'divine-circulation','round','self',[{op:'heal',resource:'mp',amount:pct('mp',.04),targeting:self},{op:'heal',resource:'sp',amount:pct('sp',.04),targeting:self}],{uses:5});
- a.description=`神位仅免疫${immunity}这一控制概念；每战一次留1HP，前5公共轮各恢复最大MP/SP的4%。不是全状态免疫；不改五维、不免仲裁。`;return finish(c,a);
+ a.description=`免疫${({freeze:'冻结',fear:'恐惧',charm:'魅惑',confusion:'混乱'} as Record<string,string>)[immunity]??immunity}；每战一次受到致命伤害时保留1点生命；前5轮每轮恢复最大MP与SP的4%。`;return finish(c,a);
 }
 /** Only explicitly peak seventh-tier bosses receive this source. The breakable anchor belongs to THIS caster. */
 export function kingdom(c:Ctx):ActionSpec{
@@ -135,7 +135,7 @@ export function kingdom(c:Ctx):ActionSpec{
  status(c,'realm-burden',a.name+'·界内负担',{duration:{clock:'field',value:0},tags:['monster:realm','monster:primer'],dispellable:true,priority:40,modifiers:[{stat:'speed',multiplier:.80},{stat:'heal_received',multiplier:.75}],triggers:[{id:'sovereign-edict',event:edictEvent,scope:'self',action:edict,uses:0,priority:40,conditions:edictConditions}]});
  c.lib.fields.realm={name:a.name,group:'monster:divine-boundary',priority:0,stack:'strongest',targeting:{side:'enemy',selection:'all',life:'alive',range:3},status:'realm-burden',duration:round(4),element:c.t.element};
  const open=action([{op:'summon',template:'anchor',count:1,mode:'summon'},{op:'field',field:'realm',conditions:[{kind:'expression',expression:[{read:'member_count',key:'owned',tags:['monster:realm-anchor'],life:'alive'}],compare:'gt',value:0}]}],'self');open.name=a.name+'·展开';open.category='divine-domain';open.castMs=1500;open.perBattleUses=1;open.tags=['monster:kingdom','ai:kingdom'];open.cost.mp.maxFraction=.10;open.cost.sp.maxFraction=.10;
- open.description='明确巅峰模板；神国需三法则和神位。最大MP/SP各10%，每战一次，4公共轮、抽象距离3以内。'+(reversal?'界内HP恢复反转为伤害。':censor?'界内新增非负面状态会被裁除；既有状态不凭空删除。':'除系统指令与道具外，界内行动另缴最大MP的5%，不足则中断。')+'规则仍走等级、速度、随机仲裁。击碎本体所属界碑即崩解；他者界碑不能续命。';
+ open.description='消耗最大MP与SP各10%，每战一次：立起神国界碑，展开4轮神国。界内敌人速度-20%、受到治疗-25%；'+(reversal?'界内的生命恢复会反转为伤害。':censor?'界内新获得的非负面状态会被抹除。':'除普通指令与道具外，界内每次行动需另付最大MP的5%，不足则行动失败。')+'界碑被击碎时神国随之崩解。';
  c.lib.actions.open=open;a.grantedActions=['open'];
  const empty:ConditionSpec={kind:'expression',expression:[{read:'member_count',key:'owned',tags:['monster:realm-anchor'],life:'alive'}],compare:'eq',value:0};
  // Closing a bound field uses its owner-namespaced definition. Repeating an empty close is harmless.

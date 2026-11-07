@@ -10,6 +10,7 @@ import {normalizeBlueprint,BLUEPRINT_VERSION} from '../src/compiler/blueprint/ty
 import {validateAction,type ActionSpec,type EffectSpec,type StatusSpec} from '../src/compiler/contract';
 import {createBattle,legalTargets,chooseAction,resolveAction,advanceBattle,actionUnavailable,type Battle,type Unit} from '../src/battle/executor';
 import {repairLegacyTargeting} from '../src/battle/targeting';
+import {COMPILE_POLICY} from '../src/compiler/adaptive';
 import {decide} from '../src/game/combat-ai';
 import {createCompilationEngine,validateCompiled,needsTargetRefresh,type CompiledActor} from '../src/compiler/engine';
 import {HOST_RULES} from '../src/compiler/rules';
@@ -177,7 +178,7 @@ test('重新整备：旧策略下有目标问题的模型条目交给模型重�
  const first=createCompilationEngine(async({prompt})=>reply(prompt,()=>({name:'模型',kind:'active',steps:[{do:'damage'}],fidelity:'exact'})),HOST_RULES,{blueprint:true});
  const fresh=validateCompiled((await first.compile(source,undefined,[])).actor);
  const tool=fresh.skills.find(s=>s.sourceId==='/技能/工具组')!;
- assert.equal(tool.adaptation?.method,'model');assert.equal(tool.adaptation?.policy,3,'新编译结果带策略修订号');
+ assert.equal(tool.adaptation?.method,'model');assert.equal(tool.adaptation?.policy,COMPILE_POLICY,'新编译结果带策略修订号');
  // 造一份 0.38.0 的旧缓存：工具组是“选敌人、效果只作用于同伴”的死效果，且没有策略修订号。
  const legacy=structuredClone(fresh) as CompiledActor;const old=legacy.skills.find(s=>s.sourceId==='/技能/工具组')!;
  old.mapping.action=validateAction({name:'工具组',target:'enemy',cost:noCost,castMs:0,recoveryFactor:1,perBattleUses:0,effects:[{op:'apply_status',status:'清醒',targeting:allyManual}],library:{actions:{},statuses:{清醒:positive('清醒')},summons:{},fields:{}}}) as ActionSpec;
@@ -188,7 +189,7 @@ test('重新整备：旧策略下有目标问题的模型条目交给模型重�
  const redone=validateCompiled((await second.compile(source,legacy,[])).actor);
  assert.deepEqual(asked,['/技能/工具组'],'只重编有目标问题的旧条目');
  const now=redone.skills.find(s=>s.sourceId==='/技能/工具组')!;
- assert.equal(now.mapping.action!.targeting?.side,'any');assert.equal(now.adaptation?.policy,3);
+ assert.equal(now.mapping.action!.targeting?.side,'any');assert.equal(now.adaptation?.policy,COMPILE_POLICY);
  const offline=createCompilationEngine(async()=>{throw Error('offline');},HOST_RULES,{blueprint:true});
  const kept=validateCompiled((await offline.compile(source,legacy,[])).actor).skills.find(s=>s.sourceId==='/技能/工具组')!;
  assert.equal(kept.adaptation?.method,'model','模型不可用：保留旧的模型结果，不退回本地解析');

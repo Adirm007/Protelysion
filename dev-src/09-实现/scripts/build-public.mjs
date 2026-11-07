@@ -12,7 +12,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.44.0-20261103-bestiary';
+const revision='protelysion-0.45.0-20261107-fidelity-loot';
 const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
@@ -98,7 +98,7 @@ jobs:
 await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.44.0 · 2026-11-03 敌役图鉴**
+**版本：0.45.0 · 2026-11-07 编译还原与补给员战利品**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
@@ -122,6 +122,12 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 2. 用 \`读者核心本体 (new).txt\` 替换现有读者世界书条目内容，保留条目设置并启用；核心已包含书海交接，不再同时启用旧独立交接条目。
 3. 导入 \`普罗泰利西翁-书海外链加载正则.json\`，匹配书海标签的游戏正则只启用一份。
 4. 在旧读者大厅点击书海入口，或发送含“进入普罗泰利西翁”的过渡剧情；可带前后文字、引号和换行。正文模式与离场继续使用配套世界书交接。
+
+## 0.45.0 编译还原、补给员战利品与文案
+
+- 书海编译尽量还原原文：装备“效果”里的每条“效果名: 效果”逐条落实，多条常驻词条合并成一个被动，不再只留第一条；主动条款以效果名命名。补上全伤害增幅、穿透、额外固定伤害、每战 N 次必中等写法；“目标检定失败则获得[某状态]，无法行动”施加给目标并附检定，不再挂到自己身上，也不再误成禁动。已整备过的角色点一次「重新整备」即按新规则重编装备。
+- 补给员给技能书以外的可带出战利品（武器、装备、消耗品、资产等）时，先读世界书里的物品生成细则，再按细则写出类型、标签与效果，结算时带着这些属性放进背包。细则条目名与读者「命运抽卡」共用，玩家改了世界书条目也照样适用；读不到细则时照旧只写大概。
+- 怪物技能、图鉴与普通攻击的说明去掉开发者口吻（“条款一”“仲裁”“不保证……”等），只写它做了什么；命中、闪避、暴击、穿透的加成按百分比显示。
 
 ## 0.44.0 敌役图鉴
 

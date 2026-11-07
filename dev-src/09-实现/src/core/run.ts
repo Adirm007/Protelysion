@@ -7,7 +7,9 @@ export type Reward = { kind: 'box'; quality: string; style: string; contentType:
   /** 0.26 怪物独特素材（含神话宝箱怪的「价值的结晶」）；成功撤离时写入背包，失败清零。 */
   | { kind: 'material'; name: string; quality: string; theme: string; region: string; effect: string; description: string; monsterId: string; count: number; source: string }
   /** 0.40 补给员给的可带出战利品：成功撤离时写入主角背包，由正文演绎；失败清零（买了死亡不掉落则保留）。 */
-  | { kind: 'gift'; name: string; itemType: string; quality: string; effect: string; description: string; count: number; source: string }
+  | { kind: 'gift'; name: string; itemType: string; quality: string; effect: string; description: string; count: number; source: string;
+      /** 0.45 按世界书物品生成细则写好的属性（技能书没有）：类型、标签与效果，结算时照写进背包。 */
+      spec?: { type?: string; tags: string[]; effects: Record<string, string> } }
   /** Read-only compatibility for pre-0.24 unfinished expedition rewards; credited as FP on success. */
   | { kind: 'voucher'; faceValue: number; count: number; source: string };
 /** keepOnDefeat（0.39 商店「死亡不掉落」）：本趟全灭时照常失败离场（复活交接不变），但逐人经验与全部掉落照成功结算保留。 */
@@ -65,7 +67,10 @@ export function addReward(run: Run, reward: Reward): Run {
   active(run); integer(reward.count, '掉落数量', 1);
   if (reward.kind === 'fp') integer(reward.amount, 'FP数额', 1);
   else if (reward.kind === 'voucher') integer(reward.faceValue, '旧奖励数额', 1);
-  else if (reward.kind === 'gift') { if (!reward.name || !reward.itemType || !reward.quality || !reward.effect || !reward.description) throw new Error('战利品字段缺失'); }
+  else if (reward.kind === 'gift') {
+    if (!reward.name || !reward.itemType || !reward.quality || !reward.effect || !reward.description) throw new Error('战利品字段缺失');
+    if (reward.spec && (!Array.isArray(reward.spec.tags) || !reward.spec.effects || typeof reward.spec.effects !== 'object' || !Object.keys(reward.spec.effects).length)) throw new Error('战利品属性不完整');
+  }
   else if (reward.kind === 'material') { if (!reward.name || !reward.quality || !reward.theme || !reward.region || !reward.effect || !reward.description || !reward.monsterId) throw new Error('素材字段缺失'); }
   else if (!reward.quality || !reward.style || !reward.contentType) throw new Error('盲盒标签缺失');
   const next = structuredClone(run); next.rewards.push(structuredClone(reward)); return next;

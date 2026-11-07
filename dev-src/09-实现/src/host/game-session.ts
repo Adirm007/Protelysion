@@ -16,13 +16,14 @@ import {promptData} from '../compiler/engine';
 import {growParticipant} from './growth';
 import {startExpedition,type State} from '../game/expedition';
 import type {SupplierPrompt} from '../game/supplier-agent';
+import {GACHA_SETTINGS_KEY,lootSpecPrompt,parseLootSpec,readSpecEntries,specEntryNames,type LootDraft,type LootSpec} from '../game/supplier-loot-spec';
 import {knockoutLines} from '../game/defeat-report';
 import type {PartyMember} from '../game/content';
 import {HOST_RULES} from '../compiler/rules';
 import {unwrapMessageExtra} from '../core/message-extra';
 export {HOST_RULES};
 export type NarrativeMessage=HandoffMessage&{finished:boolean;failed:boolean};
-export type SessionPort={id():string;messageId():number;read():Obj;write(v:Obj):Promise<void>;chat():Obj;updateChat(fn:(v:Obj)=>Obj):Promise<void>;env:CompileEnvironment;lodash:unknown;prepare?():Promise<void>;close?():void;bind?(s:State):void;saveCurrent?(s:State):boolean;assertSave?(s:State):void;authorizedFrames?():string[];commitProgress?(mvu:Obj|undefined,fn:(v:Obj)=>Obj,s:State):Promise<void>;attachNarrative?(meta:NarrativeMeta):Promise<void>;previewNarrative?(value:Obj):Promise<void>;readNarrativeMessages?():NarrativeMessage[];markNarrativeInterrupted?(messageId:number,runId:string):Promise<void>;markNarrativeCompleted?(messageId:number,runId:string):Promise<void>;requireNarrativeReady?():void;enterNarrative?:(refs:ActorRef[],depth:number,id:string)=>Promise<void>;deliver(s:State):Promise<void>;lock<T>(key:string,fn:()=>Promise<T>):Promise<T>;supplierChat?(prompt:SupplierPrompt):Promise<string>;postNarrative?(kind:NarrativeMeta['kind'],runId:string,depth:number,summary:string):Promise<void>};
+export type SessionPort={id():string;messageId():number;read():Obj;write(v:Obj):Promise<void>;chat():Obj;updateChat(fn:(v:Obj)=>Obj):Promise<void>;env:CompileEnvironment;lodash:unknown;prepare?():Promise<void>;close?():void;bind?(s:State):void;saveCurrent?(s:State):boolean;assertSave?(s:State):void;authorizedFrames?():string[];commitProgress?(mvu:Obj|undefined,fn:(v:Obj)=>Obj,s:State):Promise<void>;attachNarrative?(meta:NarrativeMeta):Promise<void>;previewNarrative?(value:Obj):Promise<void>;readNarrativeMessages?():NarrativeMessage[];markNarrativeInterrupted?(messageId:number,runId:string):Promise<void>;markNarrativeCompleted?(messageId:number,runId:string):Promise<void>;requireNarrativeReady?():void;enterNarrative?:(refs:ActorRef[],depth:number,id:string)=>Promise<void>;deliver(s:State):Promise<void>;lock<T>(key:string,fn:()=>Promise<T>):Promise<T>;supplierChat?(prompt:SupplierPrompt):Promise<string>;supplierLootSpec?(draft:LootDraft):Promise<LootSpec|undefined>;postNarrative?(kind:NarrativeMeta['kind'],runId:string,depth:number,summary:string):Promise<void>};
 /** 补给员一句回复的最长等待；超时会停止该次生成。 */
 export const SUPPLIER_CHAT_TIMEOUT_MS=90000;
 /** 读者「彩蛋设置 → 独立API」写入的同源存储。
@@ -41,6 +42,8 @@ export function independentApi(globals:any,route:ApiRoute='booksea_compile'):Obj
  }catch{}}
  return undefined;
 }
+/** 读者「命运抽卡」的设置（同源存储），取其中的物品生成细则条目名。 */
+function gachaSettings(globals:any):unknown{for(const w of [globals,globals?.parent]){try{const raw=w?.localStorage?.getItem(GACHA_SETTINGS_KEY);if(raw)return JSON.parse(raw);}catch{/* 读不到就用默认条目 */}}return undefined;}
 export function withIndependentApi(globals:any,config:Obj,route:ApiRoute='booksea_compile'):Obj{const custom=independentApi(globals,route);return custom?{...config,custom_api:{...object(config.custom_api??{}),...custom}}:config;}
 export function sessionPort(globals:any):SessionPort{
  const h=globals.TavernHelper??globals,c=()=>globals.SillyTavern.getContext();
@@ -139,6 +142,21 @@ export function sessionPort(globals:any):SessionPort{
    let timer:ReturnType<typeof setTimeout>|undefined;
    try{return String(await Promise.race([h.generateRaw(config),new Promise<never>((_,reject)=>{timer=setTimeout(()=>{try{h.stopGenerationById?.(id);}catch{/* best effort */}reject(Error('她想得太久了（超时）'));},SUPPLIER_CHAT_TIMEOUT_MS);})])??'');}
    finally{if(timer)clearTimeout(timer);}
+  },
+  /** 0.45 补给员的可带出战利品：读世界书里的物品生成细则（条目名与读者「命运抽卡」共用），独立生成属性，走 booksea_supplier 路由。
+   *  命运抽卡里关掉了细则时返回 undefined；读不到细则或没写成时抛错，由调用方照旧只写大概。 */
+  async supplierLootSpec(draft){
+   assert();if(typeof h.generateRaw!=='function')throw Error('当前酒馆助手不支持独立生成');
+   const names=specEntryNames(gachaSettings(globals));if(!names)return undefined;
+   const entries=await readSpecEntries(h,names);
+   if(!entries.length)throw Error(`世界书里没有找到名称包含「${names.join('」「')}」的条目`);
+   const p=lootSpecPrompt(entries,draft),id='booksea-loot-'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+   const config=withIndependentApi(globals,{generation_id:id,should_stream:false,should_silence:true,max_chat_history:0,ordered_prompts:[{role:'system',content:p.system},{role:'user',content:p.user}]},'booksea_supplier');
+   let timer:ReturnType<typeof setTimeout>|undefined;
+   try{
+    const raw=String(await Promise.race([h.generateRaw(config),new Promise<never>((_,reject)=>{timer=setTimeout(()=>{try{h.stopGenerationById?.(id);}catch{/* best effort */}reject(Error('写属性超时'));},SUPPLIER_CHAT_TIMEOUT_MS);})])??'');
+    const spec=parseLootSpec(raw,draft.name);if(!spec)throw Error('模型没有写出可用的属性');return spec;
+   }finally{if(timer)clearTimeout(timer);}
   },
   env:{compilerTransport:'portable-action-json',contextId:id,saveChat:save,readMvu:async()=>read(),api,locks:globals.navigator.locks}};
 }
