@@ -2,7 +2,7 @@ import {SUPPLIER_ART_ID} from '../game/supplier';
 import {Typewriter, graphemes} from './typewriter';
 import type {UIAudioFeedback} from '../audio/types';
 import type {GameView} from '../presentation/battle-cues';
-import {gameDom, type SendGameInput} from './game-dom';
+import {gameDom, setText, type SendGameInput} from './game-dom';
 
 /** Portrait, centred choices and bottom dialogue are separate layers, like a VN.
  * Nodes stay stable across frames: keyboard focus and held touch never get lost. */
@@ -96,7 +96,7 @@ export function mountSupplierDialogue(parent: HTMLElement, send: SendGameInput, 
     }
     if (newLine) {visibleText = ''; question.replaceChildren(); writer.start(data.question, win.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false); writer.pause(doc.hidden);}
     if (talk && !talk.pending && doc.activeElement !== talkInput && !talkBox.contains(doc.activeElement)) talkInput.focus({preventScroll: true});
-    if (talk) hint.textContent = talk.pending ? '她在想……' : `可用 FP ${talk.fp} · Enter 发送 · Esc 结束对话`;
+    if (talk) setText(hint, talk.pending ? '她在想……' : `可用 FP ${talk.fp} · Enter 发送 · Esc 结束对话`);
     if (!wasOpen) {previousFocus = doc.activeElement as HTMLElement | null; if (!talk) buttons[0]?.focus({preventScroll: true});}
     wasOpen = true;
   }

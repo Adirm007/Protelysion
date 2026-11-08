@@ -21,6 +21,7 @@ export type RuntimeSupplierMemory={epoch():number;greeting():string|undefined;ob
 type GraphicsQuality='desktop'|'mobile';
 type GraphicsQualityInput=GraphicsQuality|'auto';
 const GRAPHICS_KEY='booksea-graphics-quality';
+const RENDER_HEARTBEAT_MS=1000;
 const isQuality=(value:unknown):value is GraphicsQualityInput=>['auto','desktop','mobile'].includes(String(value));
 // Device class never lowers fidelity. The legacy auto preference now means standard.
 const normalizeQuality=(value:unknown):GraphicsQuality=>value==='mobile'?'mobile':'desktop';
@@ -40,8 +41,11 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  let state=options.initial??null,renderer:((s:string)=>void)|null=null,receipt=0,lastMode='title',writes=Promise.resolve(),disposed=false;
  let rendererMetrics:Record<string,unknown>={};
  const frames=new RendererFrameCodec();
+ /** Last wire sent to Godot. An identical frame (e.g. a battle tick that only moves ATB bars, which Godot never reads)
+  * is not re-sent; a heartbeat still re-sends it once a second so the renderer and its metrics never go stale. */
+ let wire='',wireAt=0,savedText='';
  const getStored=(key:string)=>{try{return win.localStorage.getItem(key);}catch{return null;}};
- const setStored=(key:string,value:string)=>{try{win.localStorage.setItem(key,value);}catch{/* Host message saves remain authoritative even when local storage is blocked. */}};
+ const setStored=(key:string,value:string)=>{try{win.localStorage.setItem(key,value);return true;}catch{/* Host message saves remain authoritative even when local storage is blocked. */return false;}};
  const preference=getStored(GRAPHICS_KEY);
  let graphicsQuality:GraphicsQuality=normalizeQuality(preference);
  if(state){assertCurrentExpedition(state);state.settings!.graphicsQuality=graphicsQuality;registerSupplierContent(state);state.supplierTalkReady=!!options.supplierChat;state.narrativeReady=!!options.onNarrative;memorySync();}
@@ -65,7 +69,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
   const current=snapshot();
   // Keep the battle score/outcome until the visible last hit completes. Pause/hidden still cancels immediately.
   try{if(!heldFrame||state?.paused||win.document.hidden)sound.observe(state);}catch(e){console.warn('Booksea audio update skipped',e);}
-  if(renderer)renderer(frames.encode(current));
+  if(renderer){const next=frames.encode(current),at=now();if(next!==wire||at-wireAt>=RENDER_HEARTBEAT_MS){wire=next;wireAt=at;renderer(next);}}
   const presented=heldFrame?{...heldFrame,paused:state?.paused??false,settings:state?.settings}:current;
   ui?.render(presented,!!heldFrame);
   options.onView?.(current);
@@ -78,7 +82,9 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
   if(!region||renderer&&frames.readyFor(region.id)){veil.update(null);return;}
   veil.update({key:region.id,variant:veilVariantForTheme(region.theme,region.id),boot:!renderer,subtitle:`第 ${region.depth} 层 · ${THEMES[region.theme]?.name??region.theme} · ${region.name}`});
  }
- function save(){if(state)setStored(options.storageKey,JSON.stringify(state));}
+ /** The 1.5 s saver used to rewrite the whole run (60 KB+) even when nothing had changed; each write also fans a
+  * storage event out to the host page. Unchanged state is now skipped; a failed write is retried next time. */
+ function save(){if(!state)return;const text=JSON.stringify(state);if(text===savedText)return;if(setStored(options.storageKey,text))savedText=text;}
  function validSession(){if(stale||disposed)return false;if(state&&options.isCurrent&&!options.isCurrent(state)){stale=true;state.paused=true;save();options.onInvalidated?.();return false;}return true;}
  function checkpoint(){
   bestiarySync();save();if(!state||!options.checkpoint)return;
@@ -175,7 +181,7 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
    * paused, but the next user message must still be able to capture it. */
   cancelNarrativeCapture(){if(disposed||stale||!state||state.narrative?.active)return;handoff=false;state.paused=true;save();publish();sound.setVisible(visible);visibilityRenderer?.(visible);},
   acceptNarrative(copy:State){if(disposed||!state||state.run.id!==copy.run.id)return;state=structuredClone(copy);state.paused=true;handoff=true;save();},
-  attach(callback:(s:string)=>void){renderer=callback;frames.reset();publish();},
+  attach(callback:(s:string)=>void){renderer=callback;frames.reset();wire='';publish();},
   input,inspect:()=>snapshot(),graphicsQuality:()=>graphicsQuality,
   art(id:string,png:string){if(!ui||!/^[A-Za-z0-9_:-]{1,100}$/.test(id)||typeof png!=='string'||!png.startsWith('iVBORw0KGgo')||png.length>16_000_000)return false;const url='data:image/png;base64,'+png;ui.setArt(id,url);try{options.onArt?.(id,url);}catch{/* 图鉴缩略图只是附带的 */}return true;},
   presentation:()=>({holding:!!heldFrame}),

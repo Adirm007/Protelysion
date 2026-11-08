@@ -484,16 +484,16 @@
       "sha256": "e3f6888b59dbb7101b5a18087a4564dac356c995f6ed69c36cee5fbe0c1d42e8"
     },
     "src/game/renderer-frame.ts": {
-      "bytes": 1027,
-      "sha256": "a2671611d9bf92a6556403da3a523332a6b05610419a71e80173ac0753100e26"
+      "bytes": 2306,
+      "sha256": "73672ab03eb933aa754a87e8981cea953a618f7a1c62b0c334d8441b4e4f9d99"
     },
     "src/game/run-hooks.ts": {
       "bytes": 8269,
       "sha256": "1bc83553ecbf1ab27b2e41071e7d7e937eee3b2256290a6c2ef3c4389f4b78c8"
     },
     "src/game/runtime.ts": {
-      "bytes": 18936,
-      "sha256": "f66d7ec0369f428fbe346604c8627600c733c959f072d2fa699cb4eb2df379db"
+      "bytes": 19663,
+      "sha256": "1776fe1e86b98f89f621ad8dad399793a76848d90fc2ce01fe65b10422180351"
     },
     "src/game/supplier-agent.ts": {
       "bytes": 28252,
@@ -640,28 +640,28 @@
       "sha256": "8bf28a4cb9c71c864e18149bce76f1cd2141575373841d8c97966075d2d8ee10"
     },
     "src/supplier-memory/decay.ts": {
-      "bytes": 1789,
-      "sha256": "dbd43b1e3aed80210d9f2c540d546cdf9df9c21994e2fa4a3a3703537083d707"
+      "bytes": 1971,
+      "sha256": "53b238e7e052b7d6dc66c8c7811cff78328c2f2a1126ed345bc92687d623972b"
     },
     "src/supplier-memory/extract.ts": {
-      "bytes": 5646,
-      "sha256": "3a35b51576162c380f534ba23fcd8ee2118fe9bf2511ea0f8ef2b34466da1c08"
+      "bytes": 6057,
+      "sha256": "4f684d11ae47d8a0e44072a30e35b222f76703021d2160add58590431b811c94"
     },
     "src/supplier-memory/retrieve.ts": {
-      "bytes": 16992,
-      "sha256": "d902d379d8e967df340271b5020e46f7ef9200139a24c8e0629f3770a04ef6f2"
+      "bytes": 21688,
+      "sha256": "94946ea3431602ca1028464d45c7bb70c535d7368215ce360785f84171d2e791"
     },
     "src/supplier-memory/schema.ts": {
-      "bytes": 15394,
-      "sha256": "47e683a4c2fe08bfd6d0daf07a7fc993b9d6dff118918a4e496e0516f259d6f0"
+      "bytes": 18935,
+      "sha256": "86f8be730241aeb92e349f8b9f3b70fef69754e790a8cd18abad0c22bc0158c6"
     },
     "src/supplier-memory/service.ts": {
-      "bytes": 22260,
-      "sha256": "0fb160b3d628cd61ec1cce2daf509a33abb90b580f7a284d81ae93cf98b579cb"
+      "bytes": 24560,
+      "sha256": "843348b0850ac197818212b226e6291c509ef2d8b2935341d62207f968f5f58b"
     },
     "src/supplier-memory/store.ts": {
-      "bytes": 27386,
-      "sha256": "9b487e0fe7d95182e2e03cdcd22ef21eda8c5ae13c64eacdbcd5efec8b68f33f"
+      "bytes": 35971,
+      "sha256": "ec0b2a1c818679ee22e451bda2f0e39b86eab8d994161c47f1a699b02d158b9c"
     },
     "src/supplier-memory/text.ts": {
       "bytes": 7206,
@@ -700,8 +700,8 @@
       "sha256": "5c994b037be5a24031b2c1f703edec47c860da7c08f7cd543641d060ecd29101"
     },
     "src/ui/battle-stage.ts": {
-      "bytes": 20901,
-      "sha256": "5b93a4d52777fb090622971c205404638488b2543df92fe203c64c6d63c03794"
+      "bytes": 20936,
+      "sha256": "895ac18a531063bcfd22c54175fd373a193bfa78549f0da60f966cd0cda7876a"
     },
     "src/ui/bestiary-art.ts": {
       "bytes": 4168,
@@ -716,12 +716,12 @@
       "sha256": "05bede66bdd8ecfd60723c0caff2a7f8c37aa1dc33cf697407cb9dbb9ecc67ad"
     },
     "src/ui/expedition-ui.ts": {
-      "bytes": 26619,
-      "sha256": "cb1c240986daaa0126c758ef5bdd6687e114c4ae01218bbbf2dc18d6d149e6d0"
+      "bytes": 26627,
+      "sha256": "a6e031109388f34131618cfe32ee6d789ab42fb521c30c70b36b3f07c38d97cc"
     },
     "src/ui/game-dom.ts": {
-      "bytes": 793,
-      "sha256": "6a47a1e350f2fb5fdb7698e85743f8a7db638358df4bfeb47a7a15da8709974b"
+      "bytes": 1487,
+      "sha256": "030eee780ad8ee99ffd4d14c63a2724c2a5f976ff0afa69fb362d1d5e3ce65d6"
     },
     "src/ui/game-viewport.ts": {
       "bytes": 6851,
@@ -748,12 +748,12 @@
       "sha256": "bb0c72b5e19d7460e30d8087b942b3918b9aa3ecd627504c01bc79daffd12ee7"
     },
     "src/ui/supplier-dialogue.ts": {
-      "bytes": 10062,
-      "sha256": "b8268cfffc3c99bba60bae7e469833438d035c6c9ec34e44f6447a567978bc79"
+      "bytes": 10067,
+      "sha256": "3a82001c3707d95ca08d8a15e537bd7dc3f555c204a966d7fabf49d2d2aa9388"
     },
     "src/ui/supplier-memory-panel.ts": {
-      "bytes": 22172,
-      "sha256": "508cc4e10ccc586f2f3c0bd4b76a369f96c2585c1212369fb83aaecfb10ba7df"
+      "bytes": 24699,
+      "sha256": "97c2e07cb004836243102b928284192b3260dcd8937643fc0f01504a835ac03e"
     },
     "src/ui/supplier-style.ts": {
       "bytes": 9288,
@@ -820,8 +820,8 @@
       "sha256": "190fec2f4d0dcebc04fe9a9b80e475f5016c4c4853651cef6c86849d87b834e1"
     },
     "scripts/build-public.mjs": {
-      "bytes": 63901,
-      "sha256": "2e3036be1b1806861e6516c44d2902d025fe49ea786d00f3c9a08a9ebb7031a6"
+      "bytes": 64709,
+      "sha256": "3dd8183ff7187ae01e8e22bbab0bc3a46afc3460ba908fedbe5ac39d1e3dcd2a"
     },
     "scripts/build.mjs": {
       "bytes": 1927,
@@ -1228,8 +1228,8 @@
       "sha256": "6b6509edc681d47d3ef37f02e0975dc71dc981846e5675684b9d670d9e5f8a7a"
     },
     "tests/random-runtime.test.ts": {
-      "bytes": 4078,
-      "sha256": "4696e09458f2d25a2108bc930a4a88b26903673d0446f4b04665b4cc1c3eb2ce"
+      "bytes": 4635,
+      "sha256": "548577e4c31c8d983749814702909910295ec67455b20e95523c53a3282e950d"
     },
     "tests/reader-install.test.mjs": {
       "bytes": 2465,
@@ -1312,12 +1312,16 @@
       "sha256": "07af16481af64902d6d31c20266dec8f8c2858dd7fc0ae8cf89249b429e01c0b"
     },
     "tests/supplier-memory-core.test.ts": {
-      "bytes": 25000,
-      "sha256": "9ecaef390ff2006d802bdaff1a35bdfcafdb9a64597bb611055b880235175714"
+      "bytes": 25024,
+      "sha256": "e89f74dd22bfbc576566ea18b216432b2fc10ba74fbaa07563e8e98cb6dde801"
     },
     "tests/supplier-memory-fixture.ts": {
       "bytes": 10191,
       "sha256": "dfe0ca69a398b5c92c6c68972cc7a4fb9086c4fda90ee7d515296c1c7b2d6122"
+    },
+    "tests/supplier-memory-longterm.test.ts": {
+      "bytes": 20623,
+      "sha256": "8ce23a01e2bc7dba7c5215fe56dfd6922e81e83a397b3a6459f18f02b645abe6"
     },
     "tests/supplier-memory-retrieval.test.ts": {
       "bytes": 9509,
@@ -1353,11 +1357,11 @@
     },
     "package.json": {
       "bytes": 1038,
-      "sha256": "eb319e044e37620d8c589e2a55230850b804f6101f71a940f3898bb64fd98c20"
+      "sha256": "6faf9a2dc555f4974c3886287f5c9b77ad4f4ee76d259f8e67978a2d0a39af72"
     },
     "package-lock.json": {
       "bytes": 17865,
-      "sha256": "f0721b632b1825e0cdfcfa4981565f35ee7083c666e0dccb79b68fd28869d355"
+      "sha256": "cd814ab12d2dd1baaf808a1d93dca1ca1afc74cf73145dd7a2d240c488d06bcb"
     },
     "tsconfig.json": {
       "bytes": 277,

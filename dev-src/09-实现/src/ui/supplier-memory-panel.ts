@@ -51,15 +51,20 @@ export const SUPPLIER_MEMORY_STYLE = `
 .bs-memory-result{font-size:12.5px;color:#b4aeba}.bs-memory-result.is-ok{color:#b9d9b0}.bs-memory-result.is-bad{color:#e3a69a}
 .bs-memory-facts{margin:8px 0 0;padding:0;list-style:none}
 .bs-memory-facts li{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px dashed #ffffff12;font-size:13px}
-.bs-memory-facts li>span{flex:1;min-width:0;word-break:break-word}
+.bs-memory-facts .bs-memory-text{flex:1;min-width:0;word-break:break-word}
 .bs-memory-facts small{display:block;color:#9d968a;font-size:11.5px}
-.bs-memory-tag{flex:none;padding:1px 7px;border:1px solid #d8b97866;color:#e6d3a4;font-size:11px;letter-spacing:.06em}
+.bs-memory-facts li.is-kept .bs-memory-text{color:#f6ead0}
+.bs-memory-facts li.is-kept .bs-memory-text::before{content:'✦ ';color:#d8b978}
+.bs-memory-actions{display:flex;flex:none;gap:6px}
+.bs-memory-sub{margin:12px 0 2px;color:#d8c294;font-size:12px;letter-spacing:.14em}
+.bs-memory-tag{flex:none;padding:1px 7px;border:1px solid #d8b97866;color:#e6d3a4;font-size:11px;letter-spacing:.06em;white-space:nowrap}
 .bs-memory-tag.is-guess{border-color:#a0b4f066;color:#c3d0f3}.bs-memory-tag.is-self{border-color:#c3a8de66;color:#d9c4e7}
+.bs-memory-tag.is-kept{border-color:#9fcf9a66;color:#c4e2bd}.bs-memory-tag.is-broken{border-color:#d99a8c66;color:#efc0b4}.bs-memory-tag.is-mark{border-color:#f3dfa899;color:#f6e6bd;background:#3b302033}
 .bs-memory details summary{cursor:pointer;color:#f1e3c1;font:500 15px/1.6 "Noto Serif SC","Songti SC",serif;letter-spacing:.12em}
 .bs-memory-foot{display:flex;align-items:center;gap:12px;padding:12px 26px 18px;border-top:1px solid #d8b97833}
 .bs-memory-foot>span{flex:1;font-size:12.5px;color:#d9c89e}
 .bs-memory-note{margin:4px 0 12px;color:#9d968a;font-size:11.5px}
-@media(max-width:620px){.bs-memory{padding:6px}.bs-memory-head{padding:18px 56px 10px 18px}.bs-memory-body{padding:12px 14px 4px}.bs-memory-foot{padding:10px 14px 14px}.bs-memory-tiles{grid-template-columns:repeat(2,1fr)}.bs-memory-field{grid-template-columns:1fr auto}.bs-memory-field>span{grid-column:1/-1}}
+@media(max-width:620px){.bs-memory{padding:6px}.bs-memory-head{padding:18px 56px 10px 18px}.bs-memory-body{padding:12px 14px 4px}.bs-memory-foot{padding:10px 14px 14px}.bs-memory-tiles{grid-template-columns:repeat(2,1fr)}.bs-memory-field{grid-template-columns:1fr auto}.bs-memory-field>span{grid-column:1/-1}.bs-memory-facts li{flex-wrap:wrap}.bs-memory-facts .bs-memory-text{flex-basis:calc(100% - 96px)}.bs-memory-actions{width:100%;justify-content:flex-end}}
 @media(pointer:coarse){.bs-memory input[type=text],.bs-memory input[type=password],.bs-memory input[type=url]{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.bs-memory-switch i:after{transition:none}}
 `;
@@ -132,23 +137,45 @@ export function mountSupplierMemoryPanel(doc: Document, memory: SupplierMemory) 
     statusSec.append(budget);
     renderView(v);
   }
+  // 后台整理、检索都会刷新这一节：记住玩家展开到哪了，别一刷新就收起来。
+  let viewOpen = false;
+  const OUTCOME_TAG: Record<string, [string, string]> = {kept: ['已兑现', ' is-kept'], broken: ['没兑现', ' is-broken'], dropped: ['作罢了', '']};
   function renderView(v = memory.view()) {
     viewSec.replaceChildren();
     const details = doc.createElement('details'), summary = el('summary', '', `她记得的事（${v.facts.length} 条 · ${v.episodes.length} 段近事）`);
-    details.append(summary, el('p', 'bs-memory-hint', '这些只是给你看的，不会原样念给你听。记错了就点“忘掉”，她会彻底忘了这一条。'));
+    details.open = viewOpen; details.addEventListener('toggle', () => {viewOpen = details.open;});
+    details.append(summary, el('p', 'bs-memory-hint', '这些只是给你看的，不会原样念给你听。记错了就点“忘掉”，她会彻底忘了这一条；点了“记牢”的，她不会随时间淡忘。'));
     const list = el('ul', 'bs-memory-facts');
+    const row = (tag: string, cls: string, body: string | HTMLElement) => {const li = el('li'), text = typeof body === 'string' ? el('span', 'bs-memory-text', body) : body; li.append(el('span', 'bs-memory-tag' + cls, tag), text); return li;};
     for (const f of v.facts) {
-      const row = el('li'), [label, cls] = SOURCE[f.source] ?? ['', ''], text = el('span', '', f.text);
+      const [label, cls] = SOURCE[f.source] ?? ['', ''], text = el('span', 'bs-memory-text', f.text);
       if (f.history.length) text.append(el('small', '', '以前：' + f.history.join('、') + '（已过时）'));
-      text.append(el('small', '', `第 ${f.n} 次见面记下`));
+      text.append(el('small', '', `第 ${f.n} 次见面记下${f.keep ? ' · 已记牢' : ''}`));
+      const keep = button(f.keep ? '不必记牢' : '记牢', () => {
+        keep.disabled = true;
+        void memory.keep(f.id, !f.keep).then(r => {if (r === 'full') {keep.disabled = false; keep.textContent = '记牢的太多了';} else renderStatus();});
+      }, 'bs-memory-btn bs-memory-small');
+      keep.setAttribute('aria-pressed', String(f.keep)); keep.title = f.keep ? '取消后，这条会像别的记忆一样随时间淡去' : '记牢的事她不会淡忘，也不会因为记忆太多被挤掉（最多 20 条）';
       const forget = button('忘掉', () => {if (forget.dataset.confirm !== 'yes') {forget.dataset.confirm = 'yes'; forget.textContent = '确认忘掉'; return;} void memory.forget(f.id).then(() => renderStatus());}, 'bs-memory-btn bs-memory-small');
-      row.append(el('span', 'bs-memory-tag' + cls, label), text, forget); list.append(row);
+      const actions = el('span', 'bs-memory-actions'); actions.append(keep, forget);
+      const li = row(label, cls, text); li.classList.toggle('is-kept', f.keep); li.append(actions); list.append(li);
     }
     if (!v.facts.length) list.append(el('li', '', v.epoch > 1 ? '新上任的补给员还不认识你。' : '她还不知道关于你的事。'));
     for (const e of v.episodes) list.append(el('li', '', e.line));
-    for (const r of v.reflections) {const row = el('li'); row.append(el('span', 'bs-memory-tag is-guess', '感想'), el('span', '', r.text)); list.append(row);}
-    for (const d of v.digests) {const row = el('li'); row.append(el('span', 'bs-memory-tag', '旧账'), el('span', '', d)); list.append(row);}
-    details.append(list); viewSec.append(details);
+    for (const r of v.reflections) list.append(row('感想', ' is-guess', r.text));
+    for (const d of v.digests) list.append(row('旧账', '', d));
+    details.append(list);
+    if (v.resolved.length) {
+      const done = el('ul', 'bs-memory-facts');
+      for (const r of v.resolved) {const [tag, cls] = OUTCOME_TAG[r.outcome] ?? OUTCOME_TAG.dropped!; done.append(row(tag, cls, r.text));}
+      details.append(el('p', 'bs-memory-sub', '了结的约定'), done);
+    }
+    if (v.milestones.length) {
+      const marks = el('ul', 'bs-memory-facts');
+      for (const m of v.milestones) marks.append(row('里程碑', ' is-mark', `${m.text}（${m.text.startsWith('第 ') ? '' : `第 ${Math.max(1, m.n)} 次见面 · `}${time(m.at).split(' ')[0]}）`));
+      details.append(el('p', 'bs-memory-sub', '你们之间的里程碑'), marks);
+    }
+    viewSec.append(details);
   }
   function apiSection(kind: 'embedding' | 'rerank') {
     const sec = el('section', 'bs-memory-sec'), slot: ApiSlot = draft[kind];

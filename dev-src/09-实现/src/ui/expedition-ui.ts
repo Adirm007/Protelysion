@@ -12,7 +12,7 @@ import {dexIdForArt} from '../game/bestiary';
 const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C9 4.3 5.6 4.2 3 5.2v13.6c2.6-1 6-.9 9 1 3-1.9 6.4-2 9-1V5.2c-2.6-1-6-.9-9 1Z"/><path d="M12 6.2v13.6M6 9.2c1.4-.3 2.8-.2 4 .4M6 12.6c1.4-.3 2.8-.2 4 .4M14 9.6c1.2-.6 2.6-.7 4-.4"/></svg>';
 const FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const EXIT_FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
-import {gameDom, resourceNumber as number, type SendGameInput} from './game-dom';
+import {gameDom, resourceNumber as number, setText, setAttr, setStyle, type SendGameInput} from './game-dom';
 import type {GameView, BattleCue} from '../presentation/battle-cues';
 
 type TitleView = {mode: string; canContinue: boolean};
@@ -159,13 +159,13 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
     panel.classList.remove('rpg-title'); shade.classList.remove('is-title');
     supplierUI.render(v);
     const inBattle = v.mode === 'battle';
-    ui.style.setProperty('--rpg-speed', String(v.settings?.animationSpeed ?? 1));
+    setStyle(ui, '--rpg-speed', String(v.settings?.animationSpeed ?? 1));
     if (previousMode !== v.mode) {menuKey = ''; if (inBattle) battleUI.reset(); joystick.stop();}
-    stage.classList.toggle('is-battle', inBattle); battle.hidden = !inBattle; hud.hidden = v.mode === 'supplier' && !v.paused; place.hidden = inBattle; placeName.textContent = v.themeName; placeSub.textContent = `第 ${v.depth} 层 · ${v.region.name}`;
+    stage.classList.toggle('is-battle', inBattle); battle.hidden = !inBattle; hud.hidden = v.mode === 'supplier' && !v.paused; place.hidden = inBattle; setText(placeName, v.themeName); setText(placeSub, `第 ${v.depth} 层 · ${v.region.name}`);
     const warning = 'warning' in v ? String((v as {warning?: string}).warning ?? '') : '';
     if (warn.hidden === !!warning) {warn.hidden = !warning; if (warning) {warnText.textContent = warning; warnButton.focus({preventScroll: true});}}
     pad.hidden = v.mode !== 'explore' || v.paused || !!warning || !!v.exitAsk; joystick.setEnabled(!pad.hidden); menuButton.hidden = v.mode === 'ended';
-    menuButton.setAttribute('aria-label', v.paused ? '关闭菜单' : '打开菜单');
+    setAttr(menuButton, 'aria-label', v.paused ? '关闭菜单' : '打开菜单');
     shade.hidden = !v.paused && v.mode !== 'event' && v.mode !== 'ended';
     fullInline.hidden = shade.hidden; fullFloat.hidden = !shade.hidden; syncFull();
     leave.hidden = !(v.exitAsk && v.mode === 'explore' && !v.paused);

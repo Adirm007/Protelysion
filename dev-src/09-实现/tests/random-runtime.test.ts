@@ -14,7 +14,10 @@ test('Random presentation sends immutable layout once, resets on attach, and nev
  const codec=new RendererFrameCodec(),state=startExpedition(playtestParty(),8912),snapshot=view(state),before=JSON.stringify(snapshot);
  const first=JSON.parse(codec.encode(snapshot)),second=JSON.parse(codec.encode(snapshot));
  assert.deepEqual(first.region.layout,state.region.layout);assert.ok(first.region.tiles);
- assert.equal(second.region.layout,undefined);assert.equal(second.region.tiles,undefined);assert.deepEqual(second.region.things,snapshot.region.things);
+ assert.equal(second.region.layout,undefined);assert.equal(second.region.tiles,undefined);assert.deepEqual(second.region.things,snapshot.region.things.map(t=>({id:t.id,kind:t.kind,x:t.x,z:t.z,used:t.used,foes:t.foes})));
+ // Only what godot/game.gd reads crosses the bridge each frame; HTML-only data (battle logs, menus, AI state) stays out.
+ assert.deepEqual(Object.keys(second).sort(),['battle','mode','party','paused','region','settings','x','z']);assert.equal(second.x,snapshot.x);assert.equal(second.settings.graphicsQuality,snapshot.settings?.graphicsQuality);
+ assert.deepEqual(second.party,snapshot.party.map(p=>({status:p.status,color:p.color})));assert.equal('ai' in second.region.things[0],false);
  assert.equal(JSON.stringify(snapshot),before);assert.equal(codec.readyFor(state.region.id),false);
  codec.acknowledge('stale-region');assert.equal(codec.readyFor(state.region.id),false);codec.acknowledge(state.region.id);assert.equal(codec.readyFor(state.region.id),true);
  codec.reset();assert.ok(JSON.parse(codec.encode(snapshot)).region.layout);

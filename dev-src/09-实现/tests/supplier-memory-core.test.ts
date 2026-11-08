@@ -212,7 +212,7 @@ test('分词与检索：中文单字+双字切分，BM25 覆盖率给出“到�
 test('存档迁移：旧存档没有记忆=全新（第 1 任）；记忆上线前已有旅程会标记；坏条目被清洗；更新版本的格式只读不写；分支复制来的记忆照单继承', async () => {
   assert.deepEqual(migrateStore(undefined, 'c').status, 'fresh');
   const fresh = migrateStore(null, 'c', T0).store; assert.equal(fresh.epoch, 1); assert.equal(fresh.schema, MEMORY_SCHEMA);
-  const dirty = migrateStore({schema: 1, epoch: 3, chat: 'c', facts: [{id: 'f1', text: '【坏】\n文本', kind: 'nope', source: 'player', status: 'active', evidence: [{ep: 'e1', quote: 'x'}]}, {id: 'bad', text: 'x'}, 'junk'], episodes: [{id: 'e1', text: '第 1 层', n: 1}], seq: 0}, 'c', T0);
+  const dirty = migrateStore({schema: MEMORY_SCHEMA, epoch: 3, chat: 'c', facts: [{id: 'f1', text: '【坏】\n文本', kind: 'nope', source: 'player', status: 'active', evidence: [{ep: 'e1', quote: 'x'}]}, {id: 'bad', text: 'x'}, 'junk'], episodes: [{id: 'e1', text: '第 1 层', n: 1}], seq: 0}, 'c', T0);
   assert.equal(dirty.status, 'ok'); assert.equal(dirty.store.epoch, 3); assert.equal(dirty.store.facts.length, 1);
   assert.equal(dirty.store.facts[0]!.text, '「坏」 文本'); assert.equal(dirty.store.facts[0]!.kind, 'other'); assert.ok(dirty.store.seq >= 1, '编号不会和旧记录撞车');
   assert.equal(migrateStore({schema: 99, epoch: 4}, 'c').status, 'newer');
@@ -225,10 +225,11 @@ test('存档迁移：旧存档没有记忆=全新（第 1 任）；记忆上线�
   await mem.idle();
   const saved = storedMemory(chat); assert.equal(saved.legacy, true); assert.equal(saved.n, 1);
   assert.match(String((await mem.section('你还记得我吗')).text), /在你有记忆之前/);
-  const newer = fakeChat({booksea: {supplierMemory: {schema: 2, epoch: 1, future: true}}}), m2 = makeMemory({chat: newer, storage: fakeStorage()});
+  const future = {schema: MEMORY_SCHEMA + 1, epoch: 1, future: true};
+  const newer = fakeChat({booksea: {supplierMemory: future}}), m2 = makeMemory({chat: newer, storage: fakeStorage()});
   encounter(m2, observed(), {run: 'run-1', thing: 'sup-1', depth: 2, at: T0, buys: [['红色药剂', 120]]});
   await m2.idle();
-  assert.deepEqual(storedMemory(newer), {schema: 2, epoch: 1, future: true}, '更新版本的记忆不被旧版游戏覆盖'); assert.equal(m2.status().readOnly, true);
+  assert.deepEqual(storedMemory(newer), future, '更新版本的记忆不被旧版游戏覆盖'); assert.equal(m2.status().readOnly, true);
 });
 
 test('远征结局：每一趟只记一次；正文模式里离开迷宫（记忆服务不在场）由聊天存档补记；被清空后不会把旧趟写回', async () => {

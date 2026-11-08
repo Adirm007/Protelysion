@@ -1,27 +1,65 @@
 /** 补给员记忆：写入路径。
  *  - 确定性事件（见面、成交、购买、远征结局）直接记账，不经 LLM；
- *  - 对话里的“关于玩家的事”由整理模型抽取，再按 Mem0 式的 ADD / UPDATE / RETRACT / FORGET / NOOP 合并；
+ *  - 对话里的“关于玩家的事”由整理模型抽取，再按 Mem0 式的 ADD / UPDATE / RETRACT / FORGET / RESOLVE / NOOP 合并；
  *  - 合并前逐条核对：玩家亲口说的必须能在玩家原话里找到，补给员自己的玩笑只能记成“她自己说的”，
- *    同一槽位（名字、最喜欢的食物……）新值到来时旧值转为“已过时”（Zep 式有效期），永远不覆盖历史。 */
-import {MEMORY_LIMITS, FACT_KINDS, SLOT, emptyStore, type MemoryStore, type Fact, type FactKind, type MemorySource, type Episode, type EpisodeMeta, type DealNote, type PendingJob, type PendingLine, type RunNote, type Reflection, type Digest} from './schema';
+ *    同一槽位（名字、最喜欢的食物……）新值到来时旧值转为“已过时”（Zep 式有效期），永远不覆盖历史。
+ *  - 长期陪伴：约定会了结（兑现 / 落空 / 作罢）而不是永远挂着；关系里程碑由程序确定地记下；
+ *    存档永远有界——自动置顶有上限、重要往事最终也会压进旧账（原话留下），旧账合并按统计相加不丢数。 */
+import {MEMORY_LIMITS, FACT_KINDS, OUTCOMES, SLOT, emptyStore, type MemoryStore, type Fact, type FactKind, type MemorySource, type Episode, type EpisodeMeta, type DealNote, type PendingJob, type PendingLine, type RunNote, type Reflection, type Digest, type DigestStats, type Outcome} from './schema';
 import {safeText, compact, containment, bigrams, jaccard, monthDay} from './text';
-import {retention, isPinned} from './decay';
+import {retention, isPinned, DECAY} from './decay';
 
 export type EncounterInput = {
   key: string; run: string; thing: string; depth: number; place: string; theme: string; at: number;
   choices: string[]; buys: DealNote[]; deals: DealNote[]; gifts: DealNote[]; misses: string[]; lines: PendingLine[];
 };
-export type ExtractedMemory = {op?: string; id?: string; kind?: string; slot?: string; text?: string; value?: string; source?: string; quote?: string; importance?: number; confidence?: number; keywords?: string[]};
+export type ExtractedMemory = {op?: string; id?: string; kind?: string; slot?: string; text?: string; value?: string; source?: string; quote?: string; importance?: number; confidence?: number; keywords?: string[]; outcome?: string};
 export type Extraction = {
   memories?: ExtractedMemory[];
   episode?: {summary?: string; quote?: string; importance?: number; keywords?: string[]};
   relationship?: {stance?: string; closeness?: number};
   reflections?: {text?: string; evidence?: string[]; importance?: number}[];
 };
-export type ApplyReport = {added: string[]; superseded: string[]; retracted: string[]; forgotten: string[]; merged: string[]; reflections: string[]; rejected: {text: string; reason: string}[]; summary: boolean};
+export type ApplyReport = {added: string[]; superseded: string[]; retracted: string[]; resolved: string[]; forgotten: string[]; merged: string[]; reflections: string[]; rejected: {text: string; reason: string}[]; summary: boolean};
 
 export const activeFacts = (s: Pick<MemoryStore, 'facts'>) => s.facts.filter(f => f.status === 'active');
 export function nextId(store: MemoryStore, prefix: 'f' | 'e' | 'r' | 'd'): string {store.seq++; return prefix + store.seq;}
+
+/** 熟悉程度的分档（closeness 0～100）。 */
+export const CLOSENESS = [[86, '很亲近'], [61, '老朋友'], [36, '熟客'], [16, '面熟'], [0, '陌生']] as const;
+export const closenessWord = (n: number) => CLOSENESS.find(([min]) => n >= min)![1];
+const MEET_MARKS = [10, 30, 50, 100, 200, 300, 500, 1000];
+const TIER_MILESTONE: Record<string, string> = {面熟: '彼此面熟了', 熟客: '玩家成了熟客', 老朋友: '成了老朋友', 很亲近: '变得很亲近'};
+/** 记一个关系里程碑；同一种（key）只记一次，所以总数天然有界。 */
+export function noteMilestone(store: MemoryStore, key: string, text: string, at: number): boolean {
+  const list = store.relationship.milestones ??= [];
+  if (list.some(m => m.key === key)) return false;
+  list.push({key, text: safeText(text, 40), n: store.n, at});
+  if (list.length > MEMORY_LIMITS.milestones) list.splice(0, list.length - MEMORY_LIMITS.milestones);
+  return true;
+}
+/** 改熟悉度（0～100）；第一次升到新的一档时记成里程碑。 */
+function bumpCloseness(store: MemoryStore, delta: number, at: number) {
+  const rel = store.relationship, before = rel.closeness;
+  rel.closeness = Math.max(0, Math.min(100, before + delta));
+  const tier = closenessWord(rel.closeness);
+  if (rel.closeness > before && TIER_MILESTONE[tier] && tier !== closenessWord(before)) noteMilestone(store, 'closeness:' + tier, TIER_MILESTONE[tier]!, at);
+}
+/** 不会被挤掉、也不会被自动降级的事实：名字/称呼、玩家记牢的、最重要的若干条雷区。 */
+function protectedFacts(store: MemoryStore): Set<string> {
+  const active = activeFacts(store), out = new Set<string>();
+  for (const f of active) if (f.slot === 'name' || f.slot === 'nickname' || f.keep) out.add(f.id);
+  for (const f of active.filter(f => f.kind === 'boundary' && !out.has(f.id)).sort((a, b) => b.importance - a.importance || b.n - a.n).slice(0, MEMORY_LIMITS.boundaries)) out.add(f.id);
+  return out;
+}
+/** 玩家在面板里“记牢”或取消一条；记牢的条数到上限时返回 'full'。 */
+export function setKeep(store: MemoryStore, id: string, on: boolean): boolean | 'full' {
+  const f = store.facts.find(x => x.id === id && x.status === 'active'); if (!f) return false;
+  if (!on) {if (!f.keep) return false; delete f.keep; return true;}
+  if (f.keep) return true;
+  if (activeFacts(store).filter(x => x.keep).length >= MEMORY_LIMITS.keep) return 'full';
+  f.keep = true; return true;
+}
 /** 她该怎么称呼玩家：玩家指定的称呼优先，其次是名字；都不知道就不叫名字。 */
 export function callName(store: Pick<MemoryStore, 'facts'>): string | undefined {
   const facts = activeFacts(store);
@@ -80,6 +118,7 @@ export function endRun(store: MemoryStore, run: {id: string; outcome: 'success' 
     text: `第 ${note.no} 趟远征：从第 ${note.startDepth} 层出发，最深到第 ${note.maxDepth} 层，${OUTCOME_TEXT[run.outcome]}${note.met ? `（这一趟见过你 ${note.met} 次）` : ''}`,
     keywords: [...OUTCOME_WORDS[run.outcome]], importance, meta: {outcome: run.outcome, maxDepth: note.maxDepth, startDepth: note.startDepth}};
   store.episodes.push(ep); store.reflectAcc += importance;
+  if (run.outcome === 'success') noteMilestone(store, 'first:success', '玩家第一次平安撤离', run.at);
   return ep;
 }
 
@@ -110,7 +149,8 @@ export function recordEncounter(store: MemoryStore, enc: EncounterInput, opts: {
     ep = {id: nextId(store, 'e'), kind: 'encounter', key: enc.key, n: store.n, at: enc.at, run: enc.run, runNo: run.no, depth: enc.depth, place: safeText(enc.place, 24), text: '', importance: 2, meta: {visits: 1, talks: 0, lines: 0}};
     store.episodes.push(ep);
     rel.firstMet ??= {n: ep.n, at: enc.at, depth: enc.depth, place: ep.place ?? ''};
-    rel.closeness += 1;
+    bumpCloseness(store, 1, enc.at);
+    if (MEET_MARKS.includes(store.n)) noteMilestone(store, 'meet:' + store.n, `第 ${store.n} 次见面`, enc.at);
   }
   const m = ep.meta ??= {};
   const talked = enc.lines.some(l => l.role === 'player');
@@ -118,9 +158,11 @@ export function recordEncounter(store: MemoryStore, enc: EncounterInput, opts: {
   m.buys = push(m.buys, enc.buys); m.deals = push(m.deals, enc.deals); m.gifts = push(m.gifts, enc.gifts);
   const misses = [...(m.misses ?? []), ...enc.misses.map(x => safeText(x, 40))].slice(-6); if (misses.length) m.misses = misses;
   m.lines = (m.lines ?? 0) + enc.lines.length;
-  if (talked && !m.talks) {m.talks = 1; rel.talks++; rel.closeness += 2;}
+  if (talked && !m.talks) {m.talks = 1; rel.talks++; bumpCloseness(store, 2, enc.at); noteMilestone(store, 'first:talk', '第一次聊天', enc.at);}
   rel.deals += enc.deals.length; rel.gifts += enc.gifts.length; rel.buys += enc.buys.length; rel.misses += enc.misses.length;
-  rel.closeness = Math.min(100, rel.closeness + 2 * enc.deals.length + 3 * enc.gifts.length);
+  bumpCloseness(store, 2 * enc.deals.length + 3 * enc.gifts.length, enc.at);
+  if (enc.deals.length) noteMilestone(store, 'first:deal', '第一次谈成买卖', enc.at);
+  if (enc.gifts.length) noteMilestone(store, 'first:gift', '第一次白送玩家东西', enc.at);
   rel.lastSeen = {n: ep.n, at: enc.at, depth: enc.depth, place: ep.place ?? '', run: enc.run};
   if (!ep.summarized) ep.text = describeEncounter(ep);
   const before = ep.importance; ep.importance = Math.max(ep.importance, encounterImportance(m));
@@ -131,7 +173,8 @@ export function recordEncounter(store: MemoryStore, enc: EncounterInput, opts: {
       job = store.pending.find(p => p.key === enc.key);
       if (job) {job.lines = [...job.lines, ...enc.lines].slice(-24); job.tries = 0; job.at = enc.at;}
       else {job = {key: enc.key, episode: ep.id, n: ep.n, at: enc.at, run: enc.run, depth: enc.depth, place: ep.place ?? '', lines: enc.lines.slice(-24), tries: 0}; store.pending.push(job);}
-      if (store.pending.length > MEMORY_LIMITS.pending) store.pending.splice(0, store.pending.length - MEMORY_LIMITS.pending);
+      // 排队等整理的见面太多（整理模型一直连不上）：最早的先用确定性的兜底记下名字和原话，不会整段丢掉。
+      while (store.pending.length > MEMORY_LIMITS.pending) fallbackExtraction(store, store.pending[0]!);
       job.reflect = reflectionDue(store);
     } else fallbackExtraction(store, {key: enc.key, episode: ep.id, n: ep.n, at: enc.at, run: enc.run, depth: enc.depth, place: ep.place ?? '', lines: enc.lines, tries: 0});
   }
@@ -139,7 +182,7 @@ export function recordEncounter(store: MemoryStore, enc: EncounterInput, opts: {
 }
 export const reflectionDue = (store: MemoryStore) => store.reflectAcc >= 30 && store.n - store.lastReflectN >= 3;
 
-function emptyReport(): ApplyReport {return {added: [], superseded: [], retracted: [], forgotten: [], merged: [], reflections: [], rejected: [], summary: false};}
+function emptyReport(): ApplyReport {return {added: [], superseded: [], retracted: [], resolved: [], forgotten: [], merged: [], reflections: [], rejected: [], summary: false};}
 function addFact(store: MemoryStore, job: PendingJob, report: ApplyReport, f: Omit<Fact, 'id' | 'n' | 'at' | 'status' | 'run'>): Fact {
   const active = activeFacts(store), norm = compact(f.value ?? '');
   const twin = active.find(x => f.slot && x.slot === f.slot && singleValued(f.slot) && norm && compact(x.value ?? '') === norm)
@@ -158,7 +201,16 @@ function addFact(store: MemoryStore, job: PendingJob, report: ApplyReport, f: Om
 }
 function supersede(old: Fact, by: Fact, job: PendingJob, report: ApplyReport) {
   old.status = 'superseded'; old.validTo = {n: job.n, at: job.at}; old.supersededBy = by.id; old.pinned = undefined;
+  // 玩家要她记牢的是“这件事”（比如最喜欢的食物），改口后记牢跟着新说法走。
+  if (old.keep) {delete old.keep; by.keep = true;}
   report.superseded.push(old.id);
+}
+/** 模型给“了结约定”可能用的各种说法。 */
+const RESOLVE_OPS: Record<string, Outcome> = {resolve: 'kept', resolved: 'kept', kept: 'kept', fulfill: 'kept', fulfilled: 'kept', done: 'kept', broken: 'broken', break: 'broken', fail: 'broken', failed: 'broken', drop: 'dropped', dropped: 'dropped', cancel: 'dropped', cancelled: 'dropped', canceled: 'dropped'};
+/** 一条事实被否认或忘掉：感想里对它的引用一起去掉；只靠它撑着的感想也不再成立。 */
+function unlinkReflections(store: MemoryStore, id: string) {
+  for (const r of store.reflections) r.evidence = r.evidence.filter(x => x !== id);
+  store.reflections = store.reflections.filter(r => r.evidence.length);
 }
 const kindOf = (v: unknown): FactKind => (FACT_KINDS as readonly string[]).includes(String(v)) ? v as FactKind : 'other';
 const sourceOf = (v: unknown): MemorySource => v === 'player' || v === 'self' ? v : 'inferred';
@@ -182,7 +234,17 @@ export function applyExtraction(store: MemoryStore, job: PendingJob, ex: Extract
       if (!target) {reject(raw.id, '要删改的记忆不存在'); continue;}
       if (!quote) {reject(target.text, '删改没有玩家原话佐证'); continue;}
       if (op === 'forget') {forgetFact(store, target.id); report.forgotten.push(target.id);}
-      else {target.status = 'retracted'; target.validTo = {n: job.n, at: job.at}; target.pinned = undefined; report.retracted.push(target.id);}
+      else {target.status = 'retracted'; target.validTo = {n: job.n, at: job.at}; target.pinned = undefined; delete target.keep; unlinkReflections(store, target.id); report.retracted.push(target.id);}
+      continue;
+    }
+    const resolveAs = RESOLVE_OPS[op];
+    if (resolveAs) {
+      // 约定/请求了结（兑现、落空、作罢）。也要有这次对话里的原话撑腰，谁说的都行：
+      // 玩家说“蛋糕带来了”，或她说“说好的遗物，拿去”。
+      if (!target || (target.kind !== 'promise' && target.kind !== 'request')) {reject(raw.id ?? raw.text, '要了结的约定不存在'); continue;}
+      if (!(verifyQuote(raw.quote, player) ?? verifyQuote(raw.quote, supplier, .6))) {reject(target.text, '了结约定没有原话佐证'); continue;}
+      target.status = 'resolved'; target.outcome = OUTCOMES.find(o => o === raw.outcome) ?? resolveAs; target.validTo = {n: job.n, at: job.at};
+      target.pinned = undefined; delete target.keep; report.resolved.push(target.id);
       continue;
     }
     const text = safeText(raw.text, MEMORY_LIMITS.factText); if (!text) {reject(raw.text, '空的记忆'); continue;}
@@ -228,7 +290,7 @@ export function applyExtraction(store: MemoryStore, job: PendingJob, ex: Extract
   if (ex.relationship) {
     const rel = store.relationship, stance = safeText(ex.relationship.stance, MEMORY_LIMITS.stance);
     if (stance) {rel.stance = stance; rel.stanceAt = job.at;}
-    rel.closeness = Math.max(0, Math.min(100, rel.closeness + Math.round(clamp(ex.relationship.closeness, -3, 5, 0))));
+    bumpCloseness(store, Math.round(clamp(ex.relationship.closeness, -3, 5, 0)), job.at);
   }
   if (job.reflect) {
     const known = new Set([...store.facts.filter(f => f.status === 'active').map(f => f.id), ...store.episodes.map(e => e.id)]);
@@ -241,7 +303,7 @@ export function applyExtraction(store: MemoryStore, job: PendingJob, ex: Extract
     store.reflectAcc = 0; store.lastReflectN = store.n;
   }
   store.pending = store.pending.filter(p => p.key !== job.key);
-  store.lastExtract = {at: now, ok: true, note: `新记 ${report.added.length}、过时 ${report.superseded.length}、拦下 ${report.rejected.length}`};
+  store.lastExtract = {at: now, ok: true, note: `新记 ${report.added.length}、过时 ${report.superseded.length}${report.resolved.length ? `、了结约定 ${report.resolved.length}` : ''}、拦下 ${report.rejected.length}`};
   compactStore(store, now);
   return report;
 }
@@ -281,18 +343,29 @@ export function forgetFact(store: MemoryStore, id: string): boolean {
   store.facts = store.facts.filter(f => f.id !== id);
   for (const f of store.facts) if (f.supersededBy === id) delete f.supersededBy;
   for (const e of store.episodes) if (e.quote && [...quotes].some(q => compact(e.quote).includes(q))) delete e.quote;
-  for (const r of store.reflections) r.evidence = r.evidence.filter(x => x !== id);
-  store.reflections = store.reflections.filter(r => r.evidence.length);
+  for (const d of store.digests) if (d.quotes) {d.quotes = d.quotes.filter(x => ![...quotes].some(q => compact(x).includes(q))); if (!d.quotes.length) delete d.quotes;}
+  unlinkReflections(store, id);
   store.forgotten = [...store.forgotten, id].slice(-MEMORY_LIMITS.forgotten);
   return true;
 }
 
-/** 有界存储：超出上限时淘汰保留分最低的未置顶记忆；旧往事按远征分组压成确定性的“旧账”摘要（不经 LLM，不会编）。 */
+/** 有界存储（玩上几百趟也不会无限长大）：
+ *  0. 模型标的高显著（自动置顶）事实有上限，超出时最久没被想起的降回普通记忆，之后照常衰减；
+ *  1. 事实超上限时淘汰保留分最低的——名字/称呼、玩家记牢的、重要的雷区和置顶的不淘汰；
+ *  2. 旧往事按远征分组压成确定性的“旧账”（不经 LLM，不会编）。普通往事不够压时才动最早的重要往事，
+ *     它们的原话留在旧账里；依据这些往事的感想改为指向旧账，不会跟着消失；
+ *  3. 旧账超上限时最早的两份合并：统计直接相加，文字重新生成。 */
 export function compactStore(store: MemoryStore, now: number): void {
-  const L = MEMORY_LIMITS;
+  const L = MEMORY_LIMITS, keepSet = protectedFacts(store);
+  const autoPinned = activeFacts(store).filter(f => isPinned(f) && !keepSet.has(f.id));
+  if (autoPinned.length > L.pinned) {
+    for (const f of autoPinned.sort((a, b) => retention(a, store, now) - retention(b, store, now)).slice(0, autoPinned.length - L.pinned)) {
+      delete f.pinned; f.importance = Math.min(f.importance, DECAY.pinImportance - 1);
+    }
+  }
   const active = activeFacts(store);
   if (active.length > L.facts) {
-    const drop = new Set(active.filter(f => !isPinned(f)).sort((a, b) => retention(a, store, now) - retention(b, store, now)).slice(0, active.length - L.facts).map(f => f.id));
+    const drop = new Set(active.filter(f => !isPinned(f) && !keepSet.has(f.id)).sort((a, b) => retention(a, store, now) - retention(b, store, now)).slice(0, active.length - L.facts).map(f => f.id));
     store.facts = store.facts.filter(f => !drop.has(f.id));
   }
   const history = store.facts.filter(f => f.status !== 'active');
@@ -302,36 +375,64 @@ export function compactStore(store: MemoryStore, now: number): void {
   }
   if (store.episodes.length > L.episodes) {
     const recent = new Set([...store.episodes].sort((a, b) => b.n - a.n || b.at - a.at).slice(0, L.recentEpisodes).map(e => e.id));
-    const old = store.episodes.filter(e => !recent.has(e.id) && !isPinned(e) && e.importance < 7).sort((a, b) => a.n - b.n || a.at - b.at);
-    const batch = old.slice(0, Math.max(store.episodes.length - L.episodes + 10, 0));
+    const older = store.episodes.filter(e => !recent.has(e.id)).sort((a, b) => a.n - b.n || a.at - b.at);
+    const important = (e: Episode) => isPinned(e) || e.importance >= 7;
+    const ordinary = older.filter(e => !important(e)).slice(0, store.episodes.length - L.episodes + 10);
+    const batch = [...ordinary, ...older.filter(important).slice(0, Math.max(0, store.episodes.length - L.episodes - ordinary.length))].sort((a, b) => a.n - b.n || a.at - b.at);
     const groups = new Map<number, Episode[]>();
     for (const e of batch) {const k = e.runNo ?? 0; groups.set(k, [...(groups.get(k) ?? []), e]);}
-    for (const group of groups.values()) store.digests.push(digestOf(store, group));
-    const gone = new Set(batch.map(e => e.id));
-    store.episodes = store.episodes.filter(e => !gone.has(e.id));
-    for (const r of store.reflections) if (r.evidence.every(x => gone.has(x) || !x.startsWith('e') && !store.facts.some(f => f.id === x && f.status === 'active'))) r.status = 'stale';
+    const into = new Map<string, string>();
+    for (const group of groups.values()) {const d = digestOf(store, group); store.digests.push(d); for (const e of group) into.set(e.id, d.id);}
+    store.episodes = store.episodes.filter(e => !into.has(e.id));
+    for (const r of store.reflections) r.evidence = [...new Set(r.evidence.map(x => into.get(x) ?? x))].slice(0, 6);
+    store.digests.sort((a, b) => a.fromN - b.fromN || a.fromAt - b.fromAt);
   }
   while (store.digests.length > L.digests) {
     const [a, b] = store.digests.splice(0, 2);
-    if (a && b) store.digests.unshift({id: a.id, fromN: a.fromN, toN: b.toN, fromAt: a.fromAt, toAt: b.toAt, count: a.count + b.count, text: safeText(`${a.text} ${b.text}`, L.digestText)});
+    if (!a || !b) break;
+    store.digests.unshift(mergeDigests(a, b));
+    for (const r of store.reflections) r.evidence = [...new Set(r.evidence.map(x => x === b.id ? a.id : x))];
   }
   store.reflections = store.reflections.filter(r => r.status === 'active');
   if (store.reflections.length > L.reflections) store.reflections = store.reflections.sort((a, b) => b.importance - a.importance || b.n - a.n).slice(0, L.reflections).sort((a, b) => a.n - b.n);
   if (store.runs.length > L.runs) store.runs = store.runs.slice(-L.runs);
   if (store.consumed.length > L.consumed) store.consumed = store.consumed.slice(-L.consumed);
 }
-function digestOf(store: MemoryStore, group: Episode[]): Digest {
+const sumPrice = (d: DealNote[]) => d.reduce((a, b) => a + b.price, 0);
+function statsOf(group: Episode[]): DigestStats {
   const enc = group.filter(e => e.kind === 'encounter'), runs = group.filter(e => e.kind === 'run');
   const all = (k: 'deals' | 'buys' | 'gifts') => enc.flatMap(e => e.meta?.[k] ?? []);
-  const sum = (d: DealNote[]) => d.reduce((a, b) => a + b.price, 0);
-  const fromAt = Math.min(...group.map(e => e.at)), toAt = Math.max(...group.map(e => e.at));
-  const parts = [enc.length ? `见过 ${enc.length} 次面` : '', enc.filter(e => e.meta?.talks).length ? `聊过 ${enc.filter(e => e.meta?.talks).length} 次` : '',
-    all('deals').length ? `谈成 ${all('deals').length} 笔（共 ${sum(all('deals'))} FP）` : '', all('buys').length ? `在商店买过 ${all('buys').length} 样` : '',
-    all('gifts').length ? `她白送过 ${all('gifts').length} 次` : '', runs.filter(r => r.meta?.outcome === 'failed').length ? `全灭过 ${runs.filter(r => r.meta?.outcome === 'failed').length} 次` : '',
-    runs.filter(r => r.meta?.outcome === 'success').length ? `平安撤离过 ${runs.filter(r => r.meta?.outcome === 'success').length} 次` : ''].filter(Boolean);
-  const runNo = group[0]?.runNo;
-  return {id: nextId(store, 'd'), fromN: Math.min(...group.map(e => e.n)), toN: Math.max(...group.map(e => e.n)), fromAt, toAt, count: group.length,
-    text: safeText(`${runNo ? `第 ${runNo} 趟前后` : '更早'}（${monthDay(fromAt)}—${monthDay(toAt)}）：${parts.join('，') || '一些零碎的见面'}。`, MEMORY_LIMITS.digestText)};
+  return {encounters: enc.length, talks: enc.filter(e => e.meta?.talks).length, deals: all('deals').length, dealFp: sumPrice(all('deals')), buys: all('buys').length, gifts: all('gifts').length,
+    misses: enc.reduce((n, e) => n + (e.meta?.misses?.length ?? 0), 0), runsOk: runs.filter(r => r.meta?.outcome === 'success').length, runsFailed: runs.filter(r => r.meta?.outcome === 'failed').length,
+    deepest: Math.max(0, ...group.map(e => e.depth ?? 0))};
+}
+/** 旧账的文字完全由统计生成，所以数字永远和账本一致，合并多少次都不会截断成半句话。 */
+export function digestText(d: Pick<Digest, 'fromAt' | 'toAt' | 'runFrom' | 'runTo'> & {stats: DigestStats}): string {
+  const s = d.stats;
+  const parts = [s.encounters ? `见过 ${s.encounters} 次面` : '', s.talks ? `聊过 ${s.talks} 次` : '', s.deals ? `谈成 ${s.deals} 笔（共 ${s.dealFp} FP）` : '', s.buys ? `在商店买过 ${s.buys} 样` : '',
+    s.gifts ? `她白送过 ${s.gifts} 次` : '', s.runsFailed ? `全灭过 ${s.runsFailed} 次` : '', s.runsOk ? `平安撤离过 ${s.runsOk} 次` : '', s.deepest ? `最深到过第 ${s.deepest} 层` : ''].filter(Boolean);
+  const when = d.runFrom ? d.runTo && d.runTo !== d.runFrom ? `第 ${d.runFrom}～${d.runTo} 趟前后` : `第 ${d.runFrom} 趟前后` : '更早';
+  return safeText(`${when}（${monthDay(d.fromAt)}—${monthDay(d.toAt)}）：${parts.join('，') || '一些零碎的见面'}。`, MEMORY_LIMITS.digestText);
+}
+function digestOf(store: MemoryStore, group: Episode[]): Digest {
+  const runs = group.map(e => e.runNo ?? 0).filter(Boolean), stats = statsOf(group);
+  const quotes = group.filter(e => e.quote).sort((a, b) => b.importance - a.importance || b.n - a.n).slice(0, MEMORY_LIMITS.digestQuotes).map(e => e.quote!);
+  const d: Digest = {id: nextId(store, 'd'), fromN: Math.min(...group.map(e => e.n)), toN: Math.max(...group.map(e => e.n)), fromAt: Math.min(...group.map(e => e.at)), toAt: Math.max(...group.map(e => e.at)), count: group.length, text: '', stats,
+    ...(runs.length ? {runFrom: Math.min(...runs), runTo: Math.max(...runs)} : {}), ...(quotes.length ? {quotes} : {})};
+  d.text = digestText({...d, stats});
+  return d;
+}
+function mergeDigests(a: Digest, b: Digest): Digest {
+  const quotes = [...(a.quotes ?? []).slice(0, 1), ...(b.quotes ?? []).slice(0, 1)];
+  const base = {id: a.id, fromN: Math.min(a.fromN, b.fromN), toN: Math.max(a.toN, b.toN), fromAt: Math.min(a.fromAt, b.fromAt), toAt: Math.max(a.toAt, b.toAt), count: a.count + b.count, ...(quotes.length ? {quotes} : {})};
+  // 第 1 版的旧账只有文字：只能照旧拼接。
+  if (!a.stats || !b.stats) return {...base, text: safeText(`${a.text} ${b.text}`, MEMORY_LIMITS.digestText)};
+  const stats = {} as DigestStats;
+  for (const k of Object.keys(a.stats) as (keyof DigestStats)[]) stats[k] = k === 'deepest' ? Math.max(a.stats[k], b.stats[k]) : a.stats[k] + b.stats[k];
+  const runs = [a.runFrom, a.runTo, b.runFrom, b.runTo].filter((x): x is number => !!x);
+  const d: Digest = {...base, text: '', stats, ...(runs.length ? {runFrom: Math.min(...runs), runTo: Math.max(...runs)} : {})};
+  d.text = digestText({...d, stats});
+  return d;
 }
 
 /** 杀害（或玩家手动清空）：换一任新的补给员。只带走“哪些杀害已经处理过”的编号，其余全部清空。 */

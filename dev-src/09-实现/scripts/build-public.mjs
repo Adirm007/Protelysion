@@ -12,7 +12,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.45.0-20261107-fidelity-loot';
+const revision='protelysion-0.46.0-20261108-supplier-memory';
 const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
@@ -98,7 +98,7 @@ jobs:
 await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.45.0 · 2026-11-07 编译还原与补给员战利品**
+**版本：0.46.0 · 2026-11-08 补给员长期记忆、界面与性能**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
@@ -122,6 +122,12 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 2. 用 \`读者核心本体 (new).txt\` 替换现有读者世界书条目内容，保留条目设置并启用；核心已包含书海交接，不再同时启用旧独立交接条目。
 3. 导入 \`普罗泰利西翁-书海外链加载正则.json\`，匹配书海标签的游戏正则只启用一份。
 4. 在旧读者大厅点击书海入口，或发送含“进入普罗泰利西翁”的过渡剧情；可带前后文字、引号和换行。正文模式与离场继续使用配套世界书交接。
+
+## 0.46.0 补给员长期记忆、界面与性能
+
+- 补给员记得更久、更准：约定可以了结（兑现、落空、作罢，需要对话里的原话）；不想被提起的事优先记住且不会被挤掉；往事压进旧账时按统计合并，不再越旧越乱；会记生日、纪念日和好久不见，记录关系里的第一次与里程碑；只有和这句话相关的往事才算「想起」。旧存档自动升级。
+- 记忆面板新增「记牢」（最多 20 条，不会被遗忘）、已了结的约定与里程碑；后台刷新时列表不再自动收起，来源标签宽度修正。
+- 性能：发给地图的帧只带用得到的字段、相同的帧不重发；战斗界面不再每 50ms 重写没变的文字；旅程内容没变时不重复写入本机存档。
 
 ## 0.45.0 编译还原、补给员战利品与文案
 

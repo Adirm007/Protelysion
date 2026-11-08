@@ -3,8 +3,8 @@
 import {buildSupplierPrompt, type SupplierPrompt, type SupplierContext, type TalkLine, type TalkSession} from '../game/supplier-agent';
 import {takeSupplierTalk, type SupplierLedgerEntry} from '../game/supplier-ledger';
 import {migrateStore, emptyStore, type MemoryStore, type LoadResult} from './schema';
-import {recordEncounter, applyExtraction, fallbackExtraction, forgetFact, noteRun, endRun, wipeStore, activeFacts, callName, type EncounterInput, type ApplyReport} from './store';
-import {memoryItems, scoreItems, renderMemory, episodeLine, MEMORY_RULES, type RetrievalSignals, type MemoryItem, type MemorySection} from './retrieve';
+import {recordEncounter, applyExtraction, fallbackExtraction, forgetFact, noteRun, endRun, wipeStore, activeFacts, callName, setKeep, type EncounterInput, type ApplyReport} from './store';
+import {memoryItems, scoreItems, renderMemory, episodeLine, calendarNotes, MEMORY_RULES, GATES, type RetrievalSignals, type MemoryItem, type MemorySection} from './retrieve';
 import {buildExtractionPrompt, parseExtraction} from './extract';
 import {loadSettings, saveSettings, normalizeSettings, usable, embed, rerank, testEmbedding, testRerank, Breaker, type MemorySettings, type FetchLike, type TestResult} from './apis';
 import {memoryVectorCache, vectorKey, type VectorCache, type Vector} from './vectors';
@@ -39,7 +39,10 @@ export type MemoryStatus = {
 };
 export type MemoryView = {
   epoch: number; wipedBy?: string; callName?: string; encounters: number; talks: number; closeness: number; stance?: string;
-  facts: {id: string; text: string; source: string; kind: string; n: number; history: string[]}[];
+  facts: {id: string; text: string; source: string; kind: string; n: number; history: string[]; keep: boolean}[];
+  /** 已经了结的约定（兑现 / 落空 / 作罢），新的在前。 */
+  resolved: {id: string; text: string; outcome: string}[];
+  milestones: {text: string; n: number; at: number}[];
   episodes: {id: string; line: string}[]; reflections: {id: string; text: string}[]; digests: string[];
 };
 export type SupplierMemory = {
@@ -51,6 +54,8 @@ export type SupplierMemory = {
   flush(state?: ObservedState): Promise<void>;
   wipe(reason: 'kill' | 'manual', killId?: string): Promise<void>;
   forget(id: string): Promise<boolean>;
+  /** 玩家让她“记牢”一条（不衰减、不会被挤掉）或取消；记牢的已经到上限时返回 'full'。 */
+  keep(id: string, on: boolean): Promise<boolean | 'full'>;
   settings(): MemorySettings; saveSettings(next: MemorySettings): void;
   test(kind: 'embedding' | 'rerank' | 'extraction', draft?: MemorySettings): Promise<TestResult>;
   status(): MemoryStatus; view(): MemoryView; subscribe(fn: () => void): () => void;
@@ -122,9 +127,15 @@ export function createSupplierMemory(port: MemoryPort, options: {retrievalMs?: n
       const changed = reconcileRuns();
       if (load === 'repaired' || load === 'adopted' || changed) await persist();
       if (store.pending.length) scheduleJobs();
+      void sweepVectors();
     } catch (e) {load = 'error'; loaded = true; wrote = {at: now(), ok: false, note: message(e)};}
     notify();
   })();
+  /** 向量缓存里只留这一任、这个模型、现在还在的记忆：往事改写、压进旧账、换了模型后的旧向量每次打开清一次。 */
+  async function sweepVectors() {
+    if (!usable(settings.embedding)) return;
+    try {await vectors.keep(port.contextId, new Set(memoryItems(store, now()).map(i => vectorKey(port.contextId, store.epoch, settings.embedding.model, i.index))));} catch {/* 只是本机缓存 */}
+  }
 
   function flushBuffer(state: ObservedState | undefined, buf: Buffer) {
     const lines = state ? takeSupplierTalk(state, buf.thing).filter(l => l.text).map(l => ({role: l.role, text: l.text})) : [];
@@ -202,7 +213,9 @@ export function createSupplierMemory(port: MemoryPort, options: {retrievalMs?: n
     }
     const out = renderMemory(store, scored, now(), settings.budget);
     const at = now();
-    for (const id of [...out.core, ...out.retrieved]) {
+    // “想起”只算和这句话真的相关的：核心档案每句都会带上，但带上不等于想起，否则它们永远不会自然淡去。
+    const relevant = new Set(scored.filter(s => s.rel >= GATES.coverage).map(s => s.item.id));
+    for (const id of [...out.retrieved, ...out.core.filter(id => relevant.has(id))]) {
       const hit = store.facts.find(f => f.id === id) ?? store.episodes.find(e => e.id === id);
       if (hit) {hit.lastRecall = {n: store.n, at}; hit.recalls = (hit.recalls ?? 0) + 1;}
     }
@@ -228,8 +241,12 @@ export function createSupplierMemory(port: MemoryPort, options: {retrievalMs?: n
     enabled: () => settings.enabled && !readOnly,
     greeting() {
       if (!api.enabled()) return undefined;
-      const name = callName(store);
-      if (name) return `嗯？${safeText(name, 12)}，想聊什么。`;
+      const name = callName(store), notes = calendarNotes(store, now());
+      const call = name ? safeText(name, 12) : '';
+      // 开场白只用程序算得准的事：生日（玩家亲口说过的日期）和好久不见；其余交给对话里的她。
+      if (call && notes.some(n => n.startsWith('今天是玩家的生日'))) return `嗯？${call}……今天是你生日吧。想聊什么。`;
+      if (store.n > 0 && notes.some(n => n.includes('好久不见'))) return call ? `嗯？${call}……好久不见。想聊什么。` : '嗯？……好久不见。想聊什么。';
+      if (call) return `嗯？${call}，想聊什么。`;
       if (store.n > 0) return '嗯？又是你。想聊什么。';
       return store.epoch > 1 ? '嗯？……新面孔。想聊什么。' : undefined;
     },
@@ -275,10 +292,17 @@ export function createSupplierMemory(port: MemoryPort, options: {retrievalMs?: n
     wipe,
     async forget(id) {
       await ready;
-      if (!forgetFact(store, id)) return false;
+      if (readOnly || !forgetFact(store, id)) return false;
       await persist(); notify();
       void vectors.keep(port.contextId, new Set(memoryItems(store, now()).map(i => vectorKey(port.contextId, store.epoch, settings.embedding.model, i.index)))).catch(() => {});
       return true;
+    },
+    async keep(id, on) {
+      await ready;
+      if (readOnly) return false;
+      const result = setKeep(store, id, on);
+      if (result === true) {await persist(); notify();}
+      return result;
     },
     settings: () => structuredClone(settings),
     saveSettings(next) {settings = normalizeSettings(next); saveSettings(port.storage, settings); notify(); if (store.pending.length) scheduleJobs(); void embedFresh();},
@@ -303,8 +327,10 @@ export function createSupplierMemory(port: MemoryPort, options: {retrievalMs?: n
     view() {
       const t = now(), rel = store.relationship, name = callName(store);
       return {epoch: store.epoch, ...(store.wipedBy ? {wipedBy: store.wipedBy} : {}), ...(name ? {callName: name} : {}), encounters: store.n, talks: rel.talks, closeness: rel.closeness, ...(rel.stance ? {stance: rel.stance} : {}),
-        facts: activeFacts(store).sort((a, b) => b.importance - a.importance || b.n - a.n).map(f => ({id: f.id, text: f.text, source: f.source, kind: f.kind, n: f.n,
-          history: store.facts.filter(x => x.status === 'superseded' && x.supersededBy === f.id).map(x => x.value ?? x.text)})),
+        facts: activeFacts(store).sort((a, b) => Number(!!b.keep) - Number(!!a.keep) || b.importance - a.importance || b.n - a.n).map(f => ({id: f.id, text: f.text, source: f.source, kind: f.kind, n: f.n,
+          history: store.facts.filter(x => x.status === 'superseded' && x.supersededBy === f.id).map(x => x.value ?? x.text), keep: !!f.keep})),
+        resolved: store.facts.filter(f => f.status === 'resolved').sort((a, b) => (b.validTo?.at ?? b.at) - (a.validTo?.at ?? a.at)).slice(0, 12).map(f => ({id: f.id, text: f.text, outcome: f.outcome ?? 'dropped'})),
+        milestones: (rel.milestones ?? []).map(m => ({text: m.text, n: m.n, at: m.at})),
         episodes: [...store.episodes].sort((a, b) => b.at - a.at).slice(0, 12).map(e => ({id: e.id, line: episodeLine(e, t)})),
         reflections: store.reflections.filter(r => r.status === 'active').map(r => ({id: r.id, text: r.text})), digests: store.digests.map(d => d.text)};
     },

@@ -4,9 +4,10 @@ import type {MemoryStore, Moment} from './schema';
 
 export const DECAY = {encounterHalfLife: 8, dayHalfLife: 45, importanceHalfLife: 60, importanceFloor: .4, pinImportance: 8} as const;
 const DAY = 86400000;
-type Aging = {n: number; at: number; importance: number; pinned?: boolean; lastRecall?: Moment};
+type Aging = {n: number; at: number; importance: number; pinned?: boolean; keep?: boolean; lastRecall?: Moment};
 
-export const isPinned = (item: Aging) => !!item.pinned || item.importance >= DECAY.pinImportance;
+/** 置顶（不衰减）：玩家记牢的、程序标的高显著，或重要度达到置顶线。自动置顶的总数由 compactStore 封顶。 */
+export const isPinned = (item: Aging) => !!item.pinned || !!item.keep || item.importance >= DECAY.pinImportance;
 /** 0～1：距离上次被想起（没想起过就从记下那次算）过了多少次见面、多少天。 */
 export function recency(item: Aging, store: Pick<MemoryStore, 'n'>, now: number): number {
   const ref = item.lastRecall && item.lastRecall.n >= item.n ? item.lastRecall : item;

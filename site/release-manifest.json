@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.45.0-20261107-fidelity-loot",
+  "revision": "protelysion-0.46.0-20261108-supplier-memory",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -79,8 +79,8 @@
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 3143430,
-      "sha256": "3676e5ad5a8eac683aa1705fae573df81a641e70bb7f8418cd2b758832fbf14e"
+      "bytes": 3154574,
+      "sha256": "db53707aee6643aafe4366bb89a2dabdd084b06984d952c97234b98e1b620b33"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,

@@ -1,26 +1,44 @@
 /** 补给员长期记忆：数据模型与版本迁移。
  *  权威存档在聊天变量 booksea.supplierMemory（按聊天 = 按存档），不进消息楼层快照；
- *  epoch 是“第几任补给员”：每次被杀害清空记忆时 +1，旧 epoch 的任何副本都不能再用。 */
+ *  epoch 是“第几任补给员”：每次被杀害清空记忆时 +1，旧 epoch 的任何副本都不能再用。
+ *  第 2 版（长期陪伴）：约定可以了结（兑现 / 落空 / 作罢）、玩家可以让她“记牢”某条、
+ *  旧账带结构化统计（合并不丢数）、关系里程碑；第 1 版存档读入时自动升级。 */
 import {safeText} from './text';
 
-export const MEMORY_SCHEMA = 1;
+export const MEMORY_SCHEMA = 2;
 export const MEMORY_KEY = 'supplierMemory';
 export const MEMORY_LIMITS = {
   facts: 80, history: 40, forgotten: 60, episodes: 120, recentEpisodes: 40, digests: 30, reflections: 16, runs: 30,
   consumed: 400, kills: 60, pending: 3, factText: 60, value: 24, quote: 80, episodeText: 120, reflectionText: 80, digestText: 200,
   stance: 16, keywords: 5, keyword: 12, evidence: 4,
+  /** 模型标成高显著（自动置顶、不衰减）的事实最多这么多条，再多就把最不常想起的降回普通记忆。 */
+  pinned: 24,
+  /** 玩家亲手“记牢”的事实上限；记牢的不衰减、不会被挤掉、不会被自动降级。 */
+  keep: 20,
+  /** 受保护（不被挤掉）的雷区条数上限。 */
+  boundaries: 12,
+  milestones: 16, digestQuotes: 2,
 } as const;
 
 export type MemorySource = 'player' | 'observed' | 'inferred' | 'self';
 export const FACT_KINDS = ['identity', 'preference', 'story', 'promise', 'request', 'boundary', 'relationship', 'joke', 'other'] as const;
 export type FactKind = typeof FACT_KINDS[number];
+/** superseded：被同一槽位的新说法取代；retracted：玩家否认（当初就不对）；resolved：约定/请求已经了结。 */
+export const FACT_STATUSES = ['active', 'superseded', 'retracted', 'resolved'] as const;
+export type FactStatus = typeof FACT_STATUSES[number];
+export const OUTCOMES = ['kept', 'broken', 'dropped'] as const;
+export type Outcome = typeof OUTCOMES[number];
 export type Moment = {n: number; at: number};
 export type Evidence = {ep: string; quote?: string};
 export type Fact = {
   id: string; kind: FactKind; slot?: string; text: string; value?: string; source: MemorySource;
   evidence: Evidence[]; keywords?: string[]; importance: number; confidence: number;
-  n: number; at: number; run?: string; status: 'active' | 'superseded' | 'retracted';
+  n: number; at: number; run?: string; status: FactStatus;
   validTo?: Moment; supersededBy?: string; pinned?: boolean; recalls?: number; lastRecall?: Moment;
+  /** 约定/请求了结的方式（只在 status=resolved 时有）。 */
+  outcome?: Outcome;
+  /** 玩家在记忆面板里点了“记牢”。 */
+  keep?: boolean;
 };
 export type DealNote = {label: string; price: number};
 export type EpisodeMeta = {visits?: number; talks?: number; lines?: number; choice?: string; deals?: DealNote[]; gifts?: DealNote[]; buys?: DealNote[]; misses?: string[]; outcome?: 'success' | 'failed' | 'unknown'; maxDepth?: number; startDepth?: number};
@@ -29,13 +47,25 @@ export type Episode = {
   depth?: number; place?: string; text: string; quote?: string; keywords?: string[]; importance: number;
   meta?: EpisodeMeta; recalls?: number; lastRecall?: Moment; pinned?: boolean; summarized?: boolean;
 };
+/** evidence 里可以是事实（f）、往事（e），或往事被压进旧账后的旧账编号（d）。 */
 export type Reflection = {id: string; text: string; evidence: string[]; importance: number; n: number; at: number; status: 'active' | 'stale'};
-export type Digest = {id: string; fromN: number; toN: number; fromAt: number; toAt: number; text: string; count: number};
+/** 旧账的结构化统计：两份旧账合并时直接相加，文字由统计重新生成，所以再久远的旧账也不会被截断成半句话。 */
+export type DigestStats = {encounters: number; talks: number; deals: number; dealFp: number; buys: number; gifts: number; misses: number; runsOk: number; runsFailed: number; deepest: number};
+export type Digest = {
+  id: string; fromN: number; toN: number; fromAt: number; toAt: number; text: string; count: number;
+  /** 第 1 版的旧账没有统计，只有文字。 */
+  stats?: DigestStats; runFrom?: number; runTo?: number;
+  /** 被压进来的往事里玩家逐字说过的话（最多 2 句），往事压缩后也留得住。 */
+  quotes?: string[];
+};
 export type RunNote = {id: string; no: number; startedAt: number; startDepth: number; maxDepth: number; outcome?: 'success' | 'failed' | 'unknown'; endedAt?: number; met: number};
+/** 关系里程碑：程序按确定的规则记下（第一次聊天、成了熟客、第 10 次见面……），每种只记一次。 */
+export type Milestone = {key: string; text: string; n: number; at: number};
 export type Relationship = {
   firstMet?: {n: number; at: number; depth: number; place: string};
   lastSeen?: {n: number; at: number; depth: number; place: string; run: string};
   talks: number; deals: number; gifts: number; misses: number; buys: number; closeness: number; stance?: string; stanceAt?: number;
+  milestones?: Milestone[];
 };
 export type PendingLine = {role: 'player' | 'supplier' | 'system'; text: string};
 export type PendingJob = {key: string; episode: string; n: number; at: number; run: string; depth: number; place: string; lines: PendingLine[]; tries: number; reflect?: boolean};
@@ -107,7 +137,7 @@ function fact(raw: unknown): Fact | undefined {
   if (!fid || !text) return undefined;
   const kind = (FACT_KINDS as readonly string[]).includes(String(v.kind)) ? v.kind as FactKind : 'other';
   const source = (['player', 'observed', 'inferred', 'self'] as const).find(s => s === v.source) ?? 'inferred';
-  const status = (['active', 'superseded', 'retracted'] as const).find(s => s === v.status) ?? 'active';
+  const status = FACT_STATUSES.find(s => s === v.status) ?? 'active';
   const out: Fact = {id: fid, kind, text, source, status, evidence: list(v.evidence).map(e => {const x = rec(e), ep = id(x.ep, 'e'); return ep ? {ep, ...(x.quote ? {quote: safeText(x.quote, MEMORY_LIMITS.quote)} : {})} : undefined;}).filter(isSome).slice(-MEMORY_LIMITS.evidence),
     importance: num(v.importance, 3, 1, 10), confidence: num(v.confidence, .5, 0, 1), n: num(v.n, 0, 0, 1e9), at: num(v.at, 0, 0, 9e15)};
   if (typeof v.slot === 'string' && SLOT.test(v.slot)) out.slot = v.slot;
@@ -119,6 +149,8 @@ function fact(raw: unknown): Fact | undefined {
   if (v.pinned === true) out.pinned = true;
   if (v.recalls !== undefined) out.recalls = num(v.recalls, 0, 0, 1e6);
   const lr = moment(v.lastRecall); if (lr) out.lastRecall = lr;
+  if (status === 'resolved') out.outcome = OUTCOMES.find(o => o === v.outcome) ?? 'dropped';
+  if (v.keep === true && status === 'active') out.keep = true;
   return out;
 }
 const META_OUTCOMES = ['success', 'failed', 'unknown'] as const;
@@ -155,14 +187,27 @@ function episode(raw: unknown): Episode | undefined {
 function reflection(raw: unknown): Reflection | undefined {
   const v = rec(raw), rid = id(v.id, 'r'), text = safeText(v.text, MEMORY_LIMITS.reflectionText);
   if (!rid || !text) return undefined;
-  const evidence = strings(v.evidence, 12).filter(x => /^[fe]\d{1,9}$/.test(x)).slice(0, 6);
+  const evidence = strings(v.evidence, 12).filter(x => /^[fed]\d{1,9}$/.test(x)).slice(0, 6);
   if (!evidence.length) return undefined;
   return {id: rid, text, evidence, importance: num(v.importance, 4, 1, 10), n: num(v.n, 0, 0, 1e9), at: num(v.at, 0, 0, 9e15), status: v.status === 'stale' ? 'stale' : 'active'};
+}
+const STAT_KEYS = ['encounters', 'talks', 'deals', 'dealFp', 'buys', 'gifts', 'misses', 'runsOk', 'runsFailed', 'deepest'] as const;
+function digestStats(raw: unknown): DigestStats | undefined {
+  const v = rec(raw); if (!Object.keys(v).length) return undefined;
+  const out = {} as DigestStats;
+  for (const k of STAT_KEYS) out[k] = num(v[k], 0, 0, 1e9);
+  return out;
 }
 function digest(raw: unknown): Digest | undefined {
   const v = rec(raw), did = id(v.id, 'd'), text = safeText(v.text, MEMORY_LIMITS.digestText);
   if (!did || !text) return undefined;
-  return {id: did, text, fromN: num(v.fromN, 0, 0, 1e9), toN: num(v.toN, 0, 0, 1e9), fromAt: num(v.fromAt, 0, 0, 9e15), toAt: num(v.toAt, 0, 0, 9e15), count: num(v.count, 1, 1, 1e6)};
+  const out: Digest = {id: did, text, fromN: num(v.fromN, 0, 0, 1e9), toN: num(v.toN, 0, 0, 1e9), fromAt: num(v.fromAt, 0, 0, 9e15), toAt: num(v.toAt, 0, 0, 9e15), count: num(v.count, 1, 1, 1e6)};
+  const stats = digestStats(v.stats); if (stats) out.stats = stats;
+  if (v.runFrom !== undefined) out.runFrom = num(v.runFrom, 0, 0, 1e9);
+  if (v.runTo !== undefined) out.runTo = num(v.runTo, 0, 0, 1e9);
+  const quotes = strings(v.quotes, MEMORY_LIMITS.quote).map(q => safeText(q, MEMORY_LIMITS.quote)).filter(Boolean).slice(0, MEMORY_LIMITS.digestQuotes);
+  if (quotes.length) out.quotes = quotes;
+  return out;
 }
 function runNote(raw: unknown): RunNote | undefined {
   const v = rec(raw); if (typeof v.id !== 'string' || !v.id) return undefined;
@@ -177,6 +222,13 @@ function relationship(raw: unknown): Relationship {
   if (Object.keys(first).length) out.firstMet = {n: num(first.n, 1, 0, 1e9), at: num(first.at, 0, 0, 9e15), depth: num(first.depth, 1, 1, 1e6), place: safeText(first.place, 24)};
   if (Object.keys(last).length) out.lastSeen = {n: num(last.n, 1, 0, 1e9), at: num(last.at, 0, 0, 9e15), depth: num(last.depth, 1, 1, 1e6), place: safeText(last.place, 24), run: String(last.run ?? '').slice(0, 80)};
   const stance = safeText(v.stance, MEMORY_LIMITS.stance); if (stance) {out.stance = stance; out.stanceAt = num(v.stanceAt, 0, 0, 9e15);}
+  const seen = new Set<string>();
+  const milestones = list(v.milestones).map(x => {
+    const m = rec(x), key = typeof m.key === 'string' && /^[a-z]{2,12}:[\w一-鿿]{1,12}$/.test(m.key) ? m.key : '', text = safeText(m.text, 40);
+    if (!key || !text || seen.has(key)) return undefined;
+    seen.add(key); return {key, text, n: num(m.n, 0, 0, 1e9), at: num(m.at, 0, 0, 9e15)};
+  }).filter(isSome).slice(-MEMORY_LIMITS.milestones);
+  if (milestones.length) out.milestones = milestones;
   return out;
 }
 function pending(raw: unknown): PendingJob | undefined {

@@ -2,7 +2,7 @@ import {BATTLE_FEEDBACK_STYLE} from './battle-feedback-style';
 import {mountTargetArrow} from './target-arrow';
 import type {UIAudioFeedback} from '../audio/types';
 import {actionCost, actionPreviewText, actionUnavailableText, nextActionIndex, groupActions, type GameView, type BattleUnitView, type BattleCue, type ActionView} from '../presentation/battle-cues';
-import {gameDom, resourceNumber as number, ratio, type SendGameInput} from './game-dom';
+import {gameDom, resourceNumber as number, ratio, setText, setAttr, setStyle, type SendGameInput} from './game-dom';
 
 type Widget = {node: HTMLButtonElement; name: HTMLElement; image?: HTMLImageElement; badges?: HTMLElement; bars?: Record<string, {value: HTMLElement; fill: HTMLElement}>; atb?: HTMLElement; hp?: HTMLElement; fill?: HTMLElement};
 export function mountBattleStage(root: HTMLElement, send: SendGameInput, portraits: Record<string, string>, inspect: (id: string) => void, feedback?: UIAudioFeedback) {
@@ -77,13 +77,13 @@ export function mountBattleStage(root: HTMLElement, send: SendGameInput, portrai
     const w = widgets.get(u.id); if (!w) return;
     w.node.classList.toggle('is-down', !u.alive); w.node.classList.toggle('is-active', u.id === current?.battle.actorId);
     w.node.classList.toggle('is-target', targetReady() && focusedTarget === u.id); w.node.classList.toggle('is-selected', current?.battle.selectedTargets.includes(u.id) ?? false);
-    w.node.setAttribute('aria-label', `${u.name}，HP ${number(u.hp)} / ${number(u.maxHp)}${u.alive ? '' : '，倒地'}`);
-    w.name.textContent = u.name; if (w.node.dataset.phase !== (u.phase ?? '')) w.node.dataset.phase = u.phase ?? '';
-    if (w.hp && w.fill) {w.hp.textContent = number(u.hp) + ' / ' + number(u.maxHp); w.fill.style.width = ratio(u.hp, u.maxHp);}
+    setAttr(w.node, 'aria-label', `${u.name}，HP ${number(u.hp)} / ${number(u.maxHp)}${u.alive ? '' : '，倒地'}`);
+    setText(w.name, u.name); if (w.node.dataset.phase !== (u.phase ?? '')) w.node.dataset.phase = u.phase ?? '';
+    if (w.hp && w.fill) {setText(w.hp, number(u.hp) + ' / ' + number(u.maxHp)); setStyle(w.fill, 'width', ratio(u.hp, u.maxHp));}
     if (w.image && u.side === 'enemy') {const url = art.get(u.artId); if (url && w.image.src !== url) {w.image.src = url; w.image.hidden = false;}}
-    if (w.atb) w.atb.style.width = ratio(u.atb, 100);
+    if (w.atb) setStyle(w.atb, 'width', ratio(u.atb, 100));
     if (w.bars) for (const [key, max] of [['hp', u.maxHp], ['mp', u.maxMp], ['sp', u.maxSp]] as const) {
-      w.bars[key]!.value.textContent = `${number(u[key])} / ${number(max)}`; w.bars[key]!.fill.style.width = ratio(u[key], max);
+      setText(w.bars[key]!.value, `${number(u[key])} / ${number(max)}`); setStyle(w.bars[key]!.fill, 'width', ratio(u[key], max));
     }
     if (w.badges) {
       const labels = [...(!u.alive ? ['☠'] : []), ...(u.charmed ? ['⇄失控'] : []), ...(u.counters ?? []), ...(u.shield > 0 ? ['盾 ' + number(u.shield)] : []), ...u.statuses.slice(0, 3).map(s => s.name + (s.stacks > 1 ? '×' + s.stacks : ''))];
@@ -197,7 +197,7 @@ export function mountBattleStage(root: HTMLElement, send: SendGameInput, portrai
     current = v; performing = busy;
     const keyForTargets = v.battle.actorId + ':' + v.battle.selected + ':' + v.battle.targets.join('|');
     if (keyForTargets !== targetKey) {targetKey = keyForTargets; touchTarget = ''; if (!v.battle.targets.includes(focusedTarget)) focusedTarget = v.battle.targets[0] ?? '';}
-    root.dataset.targetCursor = targetReady() ? focusedTarget : '';
+    setAttr(root, 'data-target-cursor', targetReady() ? focusedTarget : '');
     if (actor !== v.battle.actorId) {actor = v.battle.actorId; category = ''; detail = ''; browseScroll = 0; menuKey = '';}
     const main = v.battle.units.filter(u => u.side === 'enemy' || !u.owner), key = main.map(u => u.id + ':' + u.artId).join('|');
     if (rosterKey !== key) {
@@ -211,7 +211,7 @@ export function mountBattleStage(root: HTMLElement, send: SendGameInput, portrai
     const companions = v.battle.units.filter(u => u.side === 'ally' && u.owner);
     const summonKey = JSON.stringify(companions.map(u => [u.id, u.hp, u.alive, v.battle.targets.includes(u.id)]));
     if (summons.dataset.key !== summonKey) {summons.dataset.key = summonKey; summons.replaceChildren(...companions.map(u => button(`${u.name}  ${number(u.hp)}`, () => {if(targetReady()){focusTargetUnit(u.id);commitTarget();}else inspect(u.id);})));}
-    log.textContent = performing && cue ? cue.lines.join('\n') : v.battle.ready ? `${v.battle.actorName} 的回合` : cue?.lines.join('\n') || v.battle.log.slice(-2).join('\n') || '战斗开始';
+    setText(log, performing && cue ? cue.lines.join('\n') : v.battle.ready ? `${v.battle.actorName} 的回合` : cue?.lines.join('\n') || v.battle.log.slice(-2).join('\n') || '战斗开始');
     renderMenus();
   }
   return {
