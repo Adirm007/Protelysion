@@ -32,7 +32,7 @@ export async function digest(data:ArrayBuffer|Uint8Array):Promise<string>{
  return Array.from(new Uint8Array(result),v=>v.toString(16).padStart(2,'0')).join('');
 }
 export function cacheKey(info:FileInfo):string{return 'https://protelysion-cache.invalid/sha256/'+info.sha256;}
-function mime(name:string){return name.endsWith('.wasm')?'application/wasm':name.endsWith('.js')?'application/javascript':name.endsWith('.json')?'application/json':name.endsWith('.ogg')?'audio/ogg':name.endsWith('.mp3')?'audio/mpeg':name.endsWith('.wav')?'audio/wav':name.endsWith('.html')?'text/html; charset=utf-8':'application/octet-stream';}
+function mime(name:string){return name.endsWith('.webp')?'image/webp':name.endsWith('.woff2')?'font/woff2':name.endsWith('.txt')?'text/plain; charset=utf-8':name.endsWith('.wasm')?'application/wasm':name.endsWith('.js')?'application/javascript':name.endsWith('.json')?'application/json':name.endsWith('.ogg')?'audio/ogg':name.endsWith('.mp3')?'audio/mpeg':name.endsWith('.wav')?'audio/wav':name.endsWith('.html')?'text/html; charset=utf-8':'application/octet-stream';}
 function abortError(){return new DOMException('请求已取消','AbortError');}
 async function abortable<T>(promise:Promise<T>,signal?:AbortSignal|null):Promise<T>{
  if(!signal)return promise;if(signal.aborted)throw abortError();

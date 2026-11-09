@@ -1,70 +1,74 @@
 import type {SupplierMemory} from '../supplier-memory/service';
 import {PRESETS, type MemorySettings, type ApiSlot, type TestResult} from '../supplier-memory/apis';
 import {gameDom} from './game-dom';
+import {BK, BINDING_VARS, BK_DISPLAY, BK_SERIF, BK_FIGURES, BK_FLEURON, installBinding, paperFill} from './binding-kit';
 
 const STYLE_ID = 'booksea-memory-style';
-/** 与补给员对话框同一套笔触：深色底、双层描边、衬线标题、金色点缀。自带样式，书间大厅和全屏游戏里都能用。 */
+/** 补给员的日记：别着纸条的本子。记下的事是钉在页上的纸条，设置是页脚的装订工具。自带样式，书间与游戏里都能用。 */
 export const SUPPLIER_MEMORY_STYLE = `
-.bs-memory{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 40%,#0c101ed6,#030409f0);color:#eee9e0;font:14px/1.6 "PingFang SC","Microsoft YaHei","Noto Sans CJK SC",system-ui,sans-serif;letter-spacing:.02em}
+.bs-memory{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(ellipse at 50% 40%,rgba(40,22,14,.8),rgba(8,4,2,.92));color:${BK.ink};font:14px/1.65 ${BK_SERIF};${BINDING_VARS}}
 .bs-stage .bs-memory,.rpg-ui~.bs-memory{position:absolute}
 .bs-memory[hidden]{display:none!important}
 .bs-memory *{box-sizing:border-box}
-.bs-memory-card{position:relative;display:flex;flex-direction:column;width:min(760px,100%);max-height:calc(100% - 8px);border:1px solid #e0dacecc;background:#101015f2;box-shadow:inset 0 0 0 4px #1b1921,inset 0 0 0 5px #d0c8c188,0 0 0 3px #b0a7a544,0 18px 60px #000c}
-.bs-memory-card:before,.bs-memory-card:after{content:'';position:absolute;width:7px;height:7px;border:1px solid #e2d8c9aa;box-shadow:0 0 0 2px #111018;background:#49414d}
-.bs-memory-card:before{left:8px;top:8px}.bs-memory-card:after{right:8px;bottom:8px}
-.bs-memory-head{position:relative;padding:22px 64px 12px 26px;border-bottom:1px solid #d8b97833}
-.bs-memory-head h2{margin:0;font:500 22px/1.4 "Noto Serif SC","Songti SC","SimSun",serif;letter-spacing:.16em;color:#f3e2b4;text-shadow:0 2px 2px #000}
-.bs-memory-head p{margin:6px 0 0;color:#b9b2a6;font-size:12.5px}
+.bs-memory-card{position:relative;display:flex;flex-direction:column;width:min(760px,100%);max-height:calc(100% - 8px);border-left:14px solid #4a3a2a;background:repeating-linear-gradient(transparent 0 27px,rgba(46,74,107,.12) 27px 28px) 0 64px,${paperFill('left')};box-shadow:0 22px 60px rgba(0,0,0,.7)}
+.bs-memory-card:before{content:'';position:absolute;left:-14px;top:0;bottom:0;width:14px;background:var(--bk-tex-leather) 0 0/160px auto,#4a3a2a;filter:hue-rotate(-12deg) saturate(.6);box-shadow:inset -3px 0 4px rgba(0,0,0,.45)}
+.bs-memory-card:after{content:'';position:absolute;right:26px;top:-10px;width:18px;height:64px;background:linear-gradient(90deg,rgba(0,0,0,.28),rgba(255,255,255,.14) 46%,rgba(0,0,0,.3)),${BK.ribbon};clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);pointer-events:none}
+.bs-memory-head{position:relative;margin:0 26px;padding:20px 52px 10px 0;border-bottom:1px solid ${BK.rule}}
+.bs-memory-head h2{margin:0;font:900 22px/1.4 ${BK_DISPLAY};letter-spacing:.24em;color:${BK.ink}}
+.bs-memory-head p{margin:6px 0 0;color:${BK.ink2};font-size:13px}
 .bs-memory button{font:inherit;color:inherit;cursor:pointer}
-.bs-memory-close{position:absolute;right:16px;top:16px;width:38px;height:38px;border:1px solid #d2cbd66e;background:#101015a3;color:#ddd3ce;font:24px/1 system-ui!important;opacity:.85}
-.bs-memory-close:hover,.bs-memory-close:focus-visible{opacity:1;outline:2px solid #d9cba7;outline-offset:2px}
-.bs-memory-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 26px 6px;scrollbar-width:thin;scrollbar-color:#9a927f66 transparent}
-.bs-memory-sec{margin:0 0 14px;padding:14px 16px;border:1px solid #ded8ca33;background:#14131a99}
-.bs-memory-sec h3{display:flex;align-items:center;gap:10px;margin:0 0 6px;font:500 15px/1.5 "Noto Serif SC","Songti SC",serif;letter-spacing:.12em;color:#f1e3c1}
-.bs-memory-sec h3:before{content:'';width:7px;height:7px;transform:rotate(45deg);background:#d8b978;flex:none}
+.bs-memory-close{position:absolute;right:52px;top:16px;width:38px;height:38px;border:1.5px solid rgba(35,24,15,.35);border-radius:50%;background:transparent;color:${BK.ink2};font:400 24px/1 ${BK_SERIF}!important}
+.bs-memory-close:hover,.bs-memory-close:focus-visible{background:${BK.ribbon};border-color:${BK.ribbon};color:#fff;outline:2px solid ${BK.errata};outline-offset:2px}
+.bs-memory-body{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:14px 26px 6px;scrollbar-width:thin;scrollbar-color:rgba(94,75,58,.45) transparent}
+.bs-memory-sec{margin:0 0 16px;padding:0 0 12px;border-bottom:1px dotted rgba(35,24,15,.3)}
+.bs-memory-sec h3{display:flex;align-items:center;gap:10px;margin:0 0 6px;font:900 16px/1.5 ${BK_DISPLAY};letter-spacing:.2em;color:${BK.ink}}
+.bs-memory-sec h3:before{content:'';width:16px;height:16px;background:${BK_FLEURON} center/contain no-repeat;flex:none}
 .bs-memory-sec h3 .bs-memory-switch{margin-left:auto}
-.bs-memory-hint{margin:0 0 10px;color:#a9a294;font-size:12px}
-.bs-memory-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:4px 0 10px}
-.bs-memory-tile{padding:8px 10px;border:1px solid #d8b97830;background:linear-gradient(180deg,#181d2ecc,#090b13cc);text-align:center}
-.bs-memory-tile b{display:block;font:20px/1.3 "Noto Serif SC",Georgia,serif;color:#f3e7c9}.bs-memory-tile span{font-size:11px;color:#c9b98f;letter-spacing:.1em}
-.bs-memory-lines{margin:0;padding:0;list-style:none;font-size:12.5px;color:#cfc7b8}.bs-memory-lines li{padding:3px 0;border-bottom:1px dashed #ffffff10}
-.bs-memory-lines .is-bad{color:#e3a69a}.bs-memory-lines .is-good{color:#b9d9b0}
+.bs-memory-hint{margin:0 0 10px;color:${BK.ink2};font-size:13px}
+.bs-memory-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:4px 0 10px;border-top:1px solid ${BK.ink2};border-bottom:1px solid ${BK.ink2}}
+.bs-memory-tile{padding:8px 10px 6px;text-align:center}
+.bs-memory-tile+.bs-memory-tile{border-left:1px solid ${BK.rule}}
+.bs-memory-tile b{display:block;font:600 20px/1.3 ${BK_FIGURES};color:${BK.ink};font-variant-numeric:tabular-nums}.bs-memory-tile span{font-size:12.5px;color:${BK.ink3};letter-spacing:.1em}
+.bs-memory-lines{margin:0;padding:0;list-style:none;font-size:13.5px;color:${BK.ink}}.bs-memory-lines li{padding:3px 0;border-bottom:1px dotted rgba(35,24,15,.22)}
+.bs-memory-lines .is-bad{color:${BK.blot}}.bs-memory-lines .is-good{color:${BK.green}}
 .bs-memory-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:8px 0 0}
 .bs-memory-field{display:grid;grid-template-columns:62px 1fr auto;align-items:center;gap:8px;margin:6px 0}
-.bs-memory-field>span{color:#d8c294;font-size:12.5px;letter-spacing:.1em}
-.bs-memory input[type=text],.bs-memory input[type=password],.bs-memory input[type=url]{width:100%;min-width:0;padding:8px 10px;border:1px solid #ded8caaa;border-radius:0;background:#0d0d12e8;color:#f3eee4;font:13px/1.4 ui-monospace,Consolas,monospace}
-.bs-memory input:focus{outline:2px solid #cdbf9b;outline-offset:1px}
+.bs-memory-field>span{color:${BK.ink2};font-size:13px;letter-spacing:.1em}
+.bs-memory input[type=text],.bs-memory input[type=password],.bs-memory input[type=url]{width:100%;min-width:0;padding:6px 4px;border:0;border-bottom:1.5px solid ${BK.ink2};border-radius:0;background:rgba(255,250,236,.55);color:${BK.ink};font:13px/1.4 ui-monospace,Consolas,monospace}
+.bs-memory input:focus{outline:2px solid ${BK.ribbon};outline-offset:1px}
 .bs-memory input:disabled{opacity:.5}
-.bs-memory-btn{min-height:36px;padding:6px 14px;border:1px solid #ded8caaa;border-radius:0;background:#14131ad9;color:#eee9e0;box-shadow:inset 0 0 0 3px #17161d,inset 0 0 0 4px #99929b55;letter-spacing:.12em;white-space:nowrap}
-.bs-memory-btn:hover:not(:disabled),.bs-memory-btn:focus-visible{background:#39333bea;color:#fff8e3;border-color:#fff0cd;outline:2px solid #cdbf9b;outline-offset:2px}
+.bs-memory-btn{min-height:36px;padding:5px 14px;border:1.5px solid ${BK.ink2};border-radius:3px;background:rgba(255,250,236,.65);color:${BK.ink};font-family:${BK_DISPLAY}!important;font-weight:900;letter-spacing:.14em;white-space:nowrap}
+.bs-memory-btn:hover:not(:disabled),.bs-memory-btn:focus-visible{background:#fffaf0;border-color:${BK.ink};outline:2px solid ${BK.ribbon};outline-offset:2px}
 .bs-memory-btn:disabled{opacity:.5;cursor:default}
-.bs-memory-btn.is-primary{border-color:#f6e2ae;color:#1d1508;background:linear-gradient(180deg,#f4e0a8,#d8b56c 55%,#b38a45);box-shadow:inset 0 0 0 2px #fff6d659;text-shadow:0 1px 0 #fff0c880}
-.bs-memory-btn.is-danger{border-color:#d99a8c;color:#f5d5cc;background:#3a1c1ccc}
-.bs-memory-btn[aria-pressed=true]{border-color:#f3dfa8;background:linear-gradient(90deg,#5c4826d9,#121624e6);color:#fff4d4}
-.bs-memory-small{min-height:30px;padding:3px 10px;font-size:12px;letter-spacing:.06em}
-.bs-memory-switch{position:relative;display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:#d8c294;letter-spacing:.08em;cursor:pointer;user-select:none}
+.bs-memory-btn.is-primary{border-color:${BK.ribbonDeep};color:#fff6ea;background:${BK.ribbon}}
+.bs-memory-btn.is-danger{border-color:${BK.blot};color:${BK.blot};background:rgba(255,250,236,.65)}
+.bs-memory-btn[aria-pressed=true]{border-color:${BK.ribbon};color:${BK.ribbonDeep};background:rgba(255,250,236,.95);box-shadow:inset 0 -3px 0 ${BK.ribbon}}
+.bs-memory-small{min-height:30px;padding:2px 10px;font-size:12.5px;letter-spacing:.06em}
+.bs-memory-switch{position:relative;display:inline-flex;align-items:center;gap:8px;font-size:13px;color:${BK.ink2};letter-spacing:.08em;cursor:pointer;user-select:none}
 .bs-memory-switch input{position:absolute;opacity:0;width:1px;height:1px}
-.bs-memory-switch i{position:relative;width:38px;height:20px;border:1px solid #ded8caaa;background:#0d0d12;flex:none}
-.bs-memory-switch i:after{content:'';position:absolute;left:2px;top:2px;width:14px;height:14px;background:#7d7686;transition:transform .15s,background .15s}
-.bs-memory-switch input:checked+i{border-color:#f3dfa8;background:#3b3020}.bs-memory-switch input:checked+i:after{transform:translateX(18px);background:#f1d185}
-.bs-memory-switch input:focus-visible+i{outline:2px solid #cdbf9b;outline-offset:2px}
-.bs-memory-result{font-size:12.5px;color:#b4aeba}.bs-memory-result.is-ok{color:#b9d9b0}.bs-memory-result.is-bad{color:#e3a69a}
-.bs-memory-facts{margin:8px 0 0;padding:0;list-style:none}
-.bs-memory-facts li{display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px dashed #ffffff12;font-size:13px}
+.bs-memory-switch i{position:relative;width:40px;height:22px;border-radius:11px;background:rgba(35,24,15,.18);box-shadow:inset 0 0 0 1.5px rgba(35,24,15,.4);flex:none}
+.bs-memory-switch i:after{content:'';position:absolute;left:3px;top:3px;width:16px;height:16px;border-radius:50%;background:radial-gradient(circle at 38% 30%,#f6e0a8,${BK.brass} 55%,#6e4e26);transition:transform .15s}
+.bs-memory-switch input:checked+i{background:${BK.ribbon};box-shadow:none}.bs-memory-switch input:checked+i:after{transform:translateX(18px)}
+.bs-memory-switch input:focus-visible+i{outline:2px solid ${BK.ribbon};outline-offset:2px}
+.bs-memory-result{font-size:13px;color:${BK.ink3}}.bs-memory-result.is-ok{color:${BK.green}}.bs-memory-result.is-bad{color:${BK.blot}}
+.bs-memory-facts{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:8px}
+.bs-memory-facts li{position:relative;display:flex;align-items:flex-start;gap:8px;padding:9px 10px 8px 14px;background:#fbf4e2;box-shadow:1px 2px 4px rgba(60,40,20,.18);font-size:14px}
+.bs-memory-facts li:nth-child(odd){transform:rotate(-.4deg)}.bs-memory-facts li:nth-child(even){transform:rotate(.35deg)}
+.bs-memory-facts li:before{content:'';position:absolute;left:50%;top:-5px;width:10px;height:10px;margin-left:-5px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f6e0a8,${BK.brass} 55%,#5c3d1a);box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .bs-memory-facts .bs-memory-text{flex:1;min-width:0;word-break:break-word}
-.bs-memory-facts small{display:block;color:#9d968a;font-size:11.5px}
-.bs-memory-facts li.is-kept .bs-memory-text{color:#f6ead0}
-.bs-memory-facts li.is-kept .bs-memory-text::before{content:'✦ ';color:#d8b978}
+.bs-memory-facts small{display:block;color:${BK.ink3};font-size:12px}
+.bs-memory-facts li.is-kept{background:${BK.errata}}
+.bs-memory-facts li.is-kept .bs-memory-text{color:${BK.ink}}
 .bs-memory-actions{display:flex;flex:none;gap:6px}
-.bs-memory-sub{margin:12px 0 2px;color:#d8c294;font-size:12px;letter-spacing:.14em}
-.bs-memory-tag{flex:none;padding:1px 7px;border:1px solid #d8b97866;color:#e6d3a4;font-size:11px;letter-spacing:.06em;white-space:nowrap}
-.bs-memory-tag.is-guess{border-color:#a0b4f066;color:#c3d0f3}.bs-memory-tag.is-self{border-color:#c3a8de66;color:#d9c4e7}
-.bs-memory-tag.is-kept{border-color:#9fcf9a66;color:#c4e2bd}.bs-memory-tag.is-broken{border-color:#d99a8c66;color:#efc0b4}.bs-memory-tag.is-mark{border-color:#f3dfa899;color:#f6e6bd;background:#3b302033}
-.bs-memory details summary{cursor:pointer;color:#f1e3c1;font:500 15px/1.6 "Noto Serif SC","Songti SC",serif;letter-spacing:.12em}
-.bs-memory-foot{display:flex;align-items:center;gap:12px;padding:12px 26px 18px;border-top:1px solid #d8b97833}
-.bs-memory-foot>span{flex:1;font-size:12.5px;color:#d9c89e}
-.bs-memory-note{margin:4px 0 12px;color:#9d968a;font-size:11.5px}
-@media(max-width:620px){.bs-memory{padding:6px}.bs-memory-head{padding:18px 56px 10px 18px}.bs-memory-body{padding:12px 14px 4px}.bs-memory-foot{padding:10px 14px 14px}.bs-memory-tiles{grid-template-columns:repeat(2,1fr)}.bs-memory-field{grid-template-columns:1fr auto}.bs-memory-field>span{grid-column:1/-1}.bs-memory-facts li{flex-wrap:wrap}.bs-memory-facts .bs-memory-text{flex-basis:calc(100% - 96px)}.bs-memory-actions{width:100%;justify-content:flex-end}}
+.bs-memory-sub{margin:14px 0 4px;color:${BK.ink2};font:900 13px/1.5 ${BK_DISPLAY};letter-spacing:.2em}
+.bs-memory-tag{flex:none;padding:0 7px;border:1.5px solid ${BK.ink2};color:${BK.ink2};font:900 11.5px/1.6 ${BK_DISPLAY};letter-spacing:.06em;white-space:nowrap}
+.bs-memory-tag.is-guess{border-color:${BK.blue};color:${BK.blue}}.bs-memory-tag.is-self{border-color:#5a3e6e;color:#5a3e6e}
+.bs-memory-tag.is-kept{border-color:${BK.green};color:${BK.green}}.bs-memory-tag.is-broken{border-color:${BK.blot};color:${BK.blot}}.bs-memory-tag.is-mark{border-color:${BK.ribbon};color:#fff6ea;background:${BK.ribbon}}
+.bs-memory details summary{cursor:pointer;color:${BK.ink};font:900 15px/1.6 ${BK_DISPLAY};letter-spacing:.14em}
+.bs-memory-foot{display:flex;align-items:center;gap:12px;margin:0 26px;padding:12px 0 18px;border-top:1px solid ${BK.rule}}
+.bs-memory-foot>span{flex:1;font-size:13px;color:${BK.ink2}}
+.bs-memory-note{margin:4px 0 12px;color:${BK.ink3};font-size:12.5px}
+@media(max-width:620px){.bs-memory{padding:6px}.bs-memory-card{border-left-width:8px}.bs-memory-card:before{left:-8px;width:8px}.bs-memory-head{margin:0 14px;padding:16px 50px 8px 0}.bs-memory-close{right:40px}.bs-memory-body{padding:12px 14px 4px}.bs-memory-foot{margin:0 14px;padding:10px 0 14px}.bs-memory-tiles{grid-template-columns:repeat(2,1fr)}.bs-memory-tile:nth-child(3){border-left:0}.bs-memory-field{grid-template-columns:1fr}}
 @media(pointer:coarse){.bs-memory input[type=text],.bs-memory input[type=password],.bs-memory input[type=url]{font-size:16px}}
 @media(prefers-reduced-motion:reduce){.bs-memory-switch i:after{transition:none}}
 `;
@@ -76,6 +80,7 @@ const time = (at: number) => {const d = new Date(at); return `${d.getMonth() + 1
 /** 补给员记忆与接口设置。所有改动先进草稿，“保存”才写入本机；测试连接用草稿里的值。 */
 export function mountSupplierMemoryPanel(doc: Document, memory: SupplierMemory) {
   const {el, button} = gameDom(doc);
+  installBinding(doc);
   if (!doc.getElementById(STYLE_ID)) {const css = el('style'); css.id = STYLE_ID; css.textContent = SUPPLIER_MEMORY_STYLE; doc.head.append(css);}
   const root = el('section', 'bs-memory'), card = el('div', 'bs-memory-card'), head = el('header', 'bs-memory-head'), body = el('div', 'bs-memory-body'), foot = el('footer', 'bs-memory-foot');
   root.hidden = true; root.dataset.bookseaOverlay = 'memory'; root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-labelledby', 'bs-memory-title');

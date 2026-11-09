@@ -1,3 +1,5 @@
+import {BK, BK_DISPLAY, BK_SERIF, BK_FIGURES, BK_MANICULE_LIGHT, paperFill} from './binding-kit';
+
 export const SUPPLIER_STYLE = `
 .rpg-supplier{position:absolute;inset:0;z-index:40;pointer-events:auto;isolation:isolate;overflow:hidden;background:linear-gradient(90deg,#08090d72,#08090d18 58%,#08090d3b);color:#eee9e0;font-family:"Noto Serif SC","Songti SC","SimSun",serif}
 .rpg-supplier-portrait{position:absolute!important;z-index:0;right:0;bottom:0;width:49%!important;height:99%!important;max-width:none!important;max-height:none!important;object-fit:contain;object-position:right bottom;pointer-events:none;filter:drop-shadow(-10px 7px 14px #0006)}
@@ -55,4 +57,30 @@ export const SUPPLIER_STYLE = `
 /* 对话时浮动全屏按钮（平时 top:70px）挪到右上角、与关闭钮同一行；窄横屏的对话区右侧同样让开它。 */
 .rpg-ui.is-supplier-talking .rpg-fullscreen{top:2.8%;right:2.2%;width:42px;height:42px;min-height:42px;padding:10px}
 @container(max-height:490px) and (orientation:landscape) and (max-width:580px){.rpg-supplier-talk{right:calc(2.2% + 52px)}}
+/* 装订迷宫 · the supplier's stationery counter: a ledger slip for her line, a brass name plate, catalogue cards
+   for the choices, a ruled notebook for the conversation. Colours and materials only; the layout above stays. */
+.rpg-supplier{background:linear-gradient(90deg,rgba(14,8,5,.52),rgba(14,8,5,.12) 58%,rgba(14,8,5,.3));color:${BK.ink};font-family:${BK_SERIF}}
+.rpg-ui .rpg-supplier-choice{border:0;border-radius:2px;color:${BK.ink};background:linear-gradient(transparent 10px,rgba(179,38,43,.45) 10px 11px,transparent 11px),${BK.card};box-shadow:0 5px 12px rgba(0,0,0,.5),inset 0 0 0 1px rgba(35,24,15,.2);font-family:${BK_DISPLAY};font-weight:900;text-shadow:none;transition:transform .14s,box-shadow .14s}
+.rpg-ui .rpg-supplier-choice:hover,.rpg-ui .rpg-supplier-choice:focus-visible{background:linear-gradient(transparent 10px,rgba(179,38,43,.6) 10px 11px,transparent 11px),#fffaf0;color:${BK.ink};border:0;outline:2px solid ${BK.ribbon};outline-offset:2px;transform:translateX(6px)}
+.rpg-supplier-choice:focus-visible:before{content:'';left:-34px;width:28px;height:17px;background:${BK_MANICULE_LIGHT} center/contain no-repeat}
+.rpg-supplier-dialogue{border:0;background:linear-gradient(90deg,transparent 22px,rgba(179,38,43,.35) 22px 23px,transparent 23px),repeating-linear-gradient(transparent 0 33px,rgba(46,74,107,.14) 33px 34px) 0 14px,${paperFill()};box-shadow:0 10px 28px rgba(0,0,0,.6),inset 0 0 0 1px rgba(35,24,15,.2)}
+.rpg-ui .rpg-supplier-name{border:1.5px solid #5c3d1a;border-radius:3px;color:#2a1a0c;background:linear-gradient(180deg,#f0d79a,#c7a05e 55%,#9a7238);box-shadow:0 3px 8px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(60,36,14,.4);font-family:${BK_DISPLAY};font-weight:900;text-shadow:0 1px 0 rgba(255,240,200,.6)}
+.rpg-ui .rpg-supplier-question{color:${BK.ink};text-shadow:none;padding-left:14px}
+.rpg-supplier-hint{color:${BK.ink3};font-family:${BK_SERIF}}
+.rpg-supplier-corner{border:0;border-radius:50%;width:8px;height:8px;box-shadow:0 1px 1px rgba(0,0,0,.5);background:radial-gradient(circle at 35% 30%,#f6e0a8,#b58b4c 55%,#5c3d1a)}
+.rpg-ui .rpg-supplier-close{border:1.5px solid rgba(35,24,15,.35);border-radius:50%;color:${BK.ink2};background:${BK.card};opacity:1;box-shadow:0 3px 8px rgba(0,0,0,.45)}
+.rpg-ui .rpg-supplier-close:hover,.rpg-ui .rpg-supplier-close:focus-visible{color:#fff;background:${BK.ribbon};outline:2px solid ${BK.errata}}
+.rpg-supplier-question.is-typing::after{background:${BK.ink2}}
+.rpg-supplier-talk-log{border:0;background:repeating-linear-gradient(transparent 0 27px,rgba(46,74,107,.14) 27px 28px) 0 9px,${paperFill()};box-shadow:0 8px 22px rgba(0,0,0,.5),inset 0 0 0 1px rgba(35,24,15,.2)}
+.rpg-ui .rpg-supplier-talk-line{text-shadow:none}
+.rpg-ui .rpg-supplier-talk-line.is-player{color:#2f5277}.rpg-ui .rpg-supplier-talk-line.is-supplier{color:${BK.ink}}.rpg-ui .rpg-supplier-talk-line.is-system{color:${BK.ink3}}
+.rpg-ui .rpg-supplier-talk-input{border:0;border-bottom:1.5px solid ${BK.ink2};background:rgba(246,236,214,.96);color:${BK.ink};font-family:${BK_SERIF}}
+.rpg-ui .rpg-supplier-talk-input:focus{outline:2px solid ${BK.ribbon}}
+.rpg-ui .rpg-supplier-talk-send,.rpg-ui .rpg-supplier-talk-back{border:1.5px solid ${BK.ink2};border-radius:3px;background:${BK.card};color:${BK.ink};font-family:${BK_DISPLAY};font-weight:900}
+.rpg-ui .rpg-supplier-talk-send{border-color:${BK.ribbonDeep};background:${BK.ribbon};color:#fff6ea}
+.rpg-supplier-choices{scrollbar-color:rgba(246,236,214,.5) transparent}
+.rpg-ui .rpg-supplier-choices:has(>:nth-child(6)) .rpg-supplier-choice{background:${BK.card};box-shadow:0 2px 4px rgba(0,0,0,.35),inset 0 -1px 0 rgba(35,24,15,.18);font-family:${BK_SERIF};font-variant-numeric:tabular-nums}
+.rpg-ui .rpg-supplier-choices:has(>:nth-child(6)) .rpg-supplier-choice:hover,.rpg-ui .rpg-supplier-choices:has(>:nth-child(6)) .rpg-supplier-choice:focus-visible{background:#fffaf0;transform:translateX(4px)}
+.rpg-supplier-letter{font-family:${BK_SERIF}}
+.rpg-supplier-hint b,.rpg-supplier-hint{font-variant-numeric:tabular-nums;font-family:${BK_FIGURES},${BK_SERIF}}
 `;

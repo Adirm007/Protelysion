@@ -5,7 +5,8 @@ import {object,actorKey,type ActorRef} from './core/actors';
 import {assetBase,createGodotLoader,type GodotEngine} from './host/godot-loader';
 import {mountExpeditionRuntime} from './game/runtime';
 import {assertCurrentExpedition,type State} from './game/expedition';
-import {installPlayerTheme,shellHeader,hero,modalFrame,bindModal,icons,escapeHtml as esc} from './ui/theme';
+import {installPlayerTheme,modalFrame,bindModal,icons,escapeHtml as esc} from './ui/theme';
+import {registerUiAssets,UI_FILES} from './ui/ui-art';
 import {characterData,executableCount,renderCharacterSheet} from './ui/character-sheet';
 import {enterNarrativeMode,resumeFromNarrative} from './host/narrative-mode';
 import {mountHostSupplierMemory} from './host/supplier-memory-host';
@@ -17,17 +18,24 @@ import {mountBestiaryPanel} from './ui/bestiary-panel';
 
 export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{loadEngine?:()=>Promise<import('./host/godot-loader').GodotConstructor>;autoResume?:boolean;onUserNarrative?:()=>void}={}){
  installPlayerTheme(root);
- root.innerHTML=`<div class="bs-portal">${shellHeader('启程之前',`<button id="open-bestiary" class="bs-icon-button" title="敌役图鉴" aria-label="敌役图鉴">${icons.dex}</button><button id="read" class="bs-icon-button" title="刷新角色" aria-label="刷新角色">${icons.refresh}</button><button id="open-settings" class="bs-icon-button" title="设置" aria-label="设置">${icons.gear}</button>`)}
- <section id="setup">${hero('选择同行者','下一页 · 由你书写',true)}<div class="bs-lobby-body"><div class="bs-party-heading"><h2>同行名册</h2><span id="party-count" class="bs-party-count">0 / 4</span></div><div id="roster" class="bs-roster"></div>
- <div class="bs-bottom-bar"><div class="bs-anchor"><label for="anchor">启程之页</label><select id="anchor"><option value="1">第 1 层</option></select></div><div id="wallet" class="bs-wallet"></div><div class="bs-party-actions"><button id="compile" class="bs-button">${icons.spark}整备队伍</button><button id="enter" class="bs-button bs-primary">进入书海 ${icons.arrow}</button><button id="resume" class="bs-button bs-primary" hidden>继续旅程 ${icons.arrow}</button></div></div></div></section>
+ root.innerHTML=`<div class="bs-portal bs-desk">
+ <div class="bs-scene" aria-hidden="true"><img class="bs-scene-wide" alt="" data-ui-art="${UI_FILES.lobbyWide}"><img class="bs-scene-tall" alt="" data-ui-art="${UI_FILES.lobbyTall}"></div>
+ <section id="setup" class="bs-book" aria-labelledby="bs-setup-title"><span class="bs-ribbon-mark" aria-hidden="true"></span>
+ <nav class="bs-tabs" aria-label="书口索引"><button id="open-bestiary" class="bs-tab" style="--tab:#4c5a2c" title="敌役图鉴" aria-label="敌役图鉴">图鉴</button><button id="open-settings" class="bs-tab" style="--tab:#2e4a6b" title="书间设置" aria-label="设置">设置</button><button id="read" class="bs-tab" style="--tab:#6b4426" title="刷新角色" aria-label="刷新角色">刷新</button></nav>
+ <div class="bs-spread"><div class="bs-page bs-page-l"><div class="bs-running"><span>夜梦的书间</span><i>Ex Libris</i></div><h1 id="bs-setup-title">启程之前</h1><p class="bs-lede">从名册里借出同行者，最多四位。借出的那一张，会夹进一根红丝带。</p>
+ <div class="bs-quota"><span>借阅名额</span><span id="party-dots" class="bs-dots" aria-hidden="true"><i></i><i></i><i></i><i></i></span><b id="party-count" class="bs-party-count">0 / 4</b></div><div id="roster" class="bs-roster" role="group" aria-label="同行名册"></div></div>
+ <div class="bs-page bs-page-r"><div class="bs-running"><i>Protelysion</i><span>借书卡</span></div><div class="bs-loan"><h2>本次借阅 <small id="loan-no"></small></h2>
+ <dl class="bs-loan-rows"><dt><label for="anchor">起点</label></dt><dd class="bs-anchor"><select id="anchor"><option value="1">第 1 层</option></select></dd><dt>携带</dt><dd><div id="wallet" class="bs-wallet"></div></dd><dt>同行</dt><dd><div id="party-names" class="bs-party-names"></div></dd></dl>
+ <div class="bs-party-actions"><button id="compile" class="bs-due"><b>整备队伍</b><small>编排同行者的能力</small></button><button id="enter" class="bs-due bs-go"><b>进入书海</b><small>从起点出发</small></button><button id="resume" class="bs-due bs-go" hidden><b>继续旅程</b><small>翻回夹书签的那一页</small></button></div></div>
  <p id="status" class="bs-player-status" role="status" aria-live="polite"></p>
+ <footer class="bs-colophon"><span>装订 · Adirm007</span><a id="credits" target="_blank" rel="noopener">制作名单</a></footer></div></div></section>
  <section id="stage" class="bs-stage" hidden><canvas id="host-play-canvas" width="1280" height="720" tabindex="0"></canvas></section>
- <footer class="bs-footer"><span>ADIRM007</span><a id="credits" target="_blank" rel="noopener">制作名单</a></footer>
- ${modalFrame('character-sheet','同行者档案','<div id="character-content"></div>')}
- ${modalFrame('player-settings','书间设置','<div class="bs-settings-row"><span>资源管理</span><button id="host-resource-open" class="bs-button">管理下载</button></div><div class="bs-settings-row"><span>补给员的记忆</span><button id="memory-open" class="bs-button">记忆与接口</button></div>')}
+ ${modalFrame('character-sheet','同行者档案','<div id="character-content"></div>','plate')}
+ ${modalFrame('player-settings','书间设置','<div class="bs-settings-row"><span>资源管理</span><button id="host-resource-open" class="bs-button">管理下载</button></div><div class="bs-settings-row"><span>补给员的记忆</span><button id="memory-open" class="bs-button">记忆与接口</button></div>','colophon')}
  </div>`;
  const el=(id:string)=>root.querySelector<HTMLElement>('#'+id)!,status=(s:string)=>{el('status').textContent=s;};
- const port=sessionPort(globals),contextId=port.id(),key='booksea-host-run:random-v2:'+contextId,selected=new Map<string,ActorRef>();
+ const port=sessionPort(globals),contextId=port.id(),key='booksea-host-run:random-v2:'+contextId,selected=new Map<string,ActorRef>(),names=new Map<string,string>();
+ let loan=0;for(const c of contextId)loan=(loan*31+c.charCodeAt(0))>>>0;el('loan-no').textContent='No. '+String(1000+loan%9000);
  // 0.42 补给员长期记忆：按聊天（存档）一份；大厅和游戏里共用同一个设置面板。
  const memory=mountHostSupplierMemory(globals,()=>port.chat()),memoryPanel=mountSupplierMemoryPanel(document,memory);
  // 0.44 敌役图鉴：按聊天一份（聊天变量 booksea.bestiary）；战斗立绘到达时顺手存一张缩略图在这台设备。
@@ -35,17 +43,18 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
  const host=globals.parent??globals;host.BookseaActiveViews??={};const owners=host.BookseaActiveViews as Record<string,()=>Promise<void>>;
  const retireOther=async()=>{if(owners[key])await owners[key]!();};
  const base=assetBase(globals.BOOKSEA_ASSET_BASE??'/booksea-play/',document.baseURI,typeof globals.BOOKSEA_ASSET_BASE==='string'),load=options.loadEngine??createGodotLoader(window,document,base);
- (el('credits') as HTMLAnchorElement).href=new URL('credits.html',base).href;
+ (el('credits') as HTMLAnchorElement).href=new URL('credits.html',base).href;registerUiAssets({base});
  const sheet=bindModal(el('character-sheet')),settings=bindModal(el('player-settings'));let sheetRef:ActorRef|undefined;
  let engine:GodotEngine|undefined,runtime:ReturnType<typeof mountExpeditionRuntime>|undefined,busy=false,initialized=false,lastPaused=true,visible=true;
  const userHandoff=mountUserMessageHandoff(globals,port,{runtime:()=>runtime,onHandoff:()=>{runtime?.setVisible(false);visible=false;options.onUserNarrative?.();},onError:error=>{status('现场已暂停，正文交接暂未完成：'+String((error as Error)?.message??error));}});
  const selection=()=>[...selected.values()];
  const message=(error:unknown)=>{const s=String((error as Error)?.message??error);return /聊天.*切换|所属聊天|另一聊天/.test(s)?'聊天已切换，请重新打开书海。':/1–4|1—4|队伍|勾选成员/.test(s)?'先选择一至四位同行者。':/远征|已结束|已经结算/.test(s)?'还有一段未完的旅程，先继续它吧。':/未连接|生成|正文|模型/.test(s)?'故事暂时没能续上，稍后再试。':/读取|MVU|stat_data|主角|生命值|字段|对象/.test(s)?'还没有读到完整角色资料，请回到聊天后刷新。':'这次没能完成，请再试一次。';};
  function updateSelection(){
-  el('party-count').textContent=selected.size+' / 4';
+  el('party-count').textContent=selected.size+' / 4';root.querySelectorAll('#party-dots i').forEach((dot,i)=>dot.classList.toggle('on',i<selected.size));
+  el('party-names').innerHTML=selected.size?[...selected.keys()].map(k=>'<span>'+esc(names.get(k)??'')+'</span>').join(''):'<em>还没有借出</em>';
   for(const label of Array.from(el('roster').querySelectorAll<HTMLElement>('[data-actor-key]'))){const checked=selected.has(label.dataset.actorKey!);label.classList.toggle('is-selected',checked);const input=label.querySelector<HTMLInputElement>('input');if(input)input.checked=checked;}
   const ready=selection().every(ref=>{try{return characterData(port,ref).ready;}catch{return false;}}),active=object(port.chat().booksea??{}).activeExpedition;
-  (el('compile') as HTMLButtonElement).disabled=busy||!selected.size;el('compile').innerHTML=icons.spark+(ready&&selected.size?'重新整备':'整备队伍');
+  (el('compile') as HTMLButtonElement).disabled=busy||!selected.size;el('compile').innerHTML=ready&&selected.size?'<b>重新整备</b><small>按最新资料再编一次</small>':'<b>整备队伍</b><small>编排同行者的能力</small>';
   (el('enter') as HTMLButtonElement).disabled=busy||!selected.size;el('enter').hidden=!!active;el('resume').hidden=!active;(el('resume') as HTMLButtonElement).disabled=busy;
  }
  function showSheet(ref:ActorRef){sheetRef=ref;renderCharacterSheet(el('character-content'),port,ref,()=>void task(async()=>{await prepare([ref]);await draw();showSheet(ref);}));(el('character-sheet').querySelector('.bs-modal-body') as HTMLElement).scrollTop=0;sheet.open();}
@@ -58,17 +67,18 @@ export function mountHostGame(root:HTMLElement,globals:any=globalThis,options:{l
   const priorAnchor=(el('anchor') as HTMLSelectElement).value;el('anchor').replaceChildren();for(const id of anchors){const option=document.createElement('option');option.value=id.split('-')[1]!;option.textContent='第 '+option.value+' 层';el('anchor').append(option);}if(anchors.some(a=>a.split('-')[1]===priorAnchor))(el('anchor') as HTMLSelectElement).value=priorAnchor;
   const rosterPortraits=await loadHostPortraits(globals,roster.map(a=>({id:actorKey(a.ref),ref:a.ref})));port.id();
   el('roster').replaceChildren();
-  if(!roster.length)el('roster').innerHTML='<div class="bs-empty">'+icons.book+'<p>还没有找到同行者</p></div>';
+  if(!roster.length)el('roster').innerHTML='<div class="bs-empty">'+icons.book+'<p>名册上还没有名字</p></div>';
   for(const a of roster){
    const id=actorKey(a.ref),card=document.createElement('article');card.className='actor bs-actor'+(!a.allowed?' is-disabled':'');card.dataset.actorKey=id;
    let ready=false,count=a.skills.length;try{const info=characterData(port,a.ref);ready=info.ready;if(info.card)count=executableCount(info.card);}catch{}
    const hp=Number(a.hp)||0,max=Math.max(1,Number(a.maxHp)||1),availability=!a.allowed?'暂不可出战':ready?'已就绪 · '+count+'项能力':'待整备';
-   card.innerHTML=`<label class="bs-actor-label"><input type="checkbox" aria-label="选择${esc(a.name)}" ${a.allowed?'':'disabled'}><span class="bs-actor-seal">${esc([...a.name][0]??'旅')}</span><span class="bs-actor-info"><strong class="bs-actor-name">${esc(a.name)}</strong><span class="bs-actor-level">Lv.${Number(a.level)||'—'} · ${a.ref.kind==='player'?'故事的主人':'命定同伴'}</span><span class="bs-hp"><span class="bs-hp-track"><i style="width:${Math.max(0,Math.min(100,hp/max*100))}%"></i></span>${Math.round(hp).toLocaleString()} / ${Math.round(max).toLocaleString()}</span></span></label><div class="bs-actor-bottom"><span class="bs-actor-state ${ready?'ready':''}">${availability}</span><button class="bs-detail-button" ${a.allowed?'':'disabled'}>角色详情 <span>↗</span></button></div>`;
+   names.set(id,a.name);
+   card.innerHTML=`<label class="bs-actor-label"><input type="checkbox" aria-label="选择${esc(a.name)}" ${a.allowed?'':'disabled'}><span class="bs-ribbon" aria-hidden="true"></span><span class="bs-actor-seal">${esc([...a.name][0]??'旅')}</span><span class="bs-ex">Ex Libris</span><span class="bs-actor-info"><strong class="bs-actor-name">${esc(a.name)}</strong><span class="bs-actor-level">Lv.${Number(a.level)||'—'} · ${a.ref.kind==='player'?'故事的主人':'命定同伴'}</span><span class="bs-hp"><span class="bs-hp-track"><i style="width:${Math.max(0,Math.min(100,hp/max*100))}%"></i></span>${Math.round(hp).toLocaleString()} / ${Math.round(max).toLocaleString()}</span></span><span class="bs-stamp" aria-hidden="true">借出</span></label><div class="bs-actor-bottom"><span class="bs-actor-state ${ready?'ready':''}">${availability}</span><button class="bs-detail-button" ${a.allowed?'':'disabled'}>档案</button></div>`;
    if(rosterPortraits[id]){const img=document.createElement('img');img.src=rosterPortraits[id]!;img.alt=a.name;img.referrerPolicy='no-referrer';img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:inherit';const seal=card.querySelector<HTMLElement>('.bs-actor-seal')!,letter=seal.textContent??'';img.onerror=()=>{seal.classList.remove('has-portrait');seal.textContent=letter;};seal.classList.add('has-portrait');seal.replaceChildren(img);}
    const input=card.querySelector<HTMLInputElement>('input')!;input.onchange=()=>{if(input.checked){if(selected.size>=4){input.checked=false;status('最多四位同行者。');return;}selected.set(id,a.ref);}else selected.delete(id);status('');updateSelection();};
    card.querySelector<HTMLButtonElement>('button')!.onclick=()=>{try{showSheet(a.ref);}catch(error){status(message(error));}};el('roster').append(card);
   }
-  const m=port.read(),stat=object(m.stat_data),bag=object(object(stat.主角).背包);el('wallet').innerHTML=icons.spark+'<span>命运点</span><b>'+esc(Number(stat.命运点数??0).toLocaleString('zh-CN'))+'</b>';
+  const m=port.read(),stat=object(m.stat_data),bag=object(object(stat.主角).背包);el('wallet').innerHTML='<b>'+esc(Number(stat.命运点数??0).toLocaleString('zh-CN'))+'</b><span>命运点</span>';
   updateSelection();
  }
  async function redeemem(name:string){await redeemHostVoucher(port,name,1);await draw();status('兑换完成。');}

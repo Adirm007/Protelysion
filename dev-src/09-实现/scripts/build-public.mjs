@@ -1,5 +1,5 @@
 // Explicit allowlist: a complete playable game release, never the workspace, secrets or chats.
-import {mkdir,readFile,writeFile,copyFile,unlink} from 'node:fs/promises';
+import {mkdir,readFile,writeFile,copyFile,unlink,readdir} from 'node:fs/promises';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
@@ -12,7 +12,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.46.0-20261108-supplier-memory';
+const revision='protelysion-0.47.0-20261108-ui-reset';
 const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
@@ -34,6 +34,10 @@ for(const [name,info]of Object.entries(manifest.files)){
 }
 const bundle=await build({entryPoints:[path.join(project,'09-实现/src/distribution/entry.ts')],bundle:true,format:'iife',globalName:'BookseaDistribution',target:'es2022',charset:'utf8',write:false,minify:true,legalComments:'eof',metafile:true});
 await put('distribution.js',bundle.outputFiles[0].text);
+// 前端重置 8.2: interface art and display fonts are release files under ui/ (read and verified through ResourceStore),
+// not base64 inside distribution.js. Only the pre-download pictures stay inline (src/ui/art-binding.ts).
+async function putTree(dir,prefix){for(const entry of (await readdir(dir,{withFileTypes:true})).sort((a,b)=>a.name.localeCompare(b.name))){const full=path.join(dir,entry.name);if(entry.isDirectory())await putTree(full,prefix+entry.name+'/');else await put(prefix+entry.name,await readFile(full));}}
+await putTree(path.join(project,'09-实现/assets/ui'),'ui/');
 const audioRoot=path.join(project,'21-音频制作/assets'),audioRaw=await readFile(path.join(audioRoot,'audio-manifest.json')),audio=JSON.parse(audioRaw);
 const audioFiles=new Map();for(const item of [...Object.values(audio.music),...Object.values(audio.sfx)])for(const rel of Object.values(item.files)){
  if(!/^(music|sfx)\//.test(rel)||rel.split('/').includes('..'))throw Error('Invalid audio path');audioFiles.set(rel,item.sha256[rel]);
@@ -42,10 +46,10 @@ for(const [rel,expected]of audioFiles){const data=await readFile(path.join(audio
 await put('audio/audio-manifest.json',audioRaw);await put('audio/CREDITS.txt',await readFile(path.join(audioRoot,'CREDITS.txt')));
 const escape=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const license=await readFile(path.join(root,'licenses/CC-BY-NC-4.0.txt'),'utf8');
-const notice=`普罗泰利西翁（Protelysion）·《书海》迷宫\nCopyright (c) 2026 Adirm007\n原作链接：https://github.com/Adirm007/Protelysion\n\n原创游戏内容及本项目原创代码：Creative Commons Attribution-NonCommercial 4.0 International（CC BY-NC 4.0）。允许非商业使用及改编，须署名原作和作者、附许可链接并说明修改；禁止未经另行许可的商业使用。\nhttps://creativecommons.org/licenses/by-nc/4.0/\n推荐署名：基于 Adirm007《普罗泰利西翁（书海迷宫）》修改，原作见上述仓库；修改内容：……。\n\n重要排除：此授权仅覆盖权利由本项目作者持有的原创部分。第三方音乐、少女素材、音效、字体、引擎、库及宿主来源内容分别受其原许可约束，不因本项目许可变为CC BY-NC，也不授予本项目未拥有的权利。本游戏是非商业可修改项目，不声称属于OSI意义的开源软件。\n\n界面夜梦立绘、头像和咖啡馆背景：来自Adirm007提供的读者正则。作者于2026-09-22明确授权任意取用；本项目压缩为WebP并随程序内嵌。图源：\nhttps://img.baibai.cv/f/yeV2Fj/22-54-15-3016377526.png\nhttps://img.baibai.cv/f/WrevH4/%E9%BB%98%E8%AE%A4.png\nhttps://img.baibai.cv/f/56AzHz/cafe_bg.png\n\n默认行走精灵：用户提供的 chibi_sprite_4dir_fixed.png，经裁剪、抠图与脚底对齐后随运行包使用。不冒称Pipoya素材，不从项目代码许可推导原图版权或授权；处理记录见Player-CREDITS.txt。\n补给员原图由用户于2026-09-23随需求提供，像素精灵由该图辅助生成并处理；用户于2026-09-24确认v3形象并授权随本版本推送仓库；不声称拥有原图或角色版权，不由本项目代码许可授予额外素材版权。详见Supplier-CREDITS.txt。\nNapi / M-ART：https://mart.kitunebi.com/；允许作为游戏素材使用，不放弃著作权，禁止独立原声/音乐素材库再分发。本仓库是可运行的完整游戏，不是音乐素材库。\nKenney：原有音效与短jingle，CC0 1.0。新增RPG音效：rubberduck、artisticdude、bart（CC0）；Iwan qubodup Gabovitch（CC BY 3.0）；纸笔书写录音：johannesschmidt（CC BY 4.0）。已作裁剪、单声道转换、响度校准与短淡化。逐项作者、原页面、许可链接及修改见audio/CREDITS.txt和audio/audio-manifest.json，不并入项目代码许可。\nGodot及其第三方库：见site/Godot-LICENSES.txt。Noto Sans SC：见site/NotoSansSC-OFL.txt。\n音乐逐曲信息见site/audio/audio-manifest.json；少女详细加工与许可见site/Player-CREDITS.txt。\n`;
+const notice=`普罗泰利西翁（Protelysion）·《书海》迷宫\nCopyright (c) 2026 Adirm007\n原作链接：https://github.com/Adirm007/Protelysion\n\n原创游戏内容及本项目原创代码：Creative Commons Attribution-NonCommercial 4.0 International（CC BY-NC 4.0）。允许非商业使用及改编，须署名原作和作者、附许可链接并说明修改；禁止未经另行许可的商业使用。\nhttps://creativecommons.org/licenses/by-nc/4.0/\n推荐署名：基于 Adirm007《普罗泰利西翁（书海迷宫）》修改，原作见上述仓库；修改内容：……。\n\n重要排除：此授权仅覆盖权利由本项目作者持有的原创部分。第三方音乐、少女素材、音效、字体、引擎、库及宿主来源内容分别受其原许可约束，不因本项目许可变为CC BY-NC，也不授予本项目未拥有的权利。本游戏是非商业可修改项目，不声称属于OSI意义的开源软件。\n\n界面美术（书间、加载幕的夜梦与场景、补给员对话立绘、物件与材质）：2026-11 界面重置时用 NovelAI 与 OpenAI 图像生成后加工，压缩为WebP，作为发行文件 ui/ 随游戏交付；加载幕背景沿用 2026-10-20 的选定图，提线剧场的台框与幕布沿用 0.37.4。\n显示字体：思源宋体 Heavy（Adobe，SIL OFL 1.1）与 IM Fell English（Igino Marini，SIL OFL 1.1），按界面固定文字子集化并更名为 Booksea Display / Booksea Latin，许可见 ui/fonts/。\n\n默认行走精灵：用户提供的 chibi_sprite_4dir_fixed.png，经裁剪、抠图与脚底对齐后随运行包使用。不冒称Pipoya素材，不从项目代码许可推导原图版权或授权；处理记录见Player-CREDITS.txt。\n补给员原图由用户于2026-09-23随需求提供，像素精灵由该图辅助生成并处理；用户于2026-09-24确认v3形象并授权随本版本推送仓库；不声称拥有原图或角色版权，不由本项目代码许可授予额外素材版权。详见Supplier-CREDITS.txt。\nNapi / M-ART：https://mart.kitunebi.com/；允许作为游戏素材使用，不放弃著作权，禁止独立原声/音乐素材库再分发。本仓库是可运行的完整游戏，不是音乐素材库。\nKenney：原有音效与短jingle，CC0 1.0。新增RPG音效：rubberduck、artisticdude、bart（CC0）；Iwan qubodup Gabovitch（CC BY 3.0）；纸笔书写录音：johannesschmidt（CC BY 4.0）。已作裁剪、单声道转换、响度校准与短淡化。逐项作者、原页面、许可链接及修改见audio/CREDITS.txt和audio/audio-manifest.json，不并入项目代码许可。\nGodot及其第三方库：见site/Godot-LICENSES.txt。Noto Sans SC：见site/NotoSansSC-OFL.txt。\n音乐逐曲信息见site/audio/audio-manifest.json；少女详细加工与许可见site/Player-CREDITS.txt。\n`;
 await writeFile(path.join(repo,'LICENSE'),license);await writeFile(path.join(repo,'NOTICE.md'),notice);await put('LICENSE-CC-BY-NC-4.0.txt',license);await put('NOTICE.txt',notice);
 await put('M-ART-terms.txt',await readFile(path.join(root,'licenses/M-ART-terms.txt')));
-await put('credits.html','<!doctype html><meta charset="utf-8"><title>普罗泰利西翁 · 许可与署名</title><style>body{max-width:850px;margin:40px auto;padding:20px;font:16px/1.8 system-ui;background:#191c2b;color:#eee}a{color:#d9cba7}pre{white-space:pre-wrap}</style><h1>普罗泰利西翁 · 许可与署名</h1><pre>'+escape(notice)+'</pre><pre>'+escape(await readFile(path.join(audioRoot,'CREDITS.txt'),'utf8'))+'</pre><p><a href="LICENSE-CC-BY-NC-4.0.txt">原创部分CC BY-NC 4.0</a> · <a href="Godot-LICENSES.txt">Godot许可</a> · <a href="NotoSansSC-OFL.txt">字体OFL</a> · <a href="Player-CREDITS.txt">行走精灵说明</a> · <a href="M-ART-terms.txt">M-ART官方规则记录</a></p>');
+await put('credits.html','<!doctype html><meta charset="utf-8"><title>普罗泰利西翁 · 许可与署名</title><style>body{max-width:850px;margin:40px auto;padding:20px;font:16px/1.8 system-ui;background:#191c2b;color:#eee}a{color:#d9cba7}pre{white-space:pre-wrap}</style><h1>普罗泰利西翁 · 许可与署名</h1><pre>'+escape(notice)+'</pre><pre>'+escape(await readFile(path.join(audioRoot,'CREDITS.txt'),'utf8'))+'</pre><p><a href="LICENSE-CC-BY-NC-4.0.txt">原创部分CC BY-NC 4.0</a> · <a href="Godot-LICENSES.txt">Godot许可</a> · <a href="NotoSansSC-OFL.txt">字体OFL</a> · <a href="ui/fonts/OFL-booksea-display.txt">书名字体OFL</a> · <a href="ui/fonts/OFL-booksea-latin.txt">拉丁字体OFL</a> · <a href="Player-CREDITS.txt">行走精灵说明</a> · <a href="M-ART-terms.txt">M-ART官方规则记录</a></p>');
 const generator=(await readFile(new URL('public-loader.mjs',import.meta.url),'utf8')).replaceAll('export function ','function ');
 await put('loader.html','<!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>普罗泰利西翁 · 安装</title><style>body{max-width:820px;margin:40px auto;padding:20px;font:17px/1.8 system-ui;background:#191c2b;color:#eee}button,input{font:inherit;padding:12px;max-width:100%}input{width:95%}a{color:#dbc494}</style><h1>普罗泰利西翁 · 兼容入口安装</h1><p>命定之诗集成版会随读者核心自动载入常驻脚本，无需另装。下面的手动外链正则用于兼容旧入口；需要配套读者核心、酒馆助手、MVU与EJS扩展。已有集成入口时无需重复安装。</p><label>外链目录 <input id="base"></label><p><button id="download">下载《书海》外链加载正则</button></p><p id="status" role="status"></p><p><a href="./">独立试玩（不读写宿主）</a> · <a href="credits.html">许可与署名</a> · <a href="https://github.com/Adirm007/Protelysion/tree/main/install">更新后的读者文件</a></p><script>'+generator.replace(/<\/script/gi,'<\\/script')+'\nconst template='+JSON.stringify(template)+',css='+JSON.stringify(css)+';document.getElementById("base").value=new URL("./",location.href).href;document.getElementById("download").onclick=()=>{try{const item=makeExternalRegex(document.getElementById("base").value,template,css),blob=new Blob([JSON.stringify(item,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="普罗泰利西翁-书海外链加载正则.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);document.getElementById("status").textContent="已生成，请在酒馆导入。匹配书海标签的游戏正则只启用一份。";}catch(e){document.getElementById("status").textContent=e.message;}};<\/script></html>');
 await put('index.html',makeExternalHtml(base,css,'standalone'));await put('.nojekyll','');
@@ -95,10 +99,10 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 `);
-await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\ninstall/protelysion-fixed.regex.json -text\n');
+await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\n*.webp binary\n*.woff2 binary\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.46.0 · 2026-11-08 补给员长期记忆、界面与性能**
+**版本：0.47.0 · 2026-11-08 界面重置：装订迷宫**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
@@ -122,6 +126,15 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 2. 用 \`读者核心本体 (new).txt\` 替换现有读者世界书条目内容，保留条目设置并启用；核心已包含书海交接，不再同时启用旧独立交接条目。
 3. 导入 \`普罗泰利西翁-书海外链加载正则.json\`，匹配书海标签的游戏正则只启用一份。
 4. 在旧读者大厅点击书海入口，或发送含“进入普罗泰利西翁”的过渡剧情；可带前后文字、引号和换行。正文模式与离场继续使用配套世界书交接。
+
+## 0.47.0 界面重置：装订迷宫
+
+- 书海的界面整体换成「一本书」：书间是一本摊开的书，同行者是一张张藏书票，借出的那张夹进红丝带；起点、命运点和出发写在借书卡上；图鉴、设置、刷新是书口的索引签。
+- 下载页换成环衬与锁线装订：进度是一帖帖缝上的书页，「完整下载 / 轻装启程」是精装与平装两种装帧。
+- 加载画面换成翻页，七个场景：书库、钟楼书塔、雨夜书店、童话·日、童话·夜、书页之海渡船、提线剧场；夜梦全部重新绘制。
+- 旅途手记换成带拇指索引的手账，翻开是本层主题的大理石纹环衬；事件是章节首页；归来时版权页盖上「珍藏」，失败是一张撕下的书页；警告是贴上的勘误条。补给员换成文具店柜台，立绘重新绘制；敌役图鉴换成博物图鉴的图版页；正文末尾的面板换成三根书签丝带。
+- 战斗界面保持原样。
+- 界面图片改为随游戏资源一起下载并校验，入口脚本从约 3.2 MB 减到 2.1 MB。
 
 ## 0.46.0 补给员长期记忆、界面与性能
 

@@ -1,5 +1,5 @@
 {
-  "revision": "protelysion-0.46.0-20261108-supplier-memory",
+  "revision": "protelysion-0.47.0-20261108-ui-reset",
   "scope": {
     "themes": 48,
     "species": 433,
@@ -71,16 +71,16 @@
       "sha256": "a76ee98294b565fcb92c05633a6c947725fd0407dbd0613b333081af1660a9da"
     },
     "Supplier-CREDITS.txt": {
-      "bytes": 1911,
-      "sha256": "5997541219b27c3d8184ad3a46a45197d34153239d7b29924bf2e6ed697b83ee"
+      "bytes": 2386,
+      "sha256": "116f4bd89321d213c137ce0df97fea021326727614e1adbd5274d529763ddbb9"
     },
     "Godot-LICENSES.txt": {
       "bytes": 112917,
       "sha256": "5d3325dac2c71b3f5e91e2eacd2827fa99cb7a8b4b0a99b48fbe34767b58729a"
     },
     "distribution.js": {
-      "bytes": 3154574,
-      "sha256": "db53707aee6643aafe4366bb89a2dabdd084b06984d952c97234b98e1b620b33"
+      "bytes": 2145849,
+      "sha256": "d12d1dbd4e2f21d3ae4d30b1f5bcbb1c7cbf4fbed6a7480d2cf1a1876ea9c95b"
     },
     "audio/music/Abyss.ogg": {
       "bytes": 574764,
@@ -1087,16 +1087,16 @@
       "sha256": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0"
     },
     "NOTICE.txt": {
-      "bytes": 2619,
-      "sha256": "2c112f945976be9f041ac3f09370d1381a647367d6c962925f50f21bba82c584"
+      "bytes": 2815,
+      "sha256": "411e1c06e7d6483a496bf09935aeafe20b435830d9d1a47505d3f35e82bb3c93"
     },
     "M-ART-terms.txt": {
       "bytes": 4523,
       "sha256": "bf290387b6c8dfb02f4ac2106966d4f56f36f38d190fe3aa8ad8d76aad8bb167"
     },
     "credits.html": {
-      "bytes": 6533,
-      "sha256": "243a3eb6055cbf18b7fc50a61e76c2a72cf3060132c397ae287d4da05c7a6fa8"
+      "bytes": 6859,
+      "sha256": "64c30b3d13f24fcb329d019619cd53d37f87a34a760725e7a40c6d6c3157ce24"
     },
     "loader.html": {
       "bytes": 10251,
@@ -1489,6 +1489,162 @@
     "audio/sfx/rm2k-wind3.wav": {
       "bytes": 85582,
       "sha256": "caf6f542a1373504f9fd8c5408ae993ebb3818d94a560e0c0e54573f226de592"
+    },
+    "ui/fonts/booksea-display.woff2": {
+      "bytes": 264044,
+      "sha256": "64c8e6cda0b9ec94bbc245e77f41513cdefc83128c65af67553d3120d4cded5b"
+    },
+    "ui/fonts/booksea-latin-italic.woff2": {
+      "bytes": 39672,
+      "sha256": "809d3545add9e783bf406f29157eaff56fdab1b3b07e871a8dd34fa349c0cba6"
+    },
+    "ui/fonts/booksea-latin.woff2": {
+      "bytes": 41336,
+      "sha256": "d5514cb61f412cc46a868286d9a6c48577aba1f045da4e13d8324349489b02b5"
+    },
+    "ui/fonts/OFL-booksea-display.txt": {
+      "bytes": 4587,
+      "sha256": "6836e043746759975afcf33f0655692d4063a1ec4fb8dc375f3b5f80f580b080"
+    },
+    "ui/fonts/OFL-booksea-latin.txt": {
+      "bytes": 4430,
+      "sha256": "7441302ea13698eb5a709557dc820c87acfb09e87ccbb82df929835c46b0bed1"
+    },
+    "ui/lobby-tall.webp": {
+      "bytes": 174754,
+      "sha256": "c730caf3f21430b054b800e3f0b4af0f060532b79872478de4e81730adec976c"
+    },
+    "ui/lobby-wide.webp": {
+      "bytes": 169630,
+      "sha256": "03983a191a55ee7fc7827835f3c2345834c12e095540c77db3b59d4566c92ebb"
+    },
+    "ui/obj-envelope.webp": {
+      "bytes": 11666,
+      "sha256": "d7bec9d2fa7159ccae0a0e0064043f57844ac051fc98ca64a52dc1242795767c"
+    },
+    "ui/obj-quill.webp": {
+      "bytes": 10016,
+      "sha256": "8a0827579345d4529e1b1f76f59e72fdcae729ec119e5b6787df404f62ff5c02"
+    },
+    "ui/obj-specimen.webp": {
+      "bytes": 14314,
+      "sha256": "6713a4a33a76ca2ccec6dbd6d25478796ae66da2e8eb8a190c402eb38c45b63a"
+    },
+    "ui/supplier-portrait.webp": {
+      "bytes": 104824,
+      "sha256": "a152f9bffdc45ccd4a73d8aac67ef079e0ec971e5ae51d763e2524a8c445ee61"
+    },
+    "ui/tex-cloth.webp": {
+      "bytes": 33382,
+      "sha256": "02fc977b27ebfa6be8919dddcee0f2a61e00a44160c482c245440b8d6f9c511d"
+    },
+    "ui/tex-marble-fairy.webp": {
+      "bytes": 89648,
+      "sha256": "9e8bf4100e0934bf4d414f59dd9db7534986b35bbeb4a200d8818303798e16ed"
+    },
+    "ui/tex-marble-theater.webp": {
+      "bytes": 51390,
+      "sha256": "905f49dce19f855fd9403484001e99432385388f64580d8eb9585e4bd74c80a5"
+    },
+    "ui/tex-velvet.webp": {
+      "bytes": 3116,
+      "sha256": "28878bc87b0481f171af1287268db8e6330b86209d19e1ef6c4ef7d6ce4b272c"
+    },
+    "ui/veil/clock-bg.webp": {
+      "bytes": 152632,
+      "sha256": "4078c1ca156f099e0daf42b61f3e4ba73e93325d9e70e574472f0b62515a2abc"
+    },
+    "ui/veil/clock-dream.webp": {
+      "bytes": 112276,
+      "sha256": "636c051552f2533baee4517d484fbee1388f91d806462a85ece66c3095374b86"
+    },
+    "ui/veil/fairy-bg.webp": {
+      "bytes": 161726,
+      "sha256": "6abe30ef01c76171a37cb7471eab9e0119f014b0aa3df2f0a1ec0ba94c5b184a"
+    },
+    "ui/veil/fairy-dream.webp": {
+      "bytes": 127338,
+      "sha256": "62445bdf953351d7c63fcfe1d481cfbfb81e0c951c260bd5f063be7c18f3fe16"
+    },
+    "ui/veil/ferry-bg.webp": {
+      "bytes": 116416,
+      "sha256": "b745ae3c5697651d0ff0ef321e46f08a3f7154cd31cae52345f21effe8fb24cd"
+    },
+    "ui/veil/ferry-dream.webp": {
+      "bytes": 107906,
+      "sha256": "8d43062a1eeb058ab11ab803f3795c2097c97b9a552bed72b17fc7aab2e044eb"
+    },
+    "ui/veil/library-bg.webp": {
+      "bytes": 174358,
+      "sha256": "802b0fd15b4d5a3ef5e799ff1d1db6d19296c8c07df65201e514a4d10e5a7f76"
+    },
+    "ui/veil/library-dream.webp": {
+      "bytes": 131174,
+      "sha256": "f0d1ef687b38125eed098ac37be0217cf7bb7c166e9220edaab2d41953728e2f"
+    },
+    "ui/veil/night-bg.webp": {
+      "bytes": 149668,
+      "sha256": "a1b9624e89e665998c43fca652fc36d269f232b2b95cc195cec00f4ca8afa513"
+    },
+    "ui/veil/night-dream.webp": {
+      "bytes": 83134,
+      "sha256": "3f94afe784176e623e9a4f52c360e8c59b2dc42aa51ffb8bf1d16cc5542a15f6"
+    },
+    "ui/veil/obj-book-a.webp": {
+      "bytes": 39436,
+      "sha256": "c5d307ba7a749325a0cbe0909e1a79379a75d10bf576b37684a8e36b6c86a420"
+    },
+    "ui/veil/obj-book-b.webp": {
+      "bytes": 41802,
+      "sha256": "4cd1d2f5040f9f0b0e32b67b2de71004c95ecb897cf5926c4bf43710a62178b7"
+    },
+    "ui/veil/obj-cards.webp": {
+      "bytes": 26962,
+      "sha256": "f5b524ed512b231716f6a2f10a2105313f36406e8e8c5821987ad35b147fc9d1"
+    },
+    "ui/veil/obj-cat.webp": {
+      "bytes": 32616,
+      "sha256": "342a9776f6fc18648de4dbeeb696c8125aed7eee8c11bafd4d5a075feadd33fd"
+    },
+    "ui/veil/obj-crane-a.webp": {
+      "bytes": 28054,
+      "sha256": "4c359784b623f182962d592978908acbff2a33b321a3e6324a64de9d6ce32bb6"
+    },
+    "ui/veil/obj-crane-b.webp": {
+      "bytes": 27670,
+      "sha256": "bfda6456b9681f0e20b9c9a945023e4ade51d84772da3f7748dd0e348a7baaf8"
+    },
+    "ui/veil/obj-gear.webp": {
+      "bytes": 50236,
+      "sha256": "899d8fee6cd8c567403c0e1b67b95934534964b5dccbb5683f7a1501ac690e5d"
+    },
+    "ui/veil/obj-watch.webp": {
+      "bytes": 38486,
+      "sha256": "73a0cfab01e0318a2a1f141db4568ff7de5412d0e67980a41429d5fcec560539"
+    },
+    "ui/veil/shop-bg.webp": {
+      "bytes": 127800,
+      "sha256": "a1b1bb0008737a44657460a12b4a6737847ffcf183dd23c8ba641c39ff6551b5"
+    },
+    "ui/veil/shop-dream.webp": {
+      "bytes": 98168,
+      "sha256": "245f77536a88d4fe263b0da93e1dd60321b1196511277895187490a01625ba5d"
+    },
+    "ui/veil/theater-bg.webp": {
+      "bytes": 109284,
+      "sha256": "3b42dad464ee9e408b0504318992fc0973a8c4bc740b73550796848f6331c9b6"
+    },
+    "ui/veil/theater-curtain.webp": {
+      "bytes": 29318,
+      "sha256": "475e995a19ad41c526437e459360ffa0a52949cd9f6f02da80fe00ebe1571205"
+    },
+    "ui/veil/theater-dream.webp": {
+      "bytes": 170564,
+      "sha256": "9f4d99c9007925d97a04c1da82ba93c1e3e6f6655939e0051ae39f88bffd5b16"
+    },
+    "ui/veil/theater-frame.webp": {
+      "bytes": 96370,
+      "sha256": "dcca8de886ae68c466855233592fa28d78738659539f21fd5404a16544c49306"
     }
   },
   "audioRevision": "rm2k-20261031-writing-original"

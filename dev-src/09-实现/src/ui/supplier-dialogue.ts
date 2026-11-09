@@ -3,6 +3,7 @@ import {Typewriter, graphemes} from './typewriter';
 import type {UIAudioFeedback} from '../audio/types';
 import type {GameView} from '../presentation/battle-cues';
 import {gameDom, setText, type SendGameInput} from './game-dom';
+import {uiAssetUrl, UI_FILES} from './ui-art';
 
 /** Portrait, centred choices and bottom dialogue are separate layers, like a VN.
  * Nodes stay stable across frames: keyboard focus and held touch never get lost. */
@@ -20,6 +21,9 @@ export function mountSupplierDialogue(parent: HTMLElement, send: SendGameInput, 
   root.setAttribute('aria-labelledby', name.id); root.setAttribute('aria-describedby', question.id);
   portrait.alt = '补给员：银灰长发、黑白裙装，黑色笔线溢出画板并完全遮住脸';
   portrait.draggable = false; portrait.hidden = true;
+  // 2026-11-08: the dialogue portrait is the 兔串 redraw, a release file; the renderer's PCK copy is only the fallback.
+  let uiPortrait = false;
+  void uiAssetUrl(UI_FILES.supplier, doc.defaultView ?? undefined).then(url => {if (url) {uiPortrait = true; portrait.src = url; portrait.hidden = false;}});
   for (let i = 0; i < 4; i++) {const corner = el('i', 'rpg-supplier-corner corner-' + i); corner.setAttribute('aria-hidden', 'true'); dialogue.append(corner);}
   dialogue.append(name, question, hint); root.append(portrait, choices, dialogue, close); parent.append(root); root.hidden = true;
   // 0.40 对话：记录在上方滚动，输入框在对话框上沿；她最新一句仍在下方对话框里逐字出现。
@@ -124,6 +128,6 @@ export function mountSupplierDialogue(parent: HTMLElement, send: SendGameInput, 
   }
   return {render, keydown, dispose() {writer.dispose(); logWatch?.disconnect(); parent.classList.remove('is-supplier-talking'); doc.removeEventListener('visibilitychange', visibility);}, setArt(id: string, url: string) {
     if (id !== SUPPLIER_ART_ID) return false;
-    portrait.src = url; portrait.hidden = false; return true;
+    if (!uiPortrait) {portrait.src = url; portrait.hidden = false;} return true;
   }};
 }

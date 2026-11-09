@@ -8,10 +8,8 @@ https://creativecommons.org/licenses/by-nc/4.0/
 
 重要排除：此授权仅覆盖权利由本项目作者持有的原创部分。第三方音乐、少女素材、音效、字体、引擎、库及宿主来源内容分别受其原许可约束，不因本项目许可变为CC BY-NC，也不授予本项目未拥有的权利。本游戏是非商业可修改项目，不声称属于OSI意义的开源软件。
 
-界面夜梦立绘、头像和咖啡馆背景：来自Adirm007提供的读者正则。作者于2026-09-22明确授权任意取用；本项目压缩为WebP并随程序内嵌。图源：
-https://img.baibai.cv/f/yeV2Fj/22-54-15-3016377526.png
-https://img.baibai.cv/f/WrevH4/%E9%BB%98%E8%AE%A4.png
-https://img.baibai.cv/f/56AzHz/cafe_bg.png
+界面美术（书间、加载幕的夜梦与场景、补给员对话立绘、物件与材质）：2026-11 界面重置时用 NovelAI 与 OpenAI 图像生成后加工，压缩为WebP，作为发行文件 ui/ 随游戏交付；加载幕背景沿用 2026-10-20 的选定图，提线剧场的台框与幕布沿用 0.37.4。
+显示字体：思源宋体 Heavy（Adobe，SIL OFL 1.1）与 IM Fell English（Igino Marini，SIL OFL 1.1），按界面固定文字子集化并更名为 Booksea Display / Booksea Latin，许可见 ui/fonts/。
 
 默认行走精灵：用户提供的 chibi_sprite_4dir_fixed.png，经裁剪、抠图与脚底对齐后随运行包使用。不冒称Pipoya素材，不从项目代码许可推导原图版权或授权；处理记录见Player-CREDITS.txt。
 补给员原图由用户于2026-09-23随需求提供，像素精灵由该图辅助生成并处理；用户于2026-09-24确认v3形象并授权随本版本推送仓库；不声称拥有原图或角色版权，不由本项目代码许可授予额外素材版权。详见Supplier-CREDITS.txt。

@@ -18,6 +18,19 @@ async function copyTree(folder){
  }
 }
 for(const folder of ['src','scripts','templates','tests'])await copyTree(folder);
+// 前端重置 8.2: interface art and fonts (binary, copied byte for byte, listed in the snapshot like the sources).
+async function copyBinary(folder){
+ for(const entry of await readdir(new URL(folder+'/',root),{withFileTypes:true})){
+  const name=folder+'/'+entry.name;
+  if(entry.isSymbolicLink())throw Error('Source export does not follow symlinks: '+name);
+  if(entry.isDirectory()){await copyBinary(name);continue;}
+  const bytes=await readFile(new URL(name,root)),target=new URL(name,dest);await mkdir(new URL('./',target),{recursive:true});
+  let old;try{old=await readFile(target);}catch(error){if(error.code!=='ENOENT')throw error;}
+  if(!old?.equals(bytes))await writeFile(target,bytes);
+  files[name]={bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
+ }
+}
+await copyBinary('assets/ui');
 for(const name of ['package.json','package-lock.json','tsconfig.json'])await put(name);
 await put('godot/game.gd',new URL('../../16-Godot可玩区域/godot/game.gd',import.meta.url));
 await put('docs/script-runtime-20261028.md',new URL('../../docs/mcp-script-runtime-20261028.md',import.meta.url));

@@ -104,20 +104,22 @@ test('Runtime serves the current floor pack to the renderer only, cached per qua
  runtime.dispose();assert.equal(api.floorPack(id,'mobile'),null);
 });
 
-test('0.37.4 veil art: layered illustrations, jointed marionette with following strings, opening replays per floor',async()=>{
+// 9.2 (前端重置): the veil art moved out of the bundle into release files (site/ui/veil/*, verified through the
+// resource store), and the theatre became 夜梦's marionette on a control bar. Same intent as the 0.37.4 check:
+// every art file is used, the puppet hangs on strings, and a new floor replays the opening.
+test('9.2 veil art: seven scenes in three families, release-file art, a marionette on strings, opening replays per floor',async()=>{
  const {VEIL_ART}=await import('../src/ui/veil-art');
- const {veilScene}=await import('../src/ui/loading-veil');
- const scenes=Object.fromEntries(VEIL_VARIANTS.map(v=>[v,veilScene(v)]));
- for(const [key,url] of Object.entries(VEIL_ART)){
-  assert.match(url,/^data:image\/webp;base64,/);
-  if(key!=='grain'&&key!=='thea-curtain')assert.ok(Object.values(scenes).some(h=>h.includes(url)),'unused art '+key);
- }
- const doll=scenes.marionette!;
- for(const part of ['legL-thigh','legL-shin','legR-thigh','legR-shin','armL-up','armL-fore','armR-up','armR-fore','torso','head'])assert.ok(doll.includes(VEIL_ART[('doll-'+part) as keyof typeof VEIL_ART]),part);
- for(const joint of ['thL','shL','thR','shR','auL','afL','auR','afR','hd'])assert.match(doll,new RegExp(`class="dj ${joint}"`),joint);
- assert.equal((doll.match(/<i><\/i>/g)??[]).length,5,'five strings: head, two hands, two knees');
- const css=VEIL_CSS;
- for(const [joint,string] of [['auL','sHL'],['auR','sHR'],['thL','sKL'],['thR','sKR'],['hd','sHd']])assert.match(css,new RegExp(`@keyframes th-${string}\\{`),joint);
+ const {veilScene,veilSceneFor,VEIL_SCENES}=await import('../src/ui/loading-veil');
+ assert.deepEqual(Object.values(VEIL_SCENES).flat().sort(),['clock','fairy','ferry','library','night','shop','theater']);
+ const html=new Set<string>();
+ for(const v of VEIL_VARIANTS)for(let i=0;i<120;i++){const k='floor-'+i;assert.ok(VEIL_SCENES[v].includes(veilSceneFor(v,k)));html.add(veilScene(v,k));}
+ const all=[...html].join('');
+ for(const [key,file] of Object.entries(VEIL_ART)){assert.match(file,/^ui\/veil\/[a-z0-9-]+\.webp$/,key);assert.ok(all.includes(file),'unused art '+key);}
+ assert.equal(veilSceneFor('library','x'),veilSceneFor('library','x'));
+ const theater=veilScene('marionette','any');
+ assert.match(theater,/bsv-rig/);assert.equal((theater.match(/class="bsv-string"/g)??[]).length,3,'strings: two hands and the head');
+ assert.ok(theater.includes(VEIL_ART['theater-dream'])&&theater.includes(VEIL_ART['theater-curtain']));
+ assert.match(VEIL_CSS,/@keyframes bsv-sway\{/);assert.match(VEIL_CSS,/@keyframes bsv-turn\{/);
  const page=fakePage(),veil=mount(page),root=page.stage.children[0]!,scene=root.querySelector('.bsv-scene')!;
  veil.update({key:'floor-1',variant:'marionette'});const first=scene.innerHTML;
  scene.innerHTML='(stale)';veil.update({key:'floor-1',variant:'marionette'});assert.equal(scene.innerHTML,'(stale)','same floor: no restart');

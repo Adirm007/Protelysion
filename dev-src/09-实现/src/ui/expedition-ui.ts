@@ -5,11 +5,14 @@ import {mountJoystick, INTERACT_ICON} from './mobile-controls';
 import {mountBattleStage} from './battle-stage';
 import {mountGameViewport} from './game-viewport';
 import {RPG_STYLE} from './rpg-style';
-import {TITLE_ART} from './art-title';
+import {applyUiVars, UI_FILES} from './ui-art';
+import {installBinding} from './binding-kit';
+import {veilVariantForTheme} from './loading-veil';
 import {applyHostAvatar} from './host-avatar';
 import {dexIdForArt} from '../game/bestiary';
 
-const MENU_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M12 6.2C9 4.3 5.6 4.2 3 5.2v13.6c2.6-1 6-.9 9 1 3-1.9 6.4-2 9-1V5.2c-2.6-1-6-.9-9 1Z"/><path d="M12 6.2v13.6M6 9.2c1.4-.3 2.8-.2 4 .4M6 12.6c1.4-.3 2.8-.2 4 .4M14 9.6c1.2-.6 2.6-.7 4-.4"/></svg>';
+// The journal opens from a red ribbon hanging off the top edge of the page.
+const MENU_ICON = '<span aria-hidden="true">手记</span>';
 const FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>';
 const EXIT_FULL_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg>';
 import {gameDom, resourceNumber as number, setText, setAttr, setStyle, type SendGameInput} from './game-dom';
@@ -20,6 +23,7 @@ type TitleView = {mode: string; canContinue: boolean};
 const NEARBY_TIPS: Record<string, string> = {camp: '椅子可以坐'};
 export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, options: {portraits?: Record<string, string>; onResources?: () => void; onMemory?: () => void; onBestiary?: (id?: string) => void; feedback?: UIAudioFeedback} = {}) {
   const doc = stage.ownerDocument, win = doc.defaultView!, {el, button} = gameDom(doc), viewport = mountGameViewport(stage, win);
+  installBinding(doc);
   if (!doc.getElementById('booksea-rpg-style')) {const css = el('style'); css.id = 'booksea-rpg-style'; css.textContent = RPG_STYLE; doc.head.append(css);}
   const ui = el('div', 'rpg-ui'), hud = el('div', 'rpg-hud'), place = el('span', 'rpg-place'), menuButton = button('☰', () => send('pause'), 'rpg-menu-button'), toast = el('div', 'rpg-toast'), nearbyTip = el('div', 'rpg-nearby'), explore = el('div', 'rpg-explore-actions'), pad = el('div', 'rpg-pad'), battle = el('section'), shade = el('div', 'rpg-menu-shade'), panel = el('section', 'rpg-window'), header = el('div', 'rpg-window-header'), title = el('h2'), tabs = el('nav', 'rpg-menu-tabs'), body = el('div', 'rpg-menu-body'), audioRoot = el('div', 'rpg-audio'), footer = el('div', 'rpg-menu-footer');
   menuButton.innerHTML = MENU_ICON; menuButton.setAttribute('aria-label', '打开菜单'); const placeName = el('b', 'rpg-place-name'), placeSub = el('span', 'rpg-place-sub'); place.append(placeName, placeSub); hud.append(place, menuButton);
@@ -29,7 +33,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
   const joystick=mountJoystick(pad,send);
   const close = button('×', () => send('pause'), 'rpg-back'); close.setAttribute('aria-label', '关闭菜单');
   const sub = el('span', 'rpg-window-sub'), side = el('div', 'rpg-menu-side');
-  header.append(title, sub, close); panel.append(header, tabs, body, audioRoot, footer, side); shade.style.setProperty('--rpg-title-art', `url("${TITLE_ART}")`); shade.append(panel); shade.setAttribute('role', 'dialog'); shade.setAttribute('aria-modal', 'true'); shade.setAttribute('aria-label', '远征菜单');
+  header.append(title, sub, close); panel.append(header, tabs, body, audioRoot, footer, side); applyUiVars(shade, {'--rpg-title-art': UI_FILES.lobbyWide}, win); applyUiVars(ui, {'--rpg-specimen': UI_FILES.specimen}, win); shade.append(panel); shade.setAttribute('role', 'dialog'); shade.setAttribute('aria-modal', 'true'); shade.setAttribute('aria-label', '远征菜单');
   // 「?」刷出弹框：无立绘、无发言人；点掉之前谁都不能动。
   const warn = el('div', 'rpg-warning'), warnText = el('p', 'rpg-warning-text'), warnButton = button('……', () => send('dismissWarning'), 'rpg-warning-button');
   const warnBox = el('div', 'rpg-warning-box');
@@ -67,12 +71,13 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
     const oldScroll = body.scrollTop; body.replaceChildren(); footer.replaceChildren(); tabs.replaceChildren();
     audioRoot.hidden = true; close.hidden = !v.paused; tabs.hidden = !v.paused; sub.textContent = ''; side.replaceChildren();
     panel.classList.toggle('is-menu', v.paused); panel.classList.toggle('is-event', !v.paused && v.mode === 'event'); panel.classList.toggle('is-ended', !v.paused && v.mode === 'ended');
+    panel.dataset.outcome = !v.paused && v.mode === 'ended' ? String(v.outcome ?? '') : ''; body.dataset.tab = v.paused ? tab : v.mode;
     if (v.paused) {
       title.textContent = '旅途手记'; sub.textContent = `第 ${v.depth} 层 · ${v.themeName} · ${v.region.name}`;
       for (const [label, value] of [['盲盒', number(v.boxes)], ['素材', number(v.materials ?? 0)], ['待结算 FP', number(v.pendingFp ?? v.fp)]]) {const row = el('div'); row.append(el('span', '', label!), el('b', '', value!)); side.append(row);}
       for (const [id, name] of [['party', '队伍'], ['bag', '行囊'], ['relic', '遗物'], ['battle', '战况'], ['settings', '设置']]) {
         if (id === 'battle' && v.mode !== 'battle') continue;
-        const b = button(name!, () => {tab = id!; menuKey = ''; renderMenu(v);}); b.setAttribute('aria-pressed', String(id === tab)); tabs.append(b);
+        const b = button(name!, () => {tab = id!; menuKey = ''; renderMenu(v);}); b.setAttribute('aria-pressed', String(id === tab)); b.dataset.tab = id!; tabs.append(b);
       }
       // 0.44 敌役图鉴：一个直接打开图鉴面板的页签（面板盖在手记之上，关掉回到原页）。
       if (options.onBestiary) {const dex = button('图鉴', () => options.onBestiary?.(), 'rpg-tab-launch'); dex.setAttribute('aria-label', '打开敌役图鉴'); tabs.append(dex);}
@@ -161,6 +166,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
     const inBattle = v.mode === 'battle';
     setStyle(ui, '--rpg-speed', String(v.settings?.animationSpeed ?? 1));
     if (previousMode !== v.mode) {menuKey = ''; if (inBattle) battleUI.reset(); joystick.stop();}
+    const family = veilVariantForTheme(v.region?.theme, v.region?.id ?? ''); if (ui.dataset.family !== family) ui.dataset.family = family;
     stage.classList.toggle('is-battle', inBattle); battle.hidden = !inBattle; hud.hidden = v.mode === 'supplier' && !v.paused; place.hidden = inBattle; setText(placeName, v.themeName); setText(placeSub, `第 ${v.depth} 层 · ${v.region.name}`);
     const warning = 'warning' in v ? String((v as {warning?: string}).warning ?? '') : '';
     if (warn.hidden === !!warning) {warn.hidden = !warning; if (warning) {warnText.textContent = warning; warnButton.focus({preventScroll: true});}}

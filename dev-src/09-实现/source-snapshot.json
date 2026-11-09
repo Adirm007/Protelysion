@@ -208,20 +208,20 @@
       "sha256": "fd9b9bbae5b7d409693c84579a02779126639a8cab4442019d3d48ece321758c"
     },
     "src/distribution/entry.ts": {
-      "bytes": 10815,
-      "sha256": "5e1f63798b937dd092177dc9b04309182e906c731e0eee340106f27c32f4a5cf"
+      "bytes": 12104,
+      "sha256": "ba00ea888b96e6fd68832b1469249217523fa1c276daf573bdc3e30f2a5d2824"
     },
     "src/distribution/fixed-release.ts": {
       "bytes": 1037,
       "sha256": "8ea340eca87871d112508016a0b1946d3649a7143dee36c1195c1b037f3e8eaf"
     },
     "src/distribution/narrative-panel.ts": {
-      "bytes": 5239,
-      "sha256": "1199f4caf61661b24fd7f201138d69e5b07a7d9007f7e0cb707c8be9a08204e1"
+      "bytes": 7200,
+      "sha256": "e4f6398e5ad653a0509fe9e84844a26f6c999bb89038fb740d55b02d3958134c"
     },
     "src/distribution/resource-cache.ts": {
-      "bytes": 14316,
-      "sha256": "7ad208b09efa2f2e7f1622fb22f27f907f05774e9d6c83ebdb414c6c2c87dc8c"
+      "bytes": 14439,
+      "sha256": "f8e9183be8a19aa9765f922d1859e5b8e8011553591dbbb03688c8c455d13987"
     },
     "src/flow.ts": {
       "bytes": 2229,
@@ -596,8 +596,8 @@
       "sha256": "6ae3b2404520908d757c4b7cbe23985e99285d637369db207e8cfb48b5eb4d16"
     },
     "src/host-game-entry.ts": {
-      "bytes": 16320,
-      "sha256": "e6a0ebf2169702ac68993d367ee9d70284e94d12c99cd34d635748b8e5099ad2"
+      "bytes": 18069,
+      "sha256": "e194667e9d5630807358e5d691e17f8c0a6a78d0f2330e069008cf8dd36e6467"
     },
     "src/main.ts": {
       "bytes": 12452,
@@ -676,24 +676,12 @@
       "sha256": "95e3aaf55b3a8ed8aad4e2102a05d001d7e0fab2be6dd61d05be0c796478a977"
     },
     "src/ui/art-avatar.ts": {
-      "bytes": 11434,
-      "sha256": "f197ee507b6a5f03dee1795af165ed07a937091ff1ee803047f022765ed65e10"
-    },
-    "src/ui/art-background.ts": {
-      "bytes": 56790,
-      "sha256": "87e0969c9d5397ea0eaaf2aef3956c34303d63f25693e5d7ceb9f17a6c9935f3"
-    },
-    "src/ui/art-host.ts": {
-      "bytes": 70547,
-      "sha256": "1c080ff2dedc54937d0e5335f35469f02be35f4f8992e7793fdb4e5d2b3e22bd"
+      "bytes": 10086,
+      "sha256": "b0f45046a7cae34d6d50f233924eac808a3dc26666895559dab843372b0ec5bf"
     },
     "src/ui/art-portrait.ts": {
       "bytes": 123168,
       "sha256": "cb73d82b2f0b6e1a1a7ffb577e5b5884e1373b1a21cbc972ed27e3840c4f4ba4"
-    },
-    "src/ui/art-title.ts": {
-      "bytes": 114504,
-      "sha256": "367bfdc2389a3da8a817772796bdc7ea31f82e25191540f45132115d32afa55e"
     },
     "src/ui/battle-feedback-style.ts": {
       "bytes": 1312,
@@ -708,16 +696,16 @@
       "sha256": "29ab9a499cd441cc30cc5ddf419bbb8c63196fdce972e98ca27a6d2e6e515bae"
     },
     "src/ui/bestiary-panel.ts": {
-      "bytes": 27262,
-      "sha256": "a7ed3f1b7cb628a9011f769caf29ad6a5460dc5686345536f2cb662b7484a635"
+      "bytes": 28800,
+      "sha256": "67e3b40493e5439521c23ef484dae250c884bf566dd2daf271831490ca8b6612"
     },
     "src/ui/character-sheet.ts": {
       "bytes": 6299,
       "sha256": "05bede66bdd8ecfd60723c0caff2a7f8c37aa1dc33cf697407cb9dbb9ecc67ad"
     },
     "src/ui/expedition-ui.ts": {
-      "bytes": 26627,
-      "sha256": "a6e031109388f34131618cfe32ee6d789ab42fb521c30c70b36b3f07c38d97cc"
+      "bytes": 26904,
+      "sha256": "3e176f5a852d50c46fe719127b013be24edb076f6aba2d0ed0e7d194ac1fc9f9"
     },
     "src/ui/game-dom.ts": {
       "bytes": 1487,
@@ -732,48 +720,44 @@
       "sha256": "4457356155383f23d13c66efa9304be6fa4bb494a8c7217dcf2125f5acc0dc80"
     },
     "src/ui/loading-veil.ts": {
-      "bytes": 41973,
-      "sha256": "938c26adedfa493710ba00a668cd9bbecbec18c72b067661432ce0b88f6a41d7"
+      "bytes": 21891,
+      "sha256": "6926d5d11ec76f27237e631887d26d16fddb9848802ca4d4d7c914ba18e75729"
     },
     "src/ui/mobile-controls.ts": {
       "bytes": 2512,
       "sha256": "ff4f4447b69c7720d56c1112730bbac7ff5d373f866213dbc6d03c12387e2067"
     },
-    "src/ui/octo-kit.ts": {
-      "bytes": 2848,
-      "sha256": "2333352e872630ca6a83b6a66a12b8249fb878d029cae4003f0e9255da961f90"
-    },
     "src/ui/rpg-style.ts": {
-      "bytes": 52493,
-      "sha256": "bb0c72b5e19d7460e30d8087b942b3918b9aa3ecd627504c01bc79daffd12ee7"
+      "bytes": 61662,
+      "sha256": "8fc55859f11bf33020003466be5a8bb429b00c538bf6096940d2fca42ef2963b"
     },
     "src/ui/supplier-dialogue.ts": {
-      "bytes": 10067,
-      "sha256": "3a82001c3707d95ca08d8a15e537bd7dc3f555c204a966d7fabf49d2d2aa9388"
+      "bytes": 10440,
+      "sha256": "83d45f8de4c7fc5448fb4cd2438071c3d3e2445519df5087ba4450034d64d6ee"
     },
     "src/ui/supplier-memory-panel.ts": {
-      "bytes": 24699,
-      "sha256": "97c2e07cb004836243102b928284192b3260dcd8937643fc0f01504a835ac03e"
+      "bytes": 25784,
+      "sha256": "5b00cae4aa2e028e15dfadb912d91c610b5dbd71fb256bdf40e2f43e6862ce5c"
     },
     "src/ui/supplier-style.ts": {
-      "bytes": 9288,
-      "sha256": "30bfd31b630ebd6177de09424b137e5f95e5c110ee1f5ead20a4839faa19509e"
+      "bytes": 13491,
+      "sha256": "e446a6fe59a9d28bb7e94d1473b111d9e8252e65ee2fcad277217d5c1f26d791"
     },
     "src/ui/target-arrow.ts": {
       "bytes": 2310,
       "sha256": "90d40f57a3787dca78ae735d10a6a20d9c5c6895db04f8316ef7f6fb5872dcc9"
     },
     "src/ui/theme.ts": {
-      "bytes": 38419,
-      "sha256": "5c5404c6b4b0a904e3d97ff0f29b96efabec706ac27917e87429e8fd208d6bd5"
+      "bytes": 34060,
+      "sha256": "2fd58544ef214e0f7294d623677005d6e681af4217f7e1abe21818df3984ae2e"
     },
     "src/ui/typewriter.ts": {
       "bytes": 2442,
       "sha256": "a0a480d611ef64b2d72db4b88a1dbc3ccf25f896d5c13531a1a598304e19301f"
     },
     "src/ui/veil-art.ts": {
-      "bytes": 990934,
-      "sha256": "4cb28a5b867d04b131586fae9221614788f9a5573de7048a10dc8e5ef60efeb5"
+      "bytes": 1537,
+      "sha256": "6a7a5a1ee2c78c0a3c7e67ce134a6354ecd0564e517d311162febcf494c8d6a4"
     },
     "scripts/audit-combat-capability.ts": {
       "bytes": 2544,
@@ -820,8 +804,8 @@
       "sha256": "190fec2f4d0dcebc04fe9a9b80e475f5016c4c4853651cef6c86849d87b834e1"
     },
     "scripts/build-public.mjs": {
-      "bytes": 64709,
-      "sha256": "3dd8183ff7187ae01e8e22bbab0bc3a46afc3460ba908fedbe5ac39d1e3dcd2a"
+      "bytes": 66742,
+      "sha256": "d1210f92e991cf725b429e98ec2c5aa055cfda891c85817651f4f0dda46bd3df"
     },
     "scripts/build.mjs": {
       "bytes": 1927,
@@ -884,8 +868,8 @@
       "sha256": "12fd7ea704b68c4d1684ba3b65d3c6661de460da3c26d60098a07b45b4f0e231"
     },
     "scripts/sync-dev-source.mjs": {
-      "bytes": 1931,
-      "sha256": "e29f7c6d9a9b52fb9b023724520379623f248ed4e8aa8140b465a392894fab73"
+      "bytes": 2758,
+      "sha256": "f68015a683b050f8a728696734480cd3096a73e7597224e14ca6f191842686c4"
     },
     "scripts/verify-audio-feedback-browser.mjs": {
       "bytes": 16578,
@@ -1132,8 +1116,8 @@
       "sha256": "b1d7064ca3f8c0aae59702bb104c815468601444258a3c9f71f637d32bbc1c7c"
     },
     "tests/loading-veil-p5.test.ts": {
-      "bytes": 9366,
-      "sha256": "776f051fbc69e7fb804ad7263abee4076936c1db2bf6538a1c532cdfb14df1be"
+      "bytes": 9706,
+      "sha256": "4c32b566de47e72740c4b5c0918d2b5198a3031238a4c0d60d867cc28eaae7e3"
     },
     "tests/loop-closure-0210.test.ts": {
       "bytes": 37372,
@@ -1357,11 +1341,11 @@
     },
     "package.json": {
       "bytes": 1038,
-      "sha256": "6faf9a2dc555f4974c3886287f5c9b77ad4f4ee76d259f8e67978a2d0a39af72"
+      "sha256": "ca432301290284882459df7582d8f05c9305b07c88ed5e517287236e48697b5c"
     },
     "package-lock.json": {
       "bytes": 17865,
-      "sha256": "cd814ab12d2dd1baaf808a1d93dca1ca1afc74cf73145dd7a2d240c488d06bcb"
+      "sha256": "fabd233e24375ae6833d3e1bda0c95cdb69abeb02799dac49d57244325828738"
     },
     "tsconfig.json": {
       "bytes": 277,
@@ -1374,6 +1358,174 @@
     "docs/script-runtime-20261028.md": {
       "bytes": 7890,
       "sha256": "de9241193d0a03633b14bfd42709bf89d071cc73e28ba9ee676266e56c72010d"
+    },
+    "src/ui/art-binding.ts": {
+      "bytes": 222988,
+      "sha256": "a566b0bd221a0844f5e49cf0b26c6239daf5c80c63c3e1bf1b5e5a14ee71c0e0"
+    },
+    "src/ui/binding-kit.ts": {
+      "bytes": 10871,
+      "sha256": "494b871f1e107f35b1725dd42f762a3e3f5dcd75cda861c0f170ce1cacd2be24"
+    },
+    "src/ui/ui-art.ts": {
+      "bytes": 6274,
+      "sha256": "59d0eb2db824ac6172bdc5f53be5782d1cafc6fb2417ba98a2d008bd59370309"
+    },
+    "assets/ui/fonts/OFL-booksea-display.txt": {
+      "bytes": 4587,
+      "sha256": "6836e043746759975afcf33f0655692d4063a1ec4fb8dc375f3b5f80f580b080"
+    },
+    "assets/ui/fonts/OFL-booksea-latin.txt": {
+      "bytes": 4430,
+      "sha256": "7441302ea13698eb5a709557dc820c87acfb09e87ccbb82df929835c46b0bed1"
+    },
+    "assets/ui/fonts/booksea-display.woff2": {
+      "bytes": 264044,
+      "sha256": "64c8e6cda0b9ec94bbc245e77f41513cdefc83128c65af67553d3120d4cded5b"
+    },
+    "assets/ui/fonts/booksea-latin-italic.woff2": {
+      "bytes": 39672,
+      "sha256": "809d3545add9e783bf406f29157eaff56fdab1b3b07e871a8dd34fa349c0cba6"
+    },
+    "assets/ui/fonts/booksea-latin.woff2": {
+      "bytes": 41336,
+      "sha256": "d5514cb61f412cc46a868286d9a6c48577aba1f045da4e13d8324349489b02b5"
+    },
+    "assets/ui/lobby-tall.webp": {
+      "bytes": 174754,
+      "sha256": "c730caf3f21430b054b800e3f0b4af0f060532b79872478de4e81730adec976c"
+    },
+    "assets/ui/lobby-wide.webp": {
+      "bytes": 169630,
+      "sha256": "03983a191a55ee7fc7827835f3c2345834c12e095540c77db3b59d4566c92ebb"
+    },
+    "assets/ui/obj-envelope.webp": {
+      "bytes": 11666,
+      "sha256": "d7bec9d2fa7159ccae0a0e0064043f57844ac051fc98ca64a52dc1242795767c"
+    },
+    "assets/ui/obj-quill.webp": {
+      "bytes": 10016,
+      "sha256": "8a0827579345d4529e1b1f76f59e72fdcae729ec119e5b6787df404f62ff5c02"
+    },
+    "assets/ui/obj-specimen.webp": {
+      "bytes": 14314,
+      "sha256": "6713a4a33a76ca2ccec6dbd6d25478796ae66da2e8eb8a190c402eb38c45b63a"
+    },
+    "assets/ui/supplier-portrait.webp": {
+      "bytes": 104824,
+      "sha256": "a152f9bffdc45ccd4a73d8aac67ef079e0ec971e5ae51d763e2524a8c445ee61"
+    },
+    "assets/ui/tex-cloth.webp": {
+      "bytes": 33382,
+      "sha256": "02fc977b27ebfa6be8919dddcee0f2a61e00a44160c482c245440b8d6f9c511d"
+    },
+    "assets/ui/tex-marble-fairy.webp": {
+      "bytes": 89648,
+      "sha256": "9e8bf4100e0934bf4d414f59dd9db7534986b35bbeb4a200d8818303798e16ed"
+    },
+    "assets/ui/tex-marble-theater.webp": {
+      "bytes": 51390,
+      "sha256": "905f49dce19f855fd9403484001e99432385388f64580d8eb9585e4bd74c80a5"
+    },
+    "assets/ui/tex-velvet.webp": {
+      "bytes": 3116,
+      "sha256": "28878bc87b0481f171af1287268db8e6330b86209d19e1ef6c4ef7d6ce4b272c"
+    },
+    "assets/ui/veil/clock-bg.webp": {
+      "bytes": 152632,
+      "sha256": "4078c1ca156f099e0daf42b61f3e4ba73e93325d9e70e574472f0b62515a2abc"
+    },
+    "assets/ui/veil/clock-dream.webp": {
+      "bytes": 112276,
+      "sha256": "636c051552f2533baee4517d484fbee1388f91d806462a85ece66c3095374b86"
+    },
+    "assets/ui/veil/fairy-bg.webp": {
+      "bytes": 161726,
+      "sha256": "6abe30ef01c76171a37cb7471eab9e0119f014b0aa3df2f0a1ec0ba94c5b184a"
+    },
+    "assets/ui/veil/fairy-dream.webp": {
+      "bytes": 127338,
+      "sha256": "62445bdf953351d7c63fcfe1d481cfbfb81e0c951c260bd5f063be7c18f3fe16"
+    },
+    "assets/ui/veil/ferry-bg.webp": {
+      "bytes": 116416,
+      "sha256": "b745ae3c5697651d0ff0ef321e46f08a3f7154cd31cae52345f21effe8fb24cd"
+    },
+    "assets/ui/veil/ferry-dream.webp": {
+      "bytes": 107906,
+      "sha256": "8d43062a1eeb058ab11ab803f3795c2097c97b9a552bed72b17fc7aab2e044eb"
+    },
+    "assets/ui/veil/library-bg.webp": {
+      "bytes": 174358,
+      "sha256": "802b0fd15b4d5a3ef5e799ff1d1db6d19296c8c07df65201e514a4d10e5a7f76"
+    },
+    "assets/ui/veil/library-dream.webp": {
+      "bytes": 131174,
+      "sha256": "f0d1ef687b38125eed098ac37be0217cf7bb7c166e9220edaab2d41953728e2f"
+    },
+    "assets/ui/veil/night-bg.webp": {
+      "bytes": 149668,
+      "sha256": "a1b9624e89e665998c43fca652fc36d269f232b2b95cc195cec00f4ca8afa513"
+    },
+    "assets/ui/veil/night-dream.webp": {
+      "bytes": 83134,
+      "sha256": "3f94afe784176e623e9a4f52c360e8c59b2dc42aa51ffb8bf1d16cc5542a15f6"
+    },
+    "assets/ui/veil/obj-book-a.webp": {
+      "bytes": 39436,
+      "sha256": "c5d307ba7a749325a0cbe0909e1a79379a75d10bf576b37684a8e36b6c86a420"
+    },
+    "assets/ui/veil/obj-book-b.webp": {
+      "bytes": 41802,
+      "sha256": "4cd1d2f5040f9f0b0e32b67b2de71004c95ecb897cf5926c4bf43710a62178b7"
+    },
+    "assets/ui/veil/obj-cards.webp": {
+      "bytes": 26962,
+      "sha256": "f5b524ed512b231716f6a2f10a2105313f36406e8e8c5821987ad35b147fc9d1"
+    },
+    "assets/ui/veil/obj-cat.webp": {
+      "bytes": 32616,
+      "sha256": "342a9776f6fc18648de4dbeeb696c8125aed7eee8c11bafd4d5a075feadd33fd"
+    },
+    "assets/ui/veil/obj-crane-a.webp": {
+      "bytes": 28054,
+      "sha256": "4c359784b623f182962d592978908acbff2a33b321a3e6324a64de9d6ce32bb6"
+    },
+    "assets/ui/veil/obj-crane-b.webp": {
+      "bytes": 27670,
+      "sha256": "bfda6456b9681f0e20b9c9a945023e4ade51d84772da3f7748dd0e348a7baaf8"
+    },
+    "assets/ui/veil/obj-gear.webp": {
+      "bytes": 50236,
+      "sha256": "899d8fee6cd8c567403c0e1b67b95934534964b5dccbb5683f7a1501ac690e5d"
+    },
+    "assets/ui/veil/obj-watch.webp": {
+      "bytes": 38486,
+      "sha256": "73a0cfab01e0318a2a1f141db4568ff7de5412d0e67980a41429d5fcec560539"
+    },
+    "assets/ui/veil/shop-bg.webp": {
+      "bytes": 127800,
+      "sha256": "a1b1bb0008737a44657460a12b4a6737847ffcf183dd23c8ba641c39ff6551b5"
+    },
+    "assets/ui/veil/shop-dream.webp": {
+      "bytes": 98168,
+      "sha256": "245f77536a88d4fe263b0da93e1dd60321b1196511277895187490a01625ba5d"
+    },
+    "assets/ui/veil/theater-bg.webp": {
+      "bytes": 109284,
+      "sha256": "3b42dad464ee9e408b0504318992fc0973a8c4bc740b73550796848f6331c9b6"
+    },
+    "assets/ui/veil/theater-curtain.webp": {
+      "bytes": 29318,
+      "sha256": "475e995a19ad41c526437e459360ffa0a52949cd9f6f02da80fe00ebe1571205"
+    },
+    "assets/ui/veil/theater-dream.webp": {
+      "bytes": 170564,
+      "sha256": "9f4d99c9007925d97a04c1da82ba93c1e3e6f6655939e0051ae39f88bffd5b16"
+    },
+    "assets/ui/veil/theater-frame.webp": {
+      "bytes": 96370,
+      "sha256": "dcca8de886ae68c466855233592fa28d78738659539f21fd5404a16544c49306"
     }
   }
 }

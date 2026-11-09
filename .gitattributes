@@ -6,3 +6,5 @@ game.pck.gz.* binary
 site/distribution.js text eol=lf
 site/release-manifest.json text eol=lf
 install/protelysion-fixed.regex.json -text
+*.webp binary
+*.woff2 binary
