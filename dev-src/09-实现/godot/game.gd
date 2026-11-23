@@ -182,6 +182,9 @@ func _process(delta: float) -> void:
 		var atlas: AtlasTexture=avatars[i].texture
 		var frame: int=int(art_time*8)%4 if map_scene.moving and not state.paused else 0
 		atlas.region=Rect2(frame*192,int(map_scene.facing)*304,192,304)
+	# Exploration movement is owned by the unified JS direction-stack controller (explore-keyboard.ts)
+	# so canvas focus loss after battle or modal popups can never drop or stick movement keys.
+	if OS.has_feature("web"):return
 	walk_timer-=delta
 	if state.mode!="explore" or state.paused:return
 	if walk_timer<=0:

@@ -1,7 +1,7 @@
 {
   "repository": "Adirm007/reader",
-  "version": "2026.10.29.1",
-  "manifestSha256": "1f3dfccd392b46c82a47c44aa4ff0ca9b7009911dde1fef42bc90c199a4aa1bd",
+  "version": "2026.11.22.3",
+  "manifestSha256": "0d4213827ca95743635d408f1b197535c69d34ed7b1647ddc6fdeaed0a21a956",
   "regex": {
     "path": "regex/读者对话渲染-外链版.json",
     "bytes": 6315,

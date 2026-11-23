@@ -2,6 +2,7 @@ import {mountSupplierDialogue} from './supplier-dialogue';
 import type {UIAudioFeedback} from '../audio/types';
 import {rewardLabel,rewardDetail} from '../core/settlement';
 import {mountJoystick, INTERACT_ICON} from './mobile-controls';
+import {mountExploreKeyboard} from './explore-keyboard';
 import {mountBattleStage} from './battle-stage';
 import {mountGameViewport} from './game-viewport';
 import {RPG_STYLE} from './rpg-style';
@@ -35,7 +36,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
   const sub = el('span', 'rpg-window-sub'), side = el('div', 'rpg-menu-side');
   header.append(title, sub, close); panel.append(header, tabs, body, audioRoot, footer, side); applyUiVars(shade, {'--rpg-title-art': UI_FILES.lobbyWide}, win); applyUiVars(ui, {'--rpg-specimen': UI_FILES.specimen}, win); shade.append(panel); shade.setAttribute('role', 'dialog'); shade.setAttribute('aria-modal', 'true'); shade.setAttribute('aria-label', '远征菜单');
   // 「?」刷出弹框：无立绘、无发言人；点掉之前谁都不能动。
-  const warn = el('div', 'rpg-warning'), warnText = el('p', 'rpg-warning-text'), warnButton = button('……', () => send('dismissWarning'), 'rpg-warning-button');
+  const warn = el('div', 'rpg-warning'), warnText = el('p', 'rpg-warning-text'), warnButton = button('……', () => {warnButton.blur(); send('dismissWarning');}, 'rpg-warning-button');
   const warnBox = el('div', 'rpg-warning-box');
   warnBox.append(warnText, warnButton); warn.append(warnBox); warn.setAttribute('role', 'alertdialog'); warn.setAttribute('aria-modal', 'true'); warn.addEventListener('click', e => {if (e.target === warn) send('dismissWarning');});
   // 全屏：探索/战斗/对话时在右上角书本图标正下方；打开任何面板时出现在面板关闭键旁。两处永远只显示一处。
@@ -53,6 +54,8 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
   ui.append(battle, hud, explore, pad, toast, nearbyTip, shade, warn, leave, fullFloat); nearbyTip.hidden = true; nearbyTip.setAttribute('aria-live', 'polite'); stage.append(ui); warn.hidden = true;
   battle.hidden = shade.hidden = hud.hidden = explore.hidden = pad.hidden = toast.hidden = true;
   let current: GameView | TitleView | undefined, tab = 'party', menuKey = '', unitId = '', previousMode = '', notice = '', noticeUntil = 0;
+  const isExploreInteractive = () => !!current && 'party' in current && current.mode === 'explore' && !current.paused && warn.hidden && leave.hidden && shade.hidden;
+  const exploreKeys = mountExploreKeyboard(stage, send, isExploreInteractive);
   const supplierUI = mountSupplierDialogue(ui, send, options.feedback);
   const battleUI = mountBattleStage(battle, send, options.portraits ?? {}, id => {unitId = id; tab = 'battle'; menuKey = ''; if (current && 'paused' in current && !current.paused) send('pause');}, options.feedback);
   const confirm = (text: string, fn: () => void) => {const b = button(text, () => {if (b.dataset.confirm === 'yes') fn(); else {b.dataset.confirm = 'yes'; b.textContent = '确认' + text;}}); return b;};
@@ -157,7 +160,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
     if (!('party' in v)) {
       supplierUI.render(null);
       fullFloat.hidden = false; fullInline.hidden = true; leave.hidden = true; syncFull();
-      joystick.setEnabled(false); battle.hidden = hud.hidden = explore.hidden = pad.hidden = toast.hidden = true; shade.hidden = false;
+      joystick.setEnabled(false); exploreKeys.sync(false); battle.hidden = hud.hidden = explore.hidden = pad.hidden = toast.hidden = true; shade.hidden = false;
       if (previousMode !== 'title') {menuKey = ''; panel.classList.remove('is-menu', 'is-event', 'is-ended'); panel.classList.add('rpg-title'); shade.classList.add('is-title'); side.replaceChildren(); title.textContent = '普罗泰利西翁'; sub.textContent = 'PROTELYSION'; close.hidden = tabs.hidden = audioRoot.hidden = true; body.replaceChildren(el('p', '', '万千书页，等你启程。')); footer.replaceChildren(); if (v.canContinue) footer.append(button('继续旅程', () => send('continue'))); footer.append(button('开始旅程', () => send('new')), el('span', 'rpg-title-mark', 'ADIRM007 · 书海迷宫'));}
       previousMode = 'title'; return;
     }
@@ -185,6 +188,7 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
     if (nearbyTip.textContent !== tip) nearbyTip.textContent = tip;
     nearbyTip.hidden = !tip;
     if (v.paused) joystick.stop();
+    exploreKeys.sync(v.mode === 'explore' && !v.paused && !warning && !v.exitAsk && shade.hidden && warn.hidden && leave.hidden);
     previousMode = v.mode;
   }
   function keydown(e: KeyboardEvent) {
@@ -193,6 +197,18 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
     if (target?.matches('input,textarea,select') || target?.closest('[data-booksea-overlay]')) return;
     // This listener is scoped to this game's document and never captures another host frame.
     if (target && target !== doc.body && !stage.contains(target)) return;
+    if (!warn.hidden) {
+      if (['Enter', 'Space', 'KeyE', 'Escape'].includes(e.code)) {
+        e.preventDefault(); e.stopImmediatePropagation();
+        if (!e.repeat) {warnButton.blur(); send('dismissWarning');}
+      }
+      return;
+    }
+    if (!leave.hidden && e.code === 'Escape') {
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!e.repeat) send('exitAnswer', {yes: false});
+      return;
+    }
     if (supplierUI.keydown(e)) return;
     if ('party' in current && current.mode==='battle' && !current.paused && ['Enter','Space','KeyE'].includes(e.code)) {
       e.preventDefault();e.stopImmediatePropagation();if(e.repeat)return;
@@ -222,5 +238,5 @@ export function mountExpeditionUI(stage: HTMLElement, send: SendGameInput, optio
   const fullscreenChanged = () => {syncFull(); menuKey = ''; if(current && 'party' in current && current.paused)renderMenu(current);};
   doc.addEventListener('fullscreenchange', fullscreenChanged);
   doc.addEventListener('keydown', keydown, true);
-  return {render, audioRoot, setArt(id: string, url: string) {if (!supplierUI.setArt(id, url)) battleUI.setArt(id, url);}, playCue(cue: BattleCue, v: GameView) {render(v, true); battleUI.cue(cue, v);}, dispose() {supplierUI.dispose();joystick.dispose();battleUI.dispose(); doc.removeEventListener('fullscreenchange', fullscreenChanged); doc.removeEventListener('keydown', keydown, true); viewport.dispose(); ui.remove();}};
+  return {render, audioRoot, setArt(id: string, url: string) {if (!supplierUI.setArt(id, url)) battleUI.setArt(id, url);}, playCue(cue: BattleCue, v: GameView) {render(v, true); battleUI.cue(cue, v);}, dispose() {exploreKeys.dispose(); supplierUI.dispose();joystick.dispose();battleUI.dispose(); doc.removeEventListener('fullscreenchange', fullscreenChanged); doc.removeEventListener('keydown', keydown, true); viewport.dispose(); ui.remove();}};
 }

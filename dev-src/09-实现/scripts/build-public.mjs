@@ -12,7 +12,7 @@ const project=fileURLToPath(new URL('../../',import.meta.url));
 const root=path.join(project,'22-发布'),repo=path.join(root,'booksea-github'),site=path.join(repo,'site'),imports=path.join(root,'本地导入');
 const play=path.join(project,'16-Godot可玩区域/web'),host=path.join(project,'17-宿主可玩联调/web');
 const base=process.argv.find(a=>a.startsWith('--base='))?.slice(7)??'https://adirm007.github.io/Protelysion/';
-const revision='protelysion-0.47.0-20261108-ui-reset';
+const revision='protelysion-0.47.1-20261124-explore-keyboard';
 const [readerCore,readerInstall]=await Promise.all([currentReaderCore(),currentReaderInstall(path.resolve(project,'../reader'))]);
 const sha=data=>createHash('sha256').update(data).digest('hex');
 const manifest=JSON.parse(await readFile(path.join(project,'16-Godot可玩区域/verification/web-manifest.json'),'utf8'));
@@ -102,7 +102,7 @@ jobs:
 await writeFile(path.join(repo,'.gitignore'),'site/game.pck\nsite/game.wasm\n*.tmp\n.DS_Store\nartifacts/\n__pycache__/\n');await writeFile(path.join(repo,'.gitattributes'),'game.pck.gz.* binary\n*.wasm binary\n*.ogg binary\n*.mp3 binary\n*.wav binary\nsite/distribution.js text eol=lf\nsite/release-manifest.json text eol=lf\n*.webp binary\n*.woff2 binary\ninstall/protelysion-fixed.regex.json -text\n');
 const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 
-**版本：0.47.0 · 2026-11-08 界面重置：装订迷宫**
+**版本：0.47.1 · 2026-11-24 探索键盘控制与焦点修复**
 
 原作：**Adirm007**。48主题、432种常规怪物＋1种通用宝箱怪（共433种）、3031份七生命层级模板；随机地图、场景、少女行走图、怪物立绘、BGM与音效均已接入运行包。
 
@@ -126,6 +126,12 @@ const instructions=`# 普罗泰利西翁（Protelysion）·《书海》迷宫
 2. 用 \`读者核心本体 (new).txt\` 替换现有读者世界书条目内容，保留条目设置并启用；核心已包含书海交接，不再同时启用旧独立交接条目。
 3. 导入 \`普罗泰利西翁-书海外链加载正则.json\`，匹配书海标签的游戏正则只启用一份。
 4. 在旧读者大厅点击书海入口，或发送含“进入普罗泰利西翁”的过渡剧情；可带前后文字、引号和换行。正文模式与离场继续使用配套世界书交接。
+
+## 0.47.1 探索键盘控制与焦点修复
+
+- 统一由文档级方向键栈（WASD / 方向键）接管迷宫探索移动，战斗、事件、菜单、补给员或警告弹框关闭后自动恢复画布焦点，无需再点击地图即可直接键盘移动。
+- 修复「?」追击警告弹框打断移动时的卡键与转向延迟问题：进入非探索状态立即清空按住方向与定时器，支持键盘确认警告（Enter/Space/E/Esc）与取消离场询问（Esc）；返回探索重置步进冷却，按最后按下优先（LIFO）即时转向。
+- Web 端 Godot 场景与运行时桥接不再重复消费探索移动键，避免双倍输入或焦点丢失。
 
 ## 0.47.0 界面重置：装订迷宫
 

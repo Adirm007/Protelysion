@@ -101,7 +101,10 @@ export function mountExpeditionRuntime(options:{storageKey:string;uiRoot?:HTMLEl
  }
  function input(raw:string|{type:string;payload?:Record<string,unknown>}){
   if(!visible||handoff||!validSession())return;
-  const {type,payload:p={}}=typeof raw==='string'?JSON.parse(raw):raw;
+  const fromBridge=typeof raw==='string';
+  const {type,payload:p={}}=fromBridge?JSON.parse(raw):raw;
+  // When HTML UI is mounted it owns keyboard/joystick exploration movement, so ignore duplicate Godot canvas moves.
+  if(fromBridge&&ui&&type==='move')return;
   if ((type==='target'||type==='confirmTargets') && !state?.selected) return;
   if(heldFrame&&!['pause','settings','handoff'].includes(type))return;
   if(type==='settings'&&isQuality(p.graphicsQuality)){

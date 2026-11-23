@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
 import {Typewriter, graphemes} from '../src/ui/typewriter';
 import {EffectSequence} from '../src/audio/effect-sequence';
 import {actionStyle, actionEffects, battleAudioPlan, styleCues} from '../src/audio/battle-feedback';
@@ -98,12 +99,21 @@ test('cancelled actions do not make up a successful strike',()=>{
   const {before,after}=resolved();Object.values(before.commands)[0]!.cancelled=true;
   const p=battleAudioPlan(before,after)!;assert.deepEqual(p.events.map(e=>e.cue),['cast.fail']);
 });
-test('every new gameplay sound family resolves to shipped licensed samples; UI move and confirm differ',()=>{
+test('every gameplay sound family resolves to shipped RM2K samples; UI move and confirm differ',()=>{
   const manifest=JSON.parse(readFileSync(new URL('../../21-音频制作/assets/audio-manifest.json',import.meta.url),'utf8')) as AudioManifest;
   for(const style of ['slash','pierce','heavy','fire','ice','lightning','water','wind','earth','light','dark','energy','mental','paper','machine','beast','stone','wood','glass','slime','spirit','insect','heal','guard','status','buff','debuff','summon'] as const)for(const cue of styleCues(style)){assert.ok(manifest.cues[cue],cue);for(const sample of manifest.cues[cue]!.variants)assert.ok(manifest.sfx[sample],sample);}
   for(const cue of ['ui.move','ui.confirm','dialogue.write','miss','guard.block','enemy.intent','party.hurt','cast.channel','cast.fail'])assert.ok(manifest.cues[cue],cue);
   assert.ok(manifest.cues['ui.move']!.variants.every(v=>!manifest.cues['ui.confirm']!.variants.includes(v)));
-  assert.ok(Object.keys(manifest.sfx).filter(k=>k.startsWith('a2-')).length>=40);
+  for(const [id,asset] of Object.entries(manifest.sfx)) {
+    assert.ok(id.startsWith('rm2k-') || id==='a2-paper-writing',id);
+    const relative=asset.files.wav!;
+    const data=readFileSync(new URL('../../21-音频制作/assets/'+relative,import.meta.url));
+    assert.equal(data.toString('ascii',0,4),'RIFF',relative);
+    const record=asset as typeof asset & {sha256:Record<string,string>;bytes:Record<string,number>};
+    assert.equal(data.length,record.bytes[relative],relative);
+    assert.equal(createHash('sha256').update(data).digest('hex'),record.sha256[relative],relative);
+  }
+  assert.deepEqual(manifest.cues['dialogue.write'],{variants:['a2-paper-writing'],gainDb:-5,cooldownMs:0,pitchVariation:0});
 });
 
 test('visible battle feedback labels enemy actions, actual crits, misses and blocks',()=>{

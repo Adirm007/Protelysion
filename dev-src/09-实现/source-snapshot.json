@@ -492,8 +492,8 @@
       "sha256": "1bc83553ecbf1ab27b2e41071e7d7e937eee3b2256290a6c2ef3c4389f4b78c8"
     },
     "src/game/runtime.ts": {
-      "bytes": 19663,
-      "sha256": "1776fe1e86b98f89f621ad8dad399793a76848d90fc2ce01fe65b10422180351"
+      "bytes": 19854,
+      "sha256": "3195b83e049f3ff715fb072d2b1d39c9ee742bb0df2695ff71f42461e5536c8a"
     },
     "src/game/supplier-agent.ts": {
       "bytes": 28252,
@@ -679,6 +679,10 @@
       "bytes": 10086,
       "sha256": "b0f45046a7cae34d6d50f233924eac808a3dc26666895559dab843372b0ec5bf"
     },
+    "src/ui/art-binding.ts": {
+      "bytes": 222988,
+      "sha256": "a566b0bd221a0844f5e49cf0b26c6239daf5c80c63c3e1bf1b5e5a14ee71c0e0"
+    },
     "src/ui/art-portrait.ts": {
       "bytes": 123168,
       "sha256": "cb73d82b2f0b6e1a1a7ffb577e5b5884e1373b1a21cbc972ed27e3840c4f4ba4"
@@ -699,13 +703,21 @@
       "bytes": 28800,
       "sha256": "67e3b40493e5439521c23ef484dae250c884bf566dd2daf271831490ca8b6612"
     },
+    "src/ui/binding-kit.ts": {
+      "bytes": 10871,
+      "sha256": "494b871f1e107f35b1725dd42f762a3e3f5dcd75cda861c0f170ce1cacd2be24"
+    },
     "src/ui/character-sheet.ts": {
       "bytes": 6299,
       "sha256": "05bede66bdd8ecfd60723c0caff2a7f8c37aa1dc33cf697407cb9dbb9ecc67ad"
     },
     "src/ui/expedition-ui.ts": {
-      "bytes": 26904,
-      "sha256": "3e176f5a852d50c46fe719127b013be24edb076f6aba2d0ed0e7d194ac1fc9f9"
+      "bytes": 27830,
+      "sha256": "11a12e90617669fdc0e689491673364b56f8ddee5fbf8a5d3f9067834521014d"
+    },
+    "src/ui/explore-keyboard.ts": {
+      "bytes": 5655,
+      "sha256": "a80d764d9cd954a435d5f16f8ec6930f8d48efeb0913cc70f04f1e413878415e"
     },
     "src/ui/game-dom.ts": {
       "bytes": 1487,
@@ -754,6 +766,10 @@
     "src/ui/typewriter.ts": {
       "bytes": 2442,
       "sha256": "a0a480d611ef64b2d72db4b88a1dbc3ccf25f896d5c13531a1a598304e19301f"
+    },
+    "src/ui/ui-art.ts": {
+      "bytes": 6274,
+      "sha256": "59d0eb2db824ac6172bdc5f53be5782d1cafc6fb2417ba98a2d008bd59370309"
     },
     "src/ui/veil-art.ts": {
       "bytes": 1537,
@@ -804,8 +820,8 @@
       "sha256": "190fec2f4d0dcebc04fe9a9b80e475f5016c4c4853651cef6c86849d87b834e1"
     },
     "scripts/build-public.mjs": {
-      "bytes": 66742,
-      "sha256": "d1210f92e991cf725b429e98ec2c5aa055cfda891c85817651f4f0dda46bd3df"
+      "bytes": 67433,
+      "sha256": "3165ae41e39a9391d383c2db086c4abd3915a3ff862fe9b8d5fd411b2b57d040"
     },
     "scripts/build.mjs": {
       "bytes": 1927,
@@ -964,8 +980,8 @@
       "sha256": "d9e6a54aaf69b06dbff04fd0e5ad4f1dec2f53202a0d222d1a42d385235b6c75"
     },
     "tests/audio-feedback-0243.test.ts": {
-      "bytes": 12503,
-      "sha256": "53cb5beaafe3c7a970cdd3002e78c52724f5b6e5fbeaba63e203cae41e578cfa"
+      "bytes": 13168,
+      "sha256": "a22cc5cf24440eed820b8d86bbb7a399358c560ba6731ebbd430ec6ba3c6c4b4"
     },
     "tests/audio-feedback-browser-fixture.ts": {
       "bytes": 5437,
@@ -1058,6 +1074,10 @@
     "tests/expedition.test.ts": {
       "bytes": 11715,
       "sha256": "5cd9a17dd33e63cc7b22336ea9b2f91c966ee2f2b314f4804ce247ca99cee2c7"
+    },
+    "tests/explore-keyboard.test.ts": {
+      "bytes": 7888,
+      "sha256": "12847ddb12aec9885eb9c2ade5d643a8412d98f0d13006ce1e142dd15501a986"
     },
     "tests/failure-handoff.test.ts": {
       "bytes": 8091,
@@ -1339,46 +1359,6 @@
       "bytes": 13076,
       "sha256": "f6ea18822fd232eb3e39ef902136b01a146d3abc7331b94acdf84778d46d03d8"
     },
-    "package.json": {
-      "bytes": 1038,
-      "sha256": "ca432301290284882459df7582d8f05c9305b07c88ed5e517287236e48697b5c"
-    },
-    "package-lock.json": {
-      "bytes": 17865,
-      "sha256": "fabd233e24375ae6833d3e1bda0c95cdb69abeb02799dac49d57244325828738"
-    },
-    "tsconfig.json": {
-      "bytes": 277,
-      "sha256": "17066573e67dfa5923a3a865cbab7e3c43b33f4e52375b0e095ea2d2978bbb23"
-    },
-    "godot/game.gd": {
-      "bytes": 12246,
-      "sha256": "1948b2b28f010d5e2f033695af41206d9b8fadf7dbc4695e7ed112f81eeabef5"
-    },
-    "docs/script-runtime-20261028.md": {
-      "bytes": 7890,
-      "sha256": "de9241193d0a03633b14bfd42709bf89d071cc73e28ba9ee676266e56c72010d"
-    },
-    "src/ui/art-binding.ts": {
-      "bytes": 222988,
-      "sha256": "a566b0bd221a0844f5e49cf0b26c6239daf5c80c63c3e1bf1b5e5a14ee71c0e0"
-    },
-    "src/ui/binding-kit.ts": {
-      "bytes": 10871,
-      "sha256": "494b871f1e107f35b1725dd42f762a3e3f5dcd75cda861c0f170ce1cacd2be24"
-    },
-    "src/ui/ui-art.ts": {
-      "bytes": 6274,
-      "sha256": "59d0eb2db824ac6172bdc5f53be5782d1cafc6fb2417ba98a2d008bd59370309"
-    },
-    "assets/ui/fonts/OFL-booksea-display.txt": {
-      "bytes": 4587,
-      "sha256": "6836e043746759975afcf33f0655692d4063a1ec4fb8dc375f3b5f80f580b080"
-    },
-    "assets/ui/fonts/OFL-booksea-latin.txt": {
-      "bytes": 4430,
-      "sha256": "7441302ea13698eb5a709557dc820c87acfb09e87ccbb82df929835c46b0bed1"
-    },
     "assets/ui/fonts/booksea-display.woff2": {
       "bytes": 264044,
       "sha256": "64c8e6cda0b9ec94bbc245e77f41513cdefc83128c65af67553d3120d4cded5b"
@@ -1390,6 +1370,14 @@
     "assets/ui/fonts/booksea-latin.woff2": {
       "bytes": 41336,
       "sha256": "d5514cb61f412cc46a868286d9a6c48577aba1f045da4e13d8324349489b02b5"
+    },
+    "assets/ui/fonts/OFL-booksea-display.txt": {
+      "bytes": 4587,
+      "sha256": "6836e043746759975afcf33f0655692d4063a1ec4fb8dc375f3b5f80f580b080"
+    },
+    "assets/ui/fonts/OFL-booksea-latin.txt": {
+      "bytes": 4430,
+      "sha256": "7441302ea13698eb5a709557dc820c87acfb09e87ccbb82df929835c46b0bed1"
     },
     "assets/ui/lobby-tall.webp": {
       "bytes": 174754,
@@ -1526,6 +1514,26 @@
     "assets/ui/veil/theater-frame.webp": {
       "bytes": 96370,
       "sha256": "dcca8de886ae68c466855233592fa28d78738659539f21fd5404a16544c49306"
+    },
+    "package.json": {
+      "bytes": 1038,
+      "sha256": "77418466a6333b8e2999e4b7484eb3fc744fa0c3c5cb59b84d8b74da54792a35"
+    },
+    "package-lock.json": {
+      "bytes": 17865,
+      "sha256": "cfb7b48da9f53388e0c9e35b0b4156eb8092230fd59dbbee14c6b88ba6369e35"
+    },
+    "tsconfig.json": {
+      "bytes": 277,
+      "sha256": "17066573e67dfa5923a3a865cbab7e3c43b33f4e52375b0e095ea2d2978bbb23"
+    },
+    "godot/game.gd": {
+      "bytes": 12471,
+      "sha256": "f373c61a385116daf57eb1420705e38b8c8b475f82c046ab096a0ddea642dd7b"
+    },
+    "docs/script-runtime-20261028.md": {
+      "bytes": 7890,
+      "sha256": "de9241193d0a03633b14bfd42709bf89d071cc73e28ba9ee676266e56c72010d"
     }
   }
 }
